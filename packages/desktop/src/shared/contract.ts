@@ -5,6 +5,7 @@ import { agentContract } from "./features/agent/contract";
 import { pluginsContract } from "./features/claude-code-plugins/contract";
 import { configContract } from "./features/config/contract";
 import { deeplinkContract } from "./features/deeplink/contract";
+import { devWorkflowContract } from "./features/dev-workflow/contract";
 import { electronContract } from "./features/electron/contract";
 import { fsContract } from "./features/fs/contract";
 import { llmContract } from "./features/llm/contract";
@@ -18,6 +19,7 @@ import { storageContract } from "./features/storage/contract";
 import { tokenUsageContract } from "./features/token-usage/contract";
 import { updaterContract } from "./features/updater/contract";
 import { utilsContract } from "./features/utils/contract";
+import { worktreeContract } from "./features/worktree/contract";
 import { changesContract } from "./plugins/changes/contract";
 import { gitContract } from "./plugins/git/contract";
 
@@ -26,6 +28,7 @@ export const contract = {
   agent: agentContract,
   deeplink: deeplinkContract,
   config: configContract,
+  devWorkflow: devWorkflowContract,
   electron: electronContract,
   fs: fsContract,
   llm: llmContract,
@@ -40,6 +43,7 @@ export const contract = {
   tokenUsage: tokenUsageContract,
   updater: updaterContract,
   utils: utilsContract,
+  worktree: worktreeContract,
   git: gitContract,
   changes: changesContract,
   window: {

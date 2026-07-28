@@ -40,6 +40,7 @@ import { mergeAgentContributions } from "../../core/plugin/contributions";
 const execFileAsync = promisify(execFile);
 import type { Provider } from "../../../shared/features/provider/types";
 import type { ConfigStore } from "../config/config-store";
+import type { DevWorkflowService } from "../dev-workflow/dev-workflow-service";
 import type { ProjectStore } from "../project/project-store";
 import type { TokenReporter } from "../token-usage/reporter";
 import type { RequestTracker } from "./request-tracker";
@@ -143,6 +144,7 @@ export class SessionManager {
     private powerBlocker: PowerBlockerService,
     private getAgentContributions: () => Contributions["agents"] = () => [],
     private tokenReporter?: TokenReporter,
+    private devWorkflowService?: DevWorkflowService,
   ) {}
 
   onLifecycle(listener: (event: SessionLifecycleEvent) => void): () => void {
@@ -185,6 +187,14 @@ export class SessionManager {
     const resolved = resolveClaudeCodeExecutable(
       this.configStore.get("claudeCodeBinPath") || undefined,
     );
+    // Dev-workflow mode overrides permissionMode (default = honor configStore)
+    const dwf = this.devWorkflowService?.get();
+    let permissionMode: import("@anthropic-ai/claude-agent-sdk").PermissionMode =
+      (this.configStore.get(
+        "permissionMode",
+      ) as import("@anthropic-ai/claude-agent-sdk").PermissionMode) ?? "default";
+    if (dwf?.mode === "plan") permissionMode = "plan";
+    else if (dwf?.mode === "dev") permissionMode = "bypassPermissions";
     return {
       sessionId,
       model,
@@ -194,7 +204,7 @@ export class SessionManager {
       settingSources: ["local", "project", "user"],
       enableFileCheckpointing: true,
       includePartialMessages: true,
-      permissionMode: this.configStore.get("permissionMode") ?? "default",
+      permissionMode,
       promptSuggestions: true,
       systemPrompt: {
         type: "preset",
@@ -1176,6 +1186,10 @@ export class SessionManager {
       .map((p) => p.text)
       .join("");
 
+    // Dev-workflow: prepend draft prefix to the user's message text (title仍用原始 text)
+    const draftPrefix = this.devWorkflowService?.get().draftPrefix?.trim() ?? "";
+    const finalText = draftPrefix ? `${draftPrefix}\n\n${text}` : text;
+
     // Emit lifecycle "created" on first message (not on createSession, so empty sessions don't appear)
     if (!this.emittedCreatedSessions.has(sessionId)) {
       this.emittedCreatedSessions.add(sessionId);
@@ -1214,8 +1228,8 @@ export class SessionManager {
 
     const content =
       imageBlocks.length > 0
-        ? [...(text ? [{ type: "text" as const, text }] : []), ...imageBlocks]
-        : text;
+        ? [...(finalText ? [{ type: "text" as const, text: finalText }] : []), ...imageBlocks]
+        : finalText;
 
     // Pre-turn snapshot: capture working tree state before Claude modifies files
     let preTurnRef: string | undefined;

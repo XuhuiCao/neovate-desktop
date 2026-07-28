@@ -16,6 +16,7 @@ import { RequestTracker } from "./features/agent/request-tracker";
 import { SessionManager } from "./features/agent/session-manager";
 import { PluginsService } from "./features/claude-code-plugins/plugins-service";
 import { ConfigStore } from "./features/config/config-store";
+import { DevWorkflowService } from "./features/dev-workflow/dev-workflow-service";
 import { handleNeovateFileProtocol, registerNeovateFileScheme } from "./features/file/protocol";
 import { FsService } from "./features/fs/fs-service";
 import { LlmService } from "./features/llm/llm-service";
@@ -30,12 +31,14 @@ import { SkillsService } from "./features/skills/skills-service";
 import { StateStore } from "./features/state/state-store";
 import { TokenReporter } from "./features/token-usage/reporter";
 import { UpdaterService } from "./features/updater/service";
+import { WorktreeService } from "./features/worktree/worktree-service";
 import browserPlugin from "./plugins/browser";
 import changesPlugin from "./plugins/changes";
 // import demoMcpLivePreviewPlugin from "./plugins/demo-mcp-live-preview";
 import editorPlugin from "./plugins/editor";
 import filesPlugin from "./plugins/files";
 import gitPlugin from "./plugins/git";
+import neoDesktopMcpPlugin from "./plugins/neo-desktop-mcp";
 import terminalPlugin from "./plugins/terminal";
 
 const log = debug("neovate:orpc");
@@ -92,6 +95,8 @@ process.on("unhandledRejection", (reason) => {
 const requestTracker = new RequestTracker();
 const powerBlocker = new PowerBlockerService(configStore);
 const tokenReporter = new TokenReporter();
+const stateStore = new StateStore();
+const devWorkflowService = new DevWorkflowService(stateStore);
 const sessionManager = new SessionManager(
   configStore,
   projectStore,
@@ -99,8 +104,8 @@ const sessionManager = new SessionManager(
   powerBlocker,
   () => mainApp.pluginManager.contributions.agents,
   tokenReporter,
+  devWorkflowService,
 );
-const stateStore = new StateStore();
 const fsService = new FsService();
 const llmService = new LlmService(configStore, shellEnvService);
 const mainApp = new MainApp({
@@ -112,6 +117,7 @@ const mainApp = new MainApp({
     editorPlugin,
     changesPlugin,
     browserPlugin,
+    neoDesktopMcpPlugin,
     // demoMcpLivePreviewPlugin,
   ],
   llmService,
@@ -121,6 +127,7 @@ const updaterService = new UpdaterService({
 });
 const pluginsService = new PluginsService();
 const notificationService = new NotificationService();
+const worktreeService = new WorktreeService();
 const skillsService = new SkillsService(projectStore, configStore, process.resourcesPath);
 const remoteControlService = new RemoteControlService(
   sessionManager,
@@ -137,6 +144,7 @@ const appContext: AppContext = {
   sessionManager,
   requestTracker,
   configStore,
+  devWorkflowService,
   fsService,
   llmService,
   notificationService,
@@ -147,6 +155,7 @@ const appContext: AppContext = {
   tokenReporter,
   remoteControlService,
   updaterService,
+  worktreeService,
   mainApp,
   storage: mainApp.getStorage(),
 };

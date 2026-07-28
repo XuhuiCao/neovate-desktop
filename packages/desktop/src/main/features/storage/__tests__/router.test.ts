@@ -28,6 +28,7 @@ beforeEach(() => {
     sessionManager: {} as any,
     requestTracker: new RequestTracker(),
     configStore: {} as any,
+    devWorkflowService: {} as any,
     llmService: {} as any,
     fsService: {} as any,
     notificationService: {} as any,
@@ -38,6 +39,7 @@ beforeEach(() => {
     mainApp: {} as any,
     stateStore: {} as any,
     updaterService: {} as any,
+    worktreeService: {} as any,
     remoteControlService: {} as any,
   };
 });

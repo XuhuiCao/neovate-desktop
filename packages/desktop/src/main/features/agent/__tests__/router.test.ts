@@ -17,6 +17,7 @@ function makeContext(overrides?: Partial<AppContext>): AppContext {
     } as unknown as SessionManager,
     requestTracker: new RequestTracker(),
     configStore: {} as any,
+    devWorkflowService: {} as any,
     llmService: {} as any,
     fsService: {} as any,
     notificationService: {} as any,
@@ -28,6 +29,7 @@ function makeContext(overrides?: Partial<AppContext>): AppContext {
     skillsService: {} as any,
     stateStore: {} as any,
     updaterService: {} as any,
+    worktreeService: {} as any,
     remoteControlService: {} as any,
     ...overrides,
   };
