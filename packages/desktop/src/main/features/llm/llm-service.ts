@@ -192,18 +192,22 @@ export class LlmService implements ILlmService {
           `Auxiliary LLM provider "${globalSel.provider}" is not available or disabled.`,
         );
       }
-      const model =
-        modelOverride ??
-        globalSel.model ??
-        provider.modelMap.model ??
-        Object.keys(provider.models)[0];
-      if (!model) {
-        throw new Error(`No model available for provider "${provider.name}".`);
+      // inherit 模式无显式 baseURL/apiKey，无法直接供 @anthropic-ai/sdk 使用，
+      // 落到 2b 用 SDK Default 凭据（~/.claude/settings.json / env）
+      if (provider.auth !== "inherit") {
+        const model =
+          modelOverride ??
+          globalSel.model ??
+          provider.modelMap.model ??
+          Object.keys(provider.models)[0];
+        if (!model) {
+          throw new Error(`No model available for provider "${provider.name}".`);
+        }
+        return {
+          provider: { id: provider.id, apiKey: provider.apiKey, baseURL: provider.baseURL },
+          model,
+        };
       }
-      return {
-        provider: { id: provider.id, apiKey: provider.apiKey, baseURL: provider.baseURL },
-        model,
-      };
     }
 
     // 2b. SDK Default — resolve credentials from env

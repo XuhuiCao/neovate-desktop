@@ -266,8 +266,8 @@ function EditorViewCore(props: { cwd: string }) {
           <img
             src={
               resolvedTheme === "dark"
-                ? "https://mdn.alipayobjects.com/huamei_puljkc/afts/img/A*hgaTTZvoTicAAAAAQDAAAAgAenyRAQ/original"
-                : "https://mdn.alipayobjects.com/huamei_puljkc/afts/img/A*Wrd1TL3S_pYAAAAAQFAAAAgAenyRAQ/original"
+                ? new URL("../../assets/images/files/editorLogoDark.png", import.meta.url).href
+                : new URL("../../assets/images/files/editorLogoLight.png", import.meta.url).href
             }
             alt="Editor Logo"
             className="w-32 h-24 object-contain"

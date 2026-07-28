@@ -167,7 +167,10 @@ let popupShortcut: PopupWindowShortcut | null = null;
 startupLog("app.whenReady waiting %s", elapsed());
 app.whenReady().then(async () => {
   startupLog("app.whenReady fired %s", elapsed());
-  electronApp.setAppUserModelId("com.neovateai.desktop");
+  // appId 与 electron-builder 一致：dev 用 .dev 后缀（修复历史遗留：此前 dev/prod 都用同一个 model id）
+  electronApp.setAppUserModelId(
+    import.meta.env.DEV ? "com.neovateai.desktop.dev" : "com.neovateai.desktop",
+  );
 
   await mainApp.start();
   startupLog("mainApp.start done %s", elapsed());

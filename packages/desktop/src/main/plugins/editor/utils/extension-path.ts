@@ -20,8 +20,12 @@ const log = debug("neovate:editor:extension");
  * - 0.1.5 refactor: 建立连接的接口名称调整、响应消息增加标识
  * - 0.1.6 feat: 支持通过editor 命令打开开发工具 & 修复editor 刷新恢复时，tabs.change 事件过早抛出的问题
  */
+// 开源版去内部 CDN：vsix 通过环境变量 NEOVATE_EXTENSION_URL 覆盖（指向自有 release 资源），
+// 默认指向本仓库 GitHub Release。neovate-code-extension 插件源码不在本仓库，需维护方自行
+// 构建 vsix 上传到 release 后此 URL 才可用。
 const RESOURCE_PATH =
-  "https://mdn.alipayobjects.com/portal_metor2/afts/file/A*ru2IS7aJVi8AAAAAQHAAAAgAegAAAQ"; // 0.1.6
+  process.env.NEOVATE_EXTENSION_URL ??
+  "https://github.com/neovateai/neovate-desktop/releases/download/v0.1.2/neovate-code-extension-0.1.6.vsix";
 const VSIX_FILENAME = "neovate-code-extension-0.1.6.vsix";
 
 export function ensureExtension(extDir: string): Promise<string> {

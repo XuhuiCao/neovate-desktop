@@ -1,8 +1,8 @@
 <div align="center">
-<img src="https://mdn.alipayobjects.com/huamei_9rin5s/afts/img/0uIJQaelzccAAAAAQCAAAAgADiB8AQFr/original" alt="Neovate Logo" width="60" />
+<img src="packages/desktop/build/icons/prod/icon.png" alt="Neovate Logo" width="60" />
 <br />
 <br />
-<img src="https://mdn.alipayobjects.com/huamei_9rin5s/afts/img/UdphTJIBImUAAAAAQKAAAAgADiB8AQFr/original" alt="Neovate Logo Text" width="160" />
+<h1>Neovate Desktop</h1>
 
 ### Desktop
 

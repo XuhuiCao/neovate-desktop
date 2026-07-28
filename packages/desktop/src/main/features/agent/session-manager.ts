@@ -440,7 +440,12 @@ export class SessionManager {
 
     // Build settings.env for provider credentials (flag settings layer = highest priority)
     let settingsEnv: Record<string, string> | undefined;
-    if (provider) {
+    if (provider && provider.auth === "inherit") {
+      // inherit 模式：不注入任何 Anthropic env，也不删除 ANTHROPIC_API_KEY，
+      // 让 SDK 自解析本机 Claude Code 登录态（OAuth / ~/.claude/settings.json）。
+      // 等价于历史上"未选 provider"的 SDK Default 路径。
+      log("initSession: provider=%s auth=inherit (SDK resolves credentials)", provider.name);
+    } else if (provider) {
       // Remove ANTHROPIC_API_KEY from process env to avoid conflicts
       delete env.ANTHROPIC_API_KEY;
 

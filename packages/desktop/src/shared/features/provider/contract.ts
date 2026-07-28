@@ -22,12 +22,13 @@ export const providerContract = {
     .input(
       z.object({
         name: z.string().min(1),
-        baseURL: z.string().url(),
-        apiKey: z.string().min(1),
-        models: z
-          .record(z.string(), providerModelEntrySchema)
-          .refine((m) => Object.keys(m).length > 0, "At least one model required"),
-        modelMap: providerModelMapSchema,
+        auth: z.enum(["inherit", "api-key"]).optional(),
+        // inherit 模式允许 baseURL/apiKey/models 缺省（SDK 自解析登录态）；
+        // 完整性校验由 main router 兜底。
+        baseURL: z.string().optional(),
+        apiKey: z.string().optional(),
+        models: z.record(z.string(), providerModelEntrySchema).optional(),
+        modelMap: providerModelMapSchema.optional(),
         envOverrides: z.record(z.string(), z.string()).optional(),
         builtInId: z.string().optional(),
         dismissedSyncModels: z.array(z.string()).optional(),
@@ -41,12 +42,10 @@ export const providerContract = {
         id: z.string(),
         name: z.string().min(1).optional(),
         enabled: z.boolean().optional(),
-        baseURL: z.string().url().optional(),
-        apiKey: z.string().min(1).optional(),
-        models: z
-          .record(z.string(), providerModelEntrySchema)
-          .refine((m) => Object.keys(m).length > 0, "At least one model required")
-          .optional(),
+        auth: z.enum(["inherit", "api-key"]).optional(),
+        baseURL: z.string().optional(),
+        apiKey: z.string().optional(),
+        models: z.record(z.string(), providerModelEntrySchema).optional(),
         modelMap: providerModelMapSchema.optional(),
         envOverrides: z.record(z.string(), z.string()).optional(),
         dismissedSyncModels: z.array(z.string()).optional(),

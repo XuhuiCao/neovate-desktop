@@ -2,6 +2,23 @@ import type { ProviderTemplate } from "./built-in";
 
 export const BUILT_IN_PROVIDER_TEMPLATES: ProviderTemplate[] = [
   {
+    // Claude 订阅登录（inherit）：不注入任何 Anthropic env，SDK 自解析本机登录态。
+    // baseURL/apiKey 留空，models 留空让 SDK 原生探测可用模型。
+    id: "anthropic-subscription",
+    name: "Claude Subscription",
+    description: {
+      "en-US": "Sign in with your Claude subscription (OAuth). No API key needed.",
+      "zh-CN": "使用 Claude 订阅登录（OAuth），无需 API Key。",
+    },
+    baseURL: "",
+    docURL: "https://docs.claude.com/en/docs/claude-code/overview",
+    models: {},
+    modelMap: {},
+    envOverrides: {},
+    auth: "inherit",
+    badges: ["recommended"],
+  },
+  {
     id: "anthropic",
     name: "Anthropic",
     description: {
@@ -23,6 +40,7 @@ export const BUILT_IN_PROVIDER_TEMPLATES: ProviderTemplate[] = [
       opus: "claude-opus-4-6",
     },
     envOverrides: {},
+    auth: "api-key",
   },
   {
     id: "openrouter",
@@ -48,6 +66,7 @@ export const BUILT_IN_PROVIDER_TEMPLATES: ProviderTemplate[] = [
     },
     modelMap: {},
     envOverrides: {},
+    auth: "api-key",
   },
   {
     id: "glm-cn",
@@ -67,6 +86,7 @@ export const BUILT_IN_PROVIDER_TEMPLATES: ProviderTemplate[] = [
       model: "glm-5",
     },
     envOverrides: {},
+    auth: "api-key",
   },
   {
     id: "glm-global",
@@ -85,6 +105,7 @@ export const BUILT_IN_PROVIDER_TEMPLATES: ProviderTemplate[] = [
       model: "glm-5",
     },
     envOverrides: {},
+    auth: "api-key",
   },
   {
     id: "kimi",
@@ -102,6 +123,7 @@ export const BUILT_IN_PROVIDER_TEMPLATES: ProviderTemplate[] = [
       model: "kimi-for-coding",
     },
     envOverrides: {},
+    auth: "api-key",
   },
   {
     id: "moonshot",
@@ -119,6 +141,7 @@ export const BUILT_IN_PROVIDER_TEMPLATES: ProviderTemplate[] = [
       model: "sonnet",
     },
     envOverrides: {},
+    auth: "api-key",
   },
   {
     id: "minimax-cn",
@@ -137,6 +160,7 @@ export const BUILT_IN_PROVIDER_TEMPLATES: ProviderTemplate[] = [
       model: "minimax-m2.5",
     },
     envOverrides: {},
+    auth: "api-key",
   },
   {
     id: "minimax-global",
@@ -155,6 +179,7 @@ export const BUILT_IN_PROVIDER_TEMPLATES: ProviderTemplate[] = [
       model: "minimax-m2.5",
     },
     envOverrides: {},
+    auth: "api-key",
   },
   {
     id: "bailian",
@@ -179,6 +204,7 @@ export const BUILT_IN_PROVIDER_TEMPLATES: ProviderTemplate[] = [
       model: "kimi-k2.5",
     },
     envOverrides: {},
+    auth: "api-key",
   },
   {
     id: "zenmux",
@@ -203,5 +229,6 @@ export const BUILT_IN_PROVIDER_TEMPLATES: ProviderTemplate[] = [
     },
     modelMap: {},
     envOverrides: {},
+    auth: "api-key",
   },
 ];

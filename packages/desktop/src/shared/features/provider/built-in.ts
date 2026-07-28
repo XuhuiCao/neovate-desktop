@@ -1,4 +1,4 @@
-import type { ProviderModelMap } from "./types";
+import type { ProviderAuth, ProviderModelMap } from "./types";
 
 import { resolveLocalizedString } from "../../i18n";
 
@@ -19,6 +19,8 @@ export type ProviderTemplate = {
   envOverrides: Record<string, string>;
   apiFormat?: "anthropic";
   badges?: ProviderBadgeType[];
+  /** 授权模式；缺省视为 `api-key`（向后兼容历史模板）。`inherit` 模式 baseURL/apiKey 可为空。 */
+  auth?: ProviderAuth;
 };
 
 /** @deprecated Use `ProviderTemplate` instead */
