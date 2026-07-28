@@ -81,11 +81,20 @@ export class LlmService implements ILlmService {
   }
 
   async queryMessages(messages: LlmMessage[], opts?: LlmQueryOptions): Promise<LlmQueryResult> {
+    const usedAuxiliary = this.resolveExplicitSelection() !== null;
     const { provider, model } = await this.resolveForCall(opts?.model);
 
-    const client = this.getOrCreateClient(provider);
     const maxTokens = opts?.maxTokens ?? DEFAULT_MAX_TOKENS;
     const temperature = opts?.temperature ?? DEFAULT_TEMPERATURE;
+    const msgPayload = messages.map((m) => ({ role: m.role, content: m.content }));
+
+    const requestBody = {
+      model,
+      max_tokens: maxTokens,
+      temperature,
+      messages: msgPayload,
+      ...(opts?.system ? { system: opts.system } : {}),
+    };
 
     log(
       "queryMessages: provider=%s model=%s maxTokens=%d temperature=%s messages=%d",
@@ -96,15 +105,77 @@ export class LlmService implements ILlmService {
       messages.length,
     );
 
+    const startTime = Date.now();
+    try {
+      return await this.doRequest(requestBody, provider, opts?.signal);
+    } catch (err) {
+      const durationMs = Date.now() - startTime;
+      const headers = (err as { headers?: Headers }).headers;
+      log(
+        "queryMessages failed: durationMs=%d status=%s name=%s message=%s requestId=%s",
+        durationMs,
+        (err as { status?: number }).status ?? "n/a",
+        err instanceof Error ? err.name : "unknown",
+        err instanceof Error ? err.message : String(err),
+        headers?.get?.("request-id") ?? "n/a",
+      );
+
+      // Only retry on primary when the call used the auxiliary selection;
+      // a primary call that fails has no further fallback.
+      if (!usedAuxiliary) throw err;
+
+      // Fallback to primary model
+      let fallback: { provider: { id: string; apiKey: string; baseURL: string }; model: string };
+      try {
+        fallback = await this.resolvePrimaryFallback(opts?.model);
+      } catch {
+        throw err;
+      }
+
+      // If primary resolves to the same provider+model, retrying is pointless.
+      if (fallback.provider.id === provider.id && fallback.model === model) {
+        throw err;
+      }
+
+      log(
+        "queryMessages retrying with primary model: provider=%s model=%s",
+        fallback.provider.id,
+        fallback.model,
+      );
+
+      return await this.doRequest(
+        { ...requestBody, model: fallback.model },
+        fallback.provider,
+        opts?.signal,
+      );
+    }
+  }
+
+  private async doRequest(
+    requestBody: {
+      model: string;
+      max_tokens: number;
+      temperature: number;
+      messages: { role: string; content: string }[];
+      system?: string;
+    },
+    provider: { id: string; apiKey: string; baseURL: string },
+    signal?: AbortSignal,
+  ): Promise<LlmQueryResult> {
+    const client = this.getOrCreateClient(provider);
+
     const response = await client.messages.create(
       {
-        model,
-        max_tokens: maxTokens,
-        temperature,
-        messages: messages.map((m) => ({ role: m.role, content: m.content })),
-        ...(opts?.system ? { system: opts.system } : {}),
+        model: requestBody.model,
+        max_tokens: requestBody.max_tokens,
+        temperature: requestBody.temperature,
+        messages: requestBody.messages.map((m) => ({
+          role: m.role as "user" | "assistant",
+          content: m.content,
+        })),
+        ...(requestBody.system ? { system: requestBody.system } : {}),
       },
-      opts?.signal ? { signal: opts.signal } : undefined,
+      signal ? { signal } : undefined,
     );
 
     const content = response.content
