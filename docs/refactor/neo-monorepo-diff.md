@@ -168,3 +168,20 @@ SDK 0.3.x 升级是 session-manager/agent 域改造的前提，应与 agent 域�
 - skills builtin tab/skill-initials
 - deeplink handle endpoint + SessionNew/ResumeDeeplinkData
 - llm 双 provider fallback
+
+### 已完成（追加 3）
+
+- ✅ worktree 完整子树（types + new-branch/new-worktree dialog；5 文件因强依赖 draft-store/cloud 跳过）
+- ✅ settings archived-sessions + notifications panel（+ unarchiveSession/agentNotification config/notification 纯类型/use-session-items/useOptionalRelativeTime）
+- ✅ project clone 对齐（clone-dialog + git clone contract/main clone-service + pickCloneDirectory/resolveCloneTargetDir）
+
+### 进行中
+
+- 🔄 llm 双 provider fallback + deeplink handle/SessionNew/ResumeDeeplinkData
+
+### 评估为低价值/跳过
+
+- command-palette 对齐（730→461 行差异多为内部业务命令，开源命令已够用）
+- skills builtin tab（框架可迁但 builtin skills 内容全内部 @antskill，无内容价值）
+- feedback panel（DIMA/AFTS 不可迁）
+- agent 域 draft-store/branch-switcher/cloud 系（强依赖内部多 draft/cloud 体系）
