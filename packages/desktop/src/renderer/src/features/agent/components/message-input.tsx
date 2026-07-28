@@ -456,10 +456,23 @@ export function MessageInput({
       const files = e.target.files;
       log("handleFileSelect: files=%d", files?.length ?? 0);
       if (!files || files.length === 0) return;
-      const imageFiles = Array.from(files).filter((f) => f.type.startsWith("image/"));
-      log("handleFileSelect: imageFiles=%d", imageFiles.length);
-      if (imageFiles.length === 0) return;
-      Promise.all(imageFiles.map(readFileAsAttachment)).then(addAttachments);
+      // 接受图片 / PDF / 文本类附件（main 侧按 mediaType 构造 image/document/text block）。
+      const acceptable = Array.from(files).filter((f) => {
+        const mt = f.type;
+        return (
+          mt.startsWith("image/") ||
+          mt === "application/pdf" ||
+          mt.startsWith("text/") ||
+          mt === "application/json" ||
+          mt === "application/javascript" ||
+          mt === "application/xml" ||
+          mt === "application/yaml" ||
+          mt === "application/x-yaml"
+        );
+      });
+      log("handleFileSelect: acceptable=%d", acceptable.length);
+      if (acceptable.length === 0) return;
+      Promise.all(acceptable.map(readFileAsAttachment)).then(addAttachments);
       e.target.value = "";
     },
     [addAttachments],
@@ -470,7 +483,7 @@ export function MessageInput({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept="image/*,application/pdf,text/*,.json,.js,.ts,.tsx,.jsx,.yaml,.yml,.xml,.csv,.md"
         multiple
         className="hidden"
         aria-label={t("chat.attachImages")}

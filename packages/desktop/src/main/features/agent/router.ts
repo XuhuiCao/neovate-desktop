@@ -65,6 +65,10 @@ export const agentRouter = os.agent.router({
     await context.sessionManager.renameSession(input.sessionId, input.title);
   }),
 
+  refreshContributions: os.agent.refreshContributions.handler(async ({ context }) => {
+    return context.sessionManager.refreshAgentContributions();
+  }),
+
   updateSessionStartTime: os.agent.updateSessionStartTime.handler(({ input, context }) => {
     context.projectStore.setSessionStartTime(input.sessionId, input.createdAt);
   }),

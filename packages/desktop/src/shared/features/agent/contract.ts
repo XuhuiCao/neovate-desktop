@@ -30,6 +30,9 @@ export const agentContract = {
     .input(z.object({ sessionId: z.string(), title: z.string() }))
     .output(type<void>()),
 
+  /** 重跑插件 configContributions，刷新 agent 贡献（MCP server/hooks）。新 session 起生效。 */
+  refreshContributions: oc.input(z.object({})).output(type<{ refreshed: boolean }>()),
+
   updateSessionStartTime: oc
     .input(z.object({ sessionId: z.string(), createdAt: z.string() }))
     .output(type<void>()),

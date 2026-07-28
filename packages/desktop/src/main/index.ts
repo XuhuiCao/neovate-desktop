@@ -105,6 +105,7 @@ const sessionManager = new SessionManager(
   () => mainApp.pluginManager.contributions.agents,
   tokenReporter,
   devWorkflowService,
+  () => mainApp.refreshContributions(),
 );
 const fsService = new FsService();
 const llmService = new LlmService(configStore, shellEnvService);

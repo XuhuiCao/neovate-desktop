@@ -145,7 +145,25 @@ export class SessionManager {
     private getAgentContributions: () => Contributions["agents"] = () => [],
     private tokenReporter?: TokenReporter,
     private devWorkflowService?: DevWorkflowService,
+    private refreshPluginContributions?: () => Promise<void>,
   ) {}
+
+  /**
+   * 刷新插件 agent 贡献（重跑 `configContributions`）。
+   *
+   * SDK `query` 的 options（含 mcpServers/hooks）在 session init 时定型，已存活 session
+   * 无法热替换；此处刷新后，**新创建的 session** 会通过 `getAgentContributions()`
+   * 实时读取最新贡献。返回 refreshed 表示是否实际触发了刷新。
+   */
+  async refreshAgentContributions(sessionId?: string): Promise<{ refreshed: boolean }> {
+    log("refreshAgentContributions: sessionId=%s", sessionId ?? "(all)");
+    if (!this.refreshPluginContributions) {
+      log("refreshAgentContributions: no refresh hook wired");
+      return { refreshed: false };
+    }
+    await this.refreshPluginContributions();
+    return { refreshed: true };
+  }
 
   onLifecycle(listener: (event: SessionLifecycleEvent) => void): () => void {
     this.lifecycleListeners.push(listener);
@@ -1207,29 +1225,78 @@ export class SessionManager {
       });
     }
 
-    const imageBlocks = message.parts
-      .filter(
-        (p): p is { type: "file"; mediaType: string; url: string } =>
-          p.type === "file" &&
-          typeof (p as any).mediaType === "string" &&
-          (p as any).mediaType.startsWith("image/"),
-      )
-      .map((p) => {
-        const base64 = p.url.startsWith("data:") ? p.url.split(",")[1] : p.url;
-        return {
-          type: "image" as const,
+    // UIMessage -> SDKUserMessage: build content blocks from file parts + text.
+    // 支持 image / PDF / 文本类内联，其他二进制以 @filename 路径引用注入文本。
+    const TEXT_MEDIA_TYPES = new Set([
+      "application/json",
+      "application/javascript",
+      "application/typescript",
+      "application/xml",
+      "application/x-yaml",
+      "application/yaml",
+    ]);
+    const isTextMedia = (mt: string) => mt.startsWith("text/") || TEXT_MEDIA_TYPES.has(mt);
+
+    const contentBlocks: Array<
+      | { type: "text"; text: string }
+      | {
+          type: "image";
           source: {
-            type: "base64" as const,
-            media_type: p.mediaType as "image/jpeg" | "image/png" | "image/gif" | "image/webp",
+            type: "base64";
+            media_type: "image/jpeg" | "image/png" | "image/gif" | "image/webp";
+            data: string;
+          };
+        }
+      | {
+          type: "document";
+          source: { type: "base64"; media_type: "application/pdf"; data: string };
+        }
+    > = [];
+    const pathRefs: string[] = [];
+
+    for (const p of message.parts) {
+      if (p.type !== "file") continue;
+      const mediaType = (p as { mediaType?: string }).mediaType;
+      const url = (p as { url?: string }).url;
+      const filename = (p as { filename?: string }).filename;
+      if (!mediaType || !url) continue;
+      const base64 = url.startsWith("data:") ? url.split(",")[1] : url;
+
+      if (mediaType.startsWith("image/")) {
+        contentBlocks.push({
+          type: "image",
+          source: {
+            type: "base64",
+            media_type: mediaType as "image/jpeg" | "image/png" | "image/gif" | "image/webp",
             data: base64,
           },
-        };
-      });
+        });
+      } else if (mediaType === "application/pdf") {
+        contentBlocks.push({
+          type: "document",
+          source: { type: "base64", media_type: "application/pdf", data: base64 },
+        });
+      } else if (isTextMedia(mediaType)) {
+        const decoded = Buffer.from(base64, "base64").toString("utf-8");
+        contentBlocks.push({
+          type: "text",
+          text: `<attachment:${filename ?? "file"}>\n${decoded}`,
+        });
+      } else {
+        // 无法内联的二进制：以 @filename 路径引用形式注入文本提示
+        pathRefs.push(filename ?? "file");
+      }
+    }
 
+    const pathRefText = pathRefs.length > 0 ? pathRefs.map((f) => `@${f}`).join(" ") : "";
+    const combinedText = [finalText, pathRefText].filter(Boolean).join("\n\n");
     const content =
-      imageBlocks.length > 0
-        ? [...(finalText ? [{ type: "text" as const, text: finalText }] : []), ...imageBlocks]
-        : finalText;
+      contentBlocks.length > 0
+        ? [
+            ...(combinedText ? [{ type: "text" as const, text: combinedText }] : []),
+            ...contentBlocks,
+          ]
+        : combinedText;
 
     // Pre-turn snapshot: capture working tree state before Claude modifies files
     let preTurnRef: string | undefined;
