@@ -1,3 +1,5 @@
+import { Button } from "@neo/ui/components/button";
+import { Spinner } from "@neo/ui/components/spinner";
 import debug from "debug";
 import { Plus, RefreshCw, Store, Trash2 } from "lucide-react";
 import { useState } from "react";
@@ -5,8 +7,6 @@ import { useTranslation } from "react-i18next";
 
 import type { Marketplace } from "../../../../../shared/features/claude-code-plugins/types";
 
-import { Button } from "../../../components/ui/button";
-import { Spinner } from "../../../components/ui/spinner";
 import { client } from "../../../orpc";
 import { AddMarketplaceModal } from "./add-marketplace-modal";
 

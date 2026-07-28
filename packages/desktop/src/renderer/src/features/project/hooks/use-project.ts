@@ -1,9 +1,9 @@
+import { toastManager } from "@neo/ui/components/toast";
 import { ORPCError } from "@orpc/client";
 import debug from "debug";
 import { useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
-import { toastManager } from "../../../components/ui/toast";
 import { client } from "../../../orpc";
 import { useProjectStore } from "../store";
 

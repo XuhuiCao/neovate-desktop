@@ -1,7 +1,6 @@
 export type {
   PluginViewContributions,
   PluginContributions,
-  SecondarySidebarView,
   ContentPanelView,
   WindowContribution,
 } from "./contributions";

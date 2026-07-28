@@ -1,5 +1,6 @@
 import { Comment01Icon, HelpCircleIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Spinner } from "@neo/ui/components/spinner";
 import debug from "debug";
 import { Archive, Circle, MessageCircle, Pin, PinOff } from "lucide-react";
 import { memo, useState, type MouseEvent } from "react";
@@ -7,7 +8,6 @@ import { useTranslation } from "react-i18next";
 
 import type { TurnResult } from "../hooks/use-unseen-turn-result";
 
-import { Spinner } from "../../../components/ui/spinner";
 import { useRelativeTime } from "../../../hooks/use-relative-time";
 import { cn } from "../../../lib/utils";
 import { useConfigStore } from "../../config/store";

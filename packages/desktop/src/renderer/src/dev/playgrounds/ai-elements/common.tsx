@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 
+import { ScrollArea } from "@neo/ui/components/scroll-area";
 import { useEffect, useRef } from "react";
 
-import { ScrollArea } from "../../../components/ui/scroll-area";
 import { cn } from "../../../lib/utils";
 
 export const rendererRoot =

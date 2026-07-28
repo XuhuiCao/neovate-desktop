@@ -27,19 +27,12 @@ const plugin: RendererPlugin = {
 
   configViewContributions() {
     return {
-      activityBarItems: [
+      contentPanelViews: [
         {
-          id: "search",
+          viewType: "search",
+          name: { "en-US": "Search", "zh-CN": "搜索" },
           icon: SearchIcon,
-          tooltip: "Search",
-          order: 20,
-          action: { type: "secondarySidebarView", viewId: "search" },
-        },
-      ],
-      secondarySidebarViews: [
-        {
-          id: "search",
-          title: "Search",
+          singleton: true,
           deactivation: "offscreen",
           component: () => import("./search-view"),
         },

@@ -1,10 +1,10 @@
+import { Button } from "@neo/ui/components/button";
+import { ScrollArea } from "@neo/ui/components/scroll-area";
 import { useState } from "react";
 import { useStore } from "zustand";
 
 import type { ContentPanelStoreState } from "../../features/content-panel";
 
-import { Button } from "../../components/ui/button";
-import { ScrollArea } from "../../components/ui/scroll-area";
 import { usePluginContext, useRendererApp } from "../../core/app";
 import { useContentPanelViewContext } from "../../features/content-panel";
 

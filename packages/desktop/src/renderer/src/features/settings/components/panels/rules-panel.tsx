@@ -1,3 +1,5 @@
+import { Button } from "@neo/ui/components/button";
+import { Spinner } from "@neo/ui/components/spinner";
 import debug from "debug";
 import {
   AlertTriangle,
@@ -14,8 +16,6 @@ import { useTranslation } from "react-i18next";
 
 import type { ResolvedReference } from "../../../../../../shared/features/rules/contract";
 
-import { Button } from "../../../../components/ui/button";
-import { Spinner } from "../../../../components/ui/spinner";
 import { client } from "../../../../orpc";
 import { useSettingsStore } from "../../store";
 

@@ -1,6 +1,7 @@
 import type { FileUIPart } from "ai";
 import type { StickToBottomContext } from "use-stick-to-bottom";
 
+import { Button } from "@neo/ui/components/button";
 import debug from "debug";
 import { ExternalLink, SquarePen } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -12,7 +13,6 @@ import {
   ConversationContent,
   ConversationScrollButton,
 } from "../../components/ai-elements/conversation";
-import { Button } from "../../components/ui/button";
 import { claudeCodeChatManager } from "../../features/agent/chat-manager";
 import { MessageInput } from "../../features/agent/components/message-input";
 import { MessageParts } from "../../features/agent/components/message-parts";

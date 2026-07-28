@@ -1,11 +1,4 @@
-import debug from "debug";
-import { CodeIcon } from "lucide-react";
-import { CheckIcon, FileText } from "lucide-react";
-import { useEffect, useState } from "react";
-
-import type { DevMode, DevWorkflowConfig } from "../../../../shared/features/dev-workflow/contract";
-
-import { Button } from "../../components/ui/button";
+import { Button } from "@neo/ui/components/button";
 import {
   Menu,
   MenuGroup,
@@ -14,7 +7,14 @@ import {
   MenuPopup,
   MenuSeparator,
   MenuTrigger,
-} from "../../components/ui/menu";
+} from "@neo/ui/components/menu";
+import debug from "debug";
+import { CodeIcon } from "lucide-react";
+import { CheckIcon, FileText } from "lucide-react";
+import { useEffect, useState } from "react";
+
+import type { DevMode, DevWorkflowConfig } from "../../../../shared/features/dev-workflow/contract";
+
 import { client } from "../../orpc";
 
 const log = debug("neovate:dev-workflow");

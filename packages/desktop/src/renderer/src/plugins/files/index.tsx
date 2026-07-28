@@ -27,19 +27,12 @@ const plugin: RendererPlugin = {
 
   configViewContributions() {
     return {
-      activityBarItems: [
+      contentPanelViews: [
         {
-          id: "files",
+          viewType: "files",
+          name: { "en-US": "Files", "zh-CN": "文件" },
           icon: FilesIcon,
-          tooltip: "Files",
-          order: 10,
-          action: { type: "secondarySidebarView", viewId: "files" },
-        },
-      ],
-      secondarySidebarViews: [
-        {
-          id: "files",
-          title: "Files",
+          singleton: true,
           deactivation: "offscreen",
           component: () => import("./files-view"),
         },

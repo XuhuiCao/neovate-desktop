@@ -52,7 +52,6 @@ describe("RendererApp", () => {
           primarySidebar: { width: 300, collapsed: false },
           chatPanel: { width: 500, collapsed: false },
           contentPanel: { width: 300, collapsed: false },
-          secondarySidebar: { width: 240, collapsed: true, activeView: "git" },
         },
       });
 
@@ -94,7 +93,6 @@ describe("RendererApp", () => {
           primarySidebar: { width: 300, collapsed: false },
           chatPanel: { width: 500, collapsed: false },
           contentPanel: { width: 300, collapsed: true },
-          secondarySidebar: { width: 240, collapsed: true, activeView: "git" },
         },
       });
 

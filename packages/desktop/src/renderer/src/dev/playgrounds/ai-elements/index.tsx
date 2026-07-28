@@ -1,6 +1,6 @@
+import { ScrollArea } from "@neo/ui/components/scroll-area";
 import { useState } from "react";
 
-import { ScrollArea } from "../../../components/ui/scroll-area";
 import { cn } from "../../../lib/utils";
 import { ChatPlayground } from "./chat-playground";
 import { SidebarButton, SidebarGroupLabel } from "./common";

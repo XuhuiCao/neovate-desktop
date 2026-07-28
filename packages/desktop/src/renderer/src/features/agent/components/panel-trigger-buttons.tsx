@@ -1,9 +1,10 @@
 import type { LucideIcon } from "lucide-react";
 
-import { Puzzle, SquarePen, Wand2 } from "lucide-react";
+import { Puzzle, Search, SquarePen, Wand2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { layoutStore, useLayoutStore } from "../../../components/app-layout/store";
+import { useCommandPaletteStore } from "../../../features/command-palette/store";
 import { useNewSession } from "../hooks/use-new-session";
 
 function SidebarActionButton({
@@ -44,6 +45,7 @@ export function PanelTriggerGroup({ projectPath }: { projectPath?: string }) {
   const { createNewSession } = useNewSession();
   const fullRightPanelId = useLayoutStore((s) => s.fullRightPanelId);
   const openFullRightPanel = useLayoutStore((s) => s.openFullRightPanel);
+  const openCommandPalette = useCommandPaletteStore((s) => s.open);
 
   return (
     <div className="mb-2.5 flex flex-col gap-0.5">
@@ -52,6 +54,11 @@ export function PanelTriggerGroup({ projectPath }: { projectPath?: string }) {
         label={t("session.newChat")}
         onClick={() => projectPath && createNewSession(projectPath)}
         disabled={!projectPath}
+      />
+      <SidebarActionButton
+        icon={Search}
+        label={t("sidebar.commandPalette")}
+        onClick={openCommandPalette}
       />
       <SidebarActionButton
         icon={Wand2}

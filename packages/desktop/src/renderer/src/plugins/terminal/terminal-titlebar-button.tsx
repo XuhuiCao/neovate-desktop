@@ -1,12 +1,12 @@
 import { ComputerTerminal01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Button } from "@neo/ui/components/button";
 import { useStore } from "zustand";
 
 // TODO: Replace direct store imports with app-level APIs once available.
 // useLayoutStore → app.workbench.layout.store (needs store exposure on WorkbenchLayoutService)
 // useProjectStore → app.project reactive hook (needs useSyncExternalStore wrapper)
 import { useLayoutStore } from "../../components/app-layout/store";
-import { Button } from "../../components/ui/button";
 import { useRendererApp } from "../../core/app";
 import { useProjectStore } from "../../features/project/store";
 import { cn } from "../../lib/utils";

@@ -1,5 +1,6 @@
 import { FolderIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Button } from "@neo/ui/components/button";
 import { MessageCircle } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useCallback } from "react";
@@ -8,7 +9,6 @@ import { useTranslation } from "react-i18next";
 import { APP_NAME } from "../../../../../shared/constants";
 import { PLAYGROUND_PROJECT_ID } from "../../../../../shared/features/project/constants";
 import { getLogoUrl } from "../../../assets/images";
-import { Button } from "../../../components/ui/button";
 import { ProjectSelector } from "../../project/components/project-selector";
 import { useProject } from "../../project/hooks/use-project";
 

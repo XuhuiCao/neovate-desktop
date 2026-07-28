@@ -11,7 +11,6 @@ function makeCtx(overrides: Partial<LayoutContext> = {}): LayoutContext {
       primarySidebar: { width: 300, collapsed: false },
       chatPanel: { width: 500, collapsed: false },
       contentPanel: { width: 300, collapsed: true },
-      secondarySidebar: { width: 240, collapsed: true },
     },
     ...overrides,
   };
@@ -30,9 +29,9 @@ describe("open behaviors", () => {
       const fn = open.splitWith(300, 0.5);
       const ctx = makeCtx();
       // storedWidth === defaultWidth → first open
-      // window=1200, used = 40+8 (fixed) + 300+5 (primary) + 500+5 (chat) = 858
-      // available = 1200 - 858 - 5 (new handle) = 337
-      // result = max(300, floor(337 * 0.5)) = 300
+      // window=1200, used = 8 (edge) + 300+5 (primary) + 500+5 (chat) = 818
+      // available = 1200 - 818 - 5 (new handle) = 377
+      // result = max(300, floor(377 * 0.5)) = 300
       expect(fn(300, ctx)).toBe(300);
     });
 

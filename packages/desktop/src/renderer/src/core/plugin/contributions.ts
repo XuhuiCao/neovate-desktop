@@ -13,8 +13,6 @@ const log = debug("neovate:plugin");
 
 /** View/UI contributions — things that register visual slots */
 export interface PluginViewContributions {
-  activityBarItems?: ActivityBarItem[];
-  secondarySidebarViews?: SecondarySidebarView[];
   contentPanelViews?: ContentPanelView[];
   primaryTitlebarItems?: TitlebarItem[];
   secondaryTitlebarItems?: TitlebarItem[];
@@ -24,20 +22,6 @@ export interface PluginViewContributions {
 export interface PluginContributions {
   providerTemplates?: ProviderTemplate[];
   externalUriOpeners?: ExternalUriOpenerContribution[];
-}
-export interface ActivityBarItem {
-  id: string;
-  icon: React.ComponentType<{ className?: string }>;
-  tooltip: string;
-  order?: number;
-  action: { type: "secondarySidebarView"; viewId: string };
-}
-
-export interface SecondarySidebarView {
-  id: string;
-  title: string;
-  deactivation?: "hidden" | "offscreen" | "activity" | "unmount"; // default "activity"
-  component: () => Promise<{ default: React.ComponentType }>;
 }
 
 export interface ContentPanelView {

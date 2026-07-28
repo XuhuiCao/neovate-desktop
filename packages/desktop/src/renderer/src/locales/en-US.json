@@ -442,6 +442,7 @@
   "sidebar.showContentPanel": "Show content panel",
   "sidebar.sessions": "Sessions",
   "sidebar.filter": "Filter",
+  "sidebar.commandPalette": "Search",
   "sidebar.organize": "Organize",
   "sidebar.organize.byProject": "By project",
   "sidebar.organize.chronological": "Chronological list",
@@ -642,5 +643,7 @@
   "onboarding.apiKey.save": "Save & Connect",
   "onboarding.apiKey.error.required": "Base URL, API Key and Model are required.",
   "onboarding.apiKey.error.invalidURL": "Base URL is not a valid URL.",
-  "onboarding.skip": "Skip for now"
+  "onboarding.skip": "Skip for now",
+  "settings.mcp.title": "MCP",
+  "settings.mcp.comingSoon": "MCP configuration coming soon..."
 }

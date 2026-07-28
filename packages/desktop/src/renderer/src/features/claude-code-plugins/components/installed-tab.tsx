@@ -1,3 +1,7 @@
+import { Badge } from "@neo/ui/components/badge";
+import { Button } from "@neo/ui/components/button";
+import { Spinner } from "@neo/ui/components/spinner";
+import { Switch } from "@neo/ui/components/switch";
 import debug from "debug";
 import { ArrowUpCircle, RefreshCw } from "lucide-react";
 import { useState } from "react";
@@ -9,10 +13,6 @@ import type {
 } from "../../../../../shared/features/claude-code-plugins/types";
 import type { Project } from "../../../../../shared/features/project/types";
 
-import { Badge } from "../../../components/ui/badge";
-import { Button } from "../../../components/ui/button";
-import { Spinner } from "../../../components/ui/spinner";
-import { Switch } from "../../../components/ui/switch";
 import { client } from "../../../orpc";
 import { PluginDetailModal } from "./plugin-detail-modal";
 

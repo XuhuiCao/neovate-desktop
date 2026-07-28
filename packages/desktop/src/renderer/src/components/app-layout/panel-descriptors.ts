@@ -31,15 +31,6 @@ export const PANEL_DESCRIPTORS: PanelDescriptor[] = [
     open: open.splitWith(300, 0.5),
     overflow: overflow.shrinkable(2),
   },
-  {
-    id: "secondarySidebar",
-    min: 240,
-    max: 600,
-    defaultWidth: 240,
-    defaultCollapsed: true,
-    open: open.restore(),
-    overflow: overflow.shrinkable(1),
-  },
 ];
 
 export function getDescriptor(panelId: PanelId): PanelDescriptor {

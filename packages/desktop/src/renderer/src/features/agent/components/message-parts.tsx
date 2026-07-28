@@ -1,5 +1,10 @@
 import type { ReactNode } from "react";
 
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@neo/ui/components/collapsible";
 import { isReasoningUIPart, isToolUIPart, type ToolUIPart } from "ai";
 import { CheckIcon, CopyIcon, ChevronDownIcon, SendIcon } from "lucide-react";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -23,11 +28,7 @@ import {
   ReasoningContent,
   ReasoningTrigger,
 } from "../../../components/ai-elements/reasoning";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "../../../components/ui/collapsible";
+import { Shimmer } from "../../../components/ai-elements/shimmer";
 import { cn } from "../../../lib/utils";
 import { useMarkdownComponents } from "../hooks/use-markdown-components";
 import { MessageRewindButton } from "./message-rewind-button";
@@ -127,7 +128,11 @@ function AssistantMessageParts({
               isOpen ? "rotate-0" : "-rotate-90",
             )}
           />
-          <span>{triggerLabel}</span>
+          {isComplete ? (
+            <span>{triggerLabel}</span>
+          ) : (
+            <Shimmer duration={2}>{triggerLabel}</Shimmer>
+          )}
         </CollapsibleTrigger>
         <CollapsibleContent
           className={cn(collapseMode === "prepare" ? "mt-0" : "mt-2", "text-muted-foreground/60")}

@@ -1,3 +1,23 @@
+import { Badge } from "@neo/ui/components/badge";
+import { Button } from "@neo/ui/components/button";
+import {
+  Dialog,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogPanel,
+  DialogPopup,
+  DialogTitle,
+} from "@neo/ui/components/dialog";
+import {
+  Select,
+  SelectItem,
+  SelectPopup,
+  SelectTrigger,
+  SelectValue,
+} from "@neo/ui/components/select";
+import { Spinner } from "@neo/ui/components/spinner";
+import { Switch } from "@neo/ui/components/switch";
 import debug from "debug";
 import { ArrowUpCircle, FolderOpen, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -11,26 +31,6 @@ import type {
   SkillUpdate,
 } from "../../../../../shared/features/skills/types";
 
-import { Badge } from "../../../components/ui/badge";
-import { Button } from "../../../components/ui/button";
-import {
-  Dialog,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogPanel,
-  DialogPopup,
-  DialogTitle,
-} from "../../../components/ui/dialog";
-import {
-  Select,
-  SelectItem,
-  SelectPopup,
-  SelectTrigger,
-  SelectValue,
-} from "../../../components/ui/select";
-import { Spinner } from "../../../components/ui/spinner";
-import { Switch } from "../../../components/ui/switch";
 import { client } from "../../../orpc";
 
 const log = debug("neovate:settings:skills");

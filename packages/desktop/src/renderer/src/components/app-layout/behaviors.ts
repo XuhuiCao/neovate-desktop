@@ -1,10 +1,6 @@
 import type { OpenBehavior, OverflowBehavior } from "./types";
 
-import {
-  APP_LAYOUT_ACTIVITY_BAR_WIDTH,
-  APP_LAYOUT_EDGE_SPACING,
-  APP_LAYOUT_RESIZE_HANDLE_WIDTH,
-} from "./constants";
+import { APP_LAYOUT_EDGE_SPACING, APP_LAYOUT_RESIZE_HANDLE_WIDTH } from "./constants";
 
 export const open = {
   restore(): OpenBehavior {
@@ -14,7 +10,7 @@ export const open = {
     return (storedWidth, ctx) => {
       if (storedWidth !== defaultWidth) return storedWidth;
       const { windowWidth, panels } = ctx;
-      let used = APP_LAYOUT_ACTIVITY_BAR_WIDTH + APP_LAYOUT_EDGE_SPACING;
+      let used = APP_LAYOUT_EDGE_SPACING;
       for (const panel of Object.values(panels)) {
         if (!panel.collapsed) used += panel.width + APP_LAYOUT_RESIZE_HANDLE_WIDTH;
       }

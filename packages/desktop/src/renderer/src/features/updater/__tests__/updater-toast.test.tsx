@@ -14,7 +14,7 @@ const { mocks } = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("../../../components/ui/toast", () => ({
+vi.mock("@neo/ui/components/toast", () => ({
   toastManager: {
     add: mocks.add,
     close: mocks.close,

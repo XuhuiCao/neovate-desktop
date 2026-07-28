@@ -13,6 +13,7 @@ import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-
 import { CSS } from "@dnd-kit/utilities";
 import { FolderIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Accordion, AccordionItem, AccordionPanel } from "@neo/ui/components/accordion";
 import debug from "debug";
 import {
   ChevronDown,
@@ -29,7 +30,6 @@ import { useTranslation } from "react-i18next";
 import type { ProjectInfo } from "../../../../../shared/features/project/types";
 
 import { PLAYGROUND_PROJECT_ID } from "../../../../../shared/features/project/constants";
-import { Accordion, AccordionItem, AccordionPanel } from "../../../components/ui/accordion";
 import { useProject } from "../../project/hooks/use-project";
 import { useProjectStore } from "../../project/store";
 import { useLoadSession } from "../hooks/use-load-session";

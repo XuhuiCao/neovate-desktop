@@ -3,11 +3,11 @@
 import type { ToolUIPart } from "ai";
 import type { ComponentProps, ReactNode } from "react";
 
+import { Alert, AlertDescription } from "@neo/ui/components/alert";
+import { Button } from "@neo/ui/components/button";
 import { createContext, useContext } from "react";
 
 import { cn } from "../../lib/utils";
-import { Alert, AlertDescription } from "../ui/alert";
-import { Button } from "../ui/button";
 
 type ToolUIPartApproval =
   | {

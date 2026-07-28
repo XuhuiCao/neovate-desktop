@@ -2,6 +2,7 @@
 
 import type { ComponentProps, HTMLAttributes } from "react";
 
+import { Button } from "@neo/ui/components/button";
 import Ansi from "ansi-to-react";
 import { CheckIcon, CopyIcon, TerminalIcon, Trash2Icon } from "lucide-react";
 import {
@@ -15,7 +16,6 @@ import {
 } from "react";
 
 import { cn } from "../../lib/utils";
-import { Button } from "../ui/button";
 import { Shimmer } from "./shimmer";
 
 interface TerminalContextType {

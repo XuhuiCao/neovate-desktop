@@ -1,3 +1,5 @@
+import { Badge } from "@neo/ui/components/badge";
+import { Tooltip, TooltipPopup, TooltipProvider, TooltipTrigger } from "@neo/ui/components/tooltip";
 import { MultiFileDiff } from "@pierre/diffs/react";
 import { FileEdit } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -11,13 +13,6 @@ import {
   ToolHeader,
   ToolHeaderIcon,
 } from "../../../../components/ai-elements/tool";
-import { Badge } from "../../../../components/ui/badge";
-import {
-  Tooltip,
-  TooltipPopup,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../../../../components/ui/tooltip";
 import { useRendererApp } from "../../../../core/app";
 
 export function EditTool({ invocation }: { invocation: EditUIToolInvocation }) {

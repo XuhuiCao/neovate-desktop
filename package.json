@@ -32,6 +32,8 @@
     "npm-run-all2": "^8.0.4",
     "oxfmt": "^0.40.0",
     "oxlint": "^1.55.0",
+    "react-arborist": "^3.16.0",
+    "react-medium-image-zoom": "^5.4.8",
     "typescript": "^5.9.3",
     "vitest": "^4.1.0"
   },

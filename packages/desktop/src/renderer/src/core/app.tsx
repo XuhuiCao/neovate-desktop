@@ -26,9 +26,10 @@ import { initClickTracking, initMessageSentTracking } from "../features/analytic
 
 const startupLog = debug("neovate:startup");
 
+import { ToastProvider, toastManager } from "@neo/ui/components/toast";
+
 import { setPanelWidth, shrinkPanelsToFit } from "../components/app-layout/layout-coordinator";
 import { layoutStore } from "../components/app-layout/store";
-import { ToastProvider, toastManager } from "../components/ui/toast";
 import { createSessionDeeplinkHandler } from "../features/agent/deeplink";
 import { useConfigStore } from "../features/config/store";
 import { ContentPanel } from "../features/content-panel";

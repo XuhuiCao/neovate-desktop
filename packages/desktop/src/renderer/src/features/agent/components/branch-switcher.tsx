@@ -1,3 +1,6 @@
+import { Popover, PopoverPopup, PopoverTrigger } from "@neo/ui/components/popover";
+import { Spinner } from "@neo/ui/components/spinner";
+import { Tooltip, TooltipPopup, TooltipTrigger } from "@neo/ui/components/tooltip";
 import debug from "debug";
 import { Check, ChevronDown, GitBranch, Plus } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -5,9 +8,6 @@ import { useTranslation } from "react-i18next";
 
 import type { GitBranch as GitBranchType } from "../../../../../shared/plugins/git/contract";
 
-import { Popover, PopoverPopup, PopoverTrigger } from "../../../components/ui/popover";
-import { Spinner } from "../../../components/ui/spinner";
-import { Tooltip, TooltipPopup, TooltipTrigger } from "../../../components/ui/tooltip";
 import { client } from "../../../orpc";
 import { CreateBranchDialog } from "./create-branch-dialog";
 

@@ -3,12 +3,12 @@
 import type { LucideProps } from "lucide-react";
 import type { ComponentProps, HTMLAttributes } from "react";
 
+import { Button } from "@neo/ui/components/button";
+import { Separator } from "@neo/ui/components/separator";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@neo/ui/components/tooltip";
 import { BookmarkIcon, FileSearch } from "lucide-react";
 
 import { cn } from "../../lib/utils";
-import { Button } from "../ui/button";
-import { Separator } from "../ui/separator";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 export type CheckpointProps = HTMLAttributes<HTMLDivElement>;
 

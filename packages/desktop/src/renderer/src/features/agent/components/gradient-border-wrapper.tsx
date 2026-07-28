@@ -24,7 +24,7 @@ export function GradientBorderWrapper({ children, innerClassName }: GradientBord
           color: "var(--foreground)",
           transition: "border-color 0.2s, background 0.2s",
           background:
-            "linear-gradient(var(--background-secondary)) padding-box,linear-gradient(0deg,color-mix(in srgb, var(--primary) 30%, transparent) 0,transparent 80%,transparent)border-box",
+            "linear-gradient(var(--card)) padding-box,linear-gradient(0deg,color-mix(in srgb, var(--primary) 30%, transparent) 0,transparent 80%,transparent)border-box",
         }}
       >
         {children}

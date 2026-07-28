@@ -4,13 +4,13 @@ import type { DynamicToolUIPart, ToolUIPart, UITool, UIToolInvocation } from "ai
 import type { LucideProps } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 
+import { Collapsible, CollapsiblePanel, CollapsibleTrigger } from "@neo/ui/components/collapsible";
 import { ChevronDown, CircleX } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { createContext, isValidElement, useContext, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { cn } from "../../lib/utils";
-import { Collapsible, CollapsiblePanel, CollapsibleTrigger } from "../ui/collapsible";
 import { CodeBlock } from "./code-block";
 
 // --- Context ---

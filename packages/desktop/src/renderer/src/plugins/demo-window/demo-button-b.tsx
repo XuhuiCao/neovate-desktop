@@ -1,7 +1,6 @@
 import { Settings03Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-
-import { Button } from "../../components/ui/button";
+import { Button } from "@neo/ui/components/button";
 
 export default function DemoButtonB() {
   return (

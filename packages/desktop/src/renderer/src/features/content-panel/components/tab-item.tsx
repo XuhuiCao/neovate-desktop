@@ -1,13 +1,13 @@
 import type React from "react";
 
+import { Button } from "@neo/ui/components/button";
+import { Tooltip, TooltipTrigger, TooltipPopup } from "@neo/ui/components/tooltip";
 import { X, TriangleAlert } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import type { Tab } from "../types";
 
 import { resolveLocalizedString } from "../../../../../shared/i18n";
-import { Button } from "../../../components/ui/button";
-import { Tooltip, TooltipTrigger, TooltipPopup } from "../../../components/ui/tooltip";
 import { useRendererApp } from "../../../core";
 import { normalizeLocale } from "../../../core/i18n/locales";
 import { cn } from "../../../lib/utils";

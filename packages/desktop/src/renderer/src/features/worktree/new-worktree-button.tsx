@@ -1,10 +1,10 @@
+import { Button } from "@neo/ui/components/button";
+import { Input } from "@neo/ui/components/input";
+import { Spinner } from "@neo/ui/components/spinner";
 import debug from "debug";
 import { GitFork } from "lucide-react";
 import { useState } from "react";
 
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Spinner } from "../../components/ui/spinner";
 import { client } from "../../orpc";
 import { useNewSession } from "../agent/hooks/use-new-session";
 import { useProjectStore } from "../project/store";

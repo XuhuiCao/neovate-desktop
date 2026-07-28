@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { CollapsibleTrigger } from "@neo/ui/components/collapsible";
 import { type ToolUIPart } from "ai";
 import { Bot, MessageSquare } from "lucide-react";
 
@@ -17,7 +18,6 @@ import {
   ToolHeader,
   ToolHeaderIcon,
 } from "../../../../components/ai-elements/tool";
-import { CollapsibleTrigger } from "../../../../components/ui/collapsible";
 import { MessagePartRenderer } from "../message-parts";
 
 export function AgentTool({

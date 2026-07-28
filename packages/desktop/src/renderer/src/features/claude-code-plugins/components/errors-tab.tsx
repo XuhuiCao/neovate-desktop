@@ -1,9 +1,8 @@
+import { Badge } from "@neo/ui/components/badge";
 import { AlertTriangle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import type { PluginError } from "../../../../../shared/features/claude-code-plugins/types";
-
-import { Badge } from "../../../components/ui/badge";
 
 interface ErrorsTabProps {
   errors: PluginError[];

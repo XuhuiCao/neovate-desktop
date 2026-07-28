@@ -2,7 +2,6 @@ export const WORKBENCH_PART = {
   primarySidebar: "primarySidebar",
   chatPanel: "chatPanel",
   contentPanel: "contentPanel",
-  secondarySidebar: "secondarySidebar",
 } as const;
 
 export type WorkbenchPartId = (typeof WORKBENCH_PART)[keyof typeof WORKBENCH_PART];
@@ -10,7 +9,6 @@ export type WorkbenchPartId = (typeof WORKBENCH_PART)[keyof typeof WORKBENCH_PAR
 export const COLLAPSIBLE_WORKBENCH_PART = {
   primarySidebar: WORKBENCH_PART.primarySidebar,
   contentPanel: WORKBENCH_PART.contentPanel,
-  secondarySidebar: WORKBENCH_PART.secondarySidebar,
 } as const;
 
 export type CollapsibleWorkbenchPartId =

@@ -1,316 +1,144 @@
-@import "tailwindcss";
+@import "@neo/ui/globals.css";
 @import "tw-animate-css";
 @source "../node_modules/streamdown/dist/*.js";
-@custom-variant dark (&:is(.dark *));
-@theme inline {
-  --animate-skeleton: skeleton 2s -1s infinite linear;
-  --color-warning-foreground: var(--warning-foreground);
-  --color-warning: var(--warning);
-  --color-success-foreground: var(--success-foreground);
-  --color-success: var(--success);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-ring: var(--ring);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-input: var(--input);
-  --color-info-foreground: var(--info-foreground);
-  --color-info: var(--info);
-  --color-foreground: var(--foreground);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-destructive: var(--destructive);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --color-border: var(--border);
-  --color-background: var(--background);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-glass-1: var(--glass-1);
-  --color-glass-2: var(--glass-2);
-  --color-glass-3: var(--glass-3);
-  --color-glass-4: var(--glass-4);
-  --color-diff-added: var(--diff-added);
-  --color-diff-added-foreground: var(--diff-added-foreground);
-  --color-diff-added-bg: var(--diff-added-bg);
-  --color-diff-removed: var(--diff-removed);
-  --color-diff-removed-foreground: var(--diff-removed-foreground);
-  --color-diff-removed-bg: var(--diff-removed-bg);
-  --color-skill: var(--skill);
-  --color-skill-foreground: var(--skill-foreground);
-  --color-skill-bg: var(--skill-bg);
-  @keyframes skeleton {
-    to {
-      background-position: -200% 0;
-    }
-  }
-}
-:root {
-  --radius: 0.625rem;
-  --accent: --alpha(var(--color-black) / 4%);
-  --accent-foreground: var(--color-neutral-800);
-  --background: #f5f7fa;
-  --background-secondary: var(--color-white);
-  --border: --alpha(var(--color-black) / 8%);
-  --card: var(--color-white);
-  --card-foreground: var(--color-neutral-800);
-  --destructive: var(--color-red-500);
-  --destructive-foreground: var(--color-red-700);
-  --foreground: var(--color-neutral-800);
-  --info: var(--color-blue-500);
-  --info-foreground: var(--color-blue-700);
-  --input: --alpha(var(--color-black) / 10%);
-  --muted: --alpha(var(--color-black) / 4%);
-  --muted-foreground: color-mix(in srgb, var(--color-neutral-500) 90%, var(--color-black));
-  --popover: var(--color-white);
-  --popover-foreground: var(--color-neutral-800);
-  --primary: #b83b5e;
-  --primary-foreground: var(--color-white);
-  --ring: #b83b5e;
-  --secondary: #000000;
-  --secondary-foreground: #ffffff;
-  --sidebar: var(--color-neutral-50);
-  --sidebar-foreground: color-mix(in srgb, var(--color-neutral-800) 64%, var(--sidebar));
-  --sidebar-primary: var(--color-neutral-800);
-  --sidebar-primary-foreground: var(--color-neutral-50);
-  --sidebar-accent: --alpha(var(--color-black) / 4%);
-  --sidebar-accent-foreground: var(--color-neutral-800);
-  --sidebar-border: --alpha(var(--color-black) / 6%);
-  --sidebar-ring: #b83b5e;
-  --success: var(--color-emerald-500);
-  --success-foreground: var(--color-emerald-700);
-  --warning: var(--color-amber-500);
-  --warning-foreground: var(--color-amber-700);
-  --color-chat: #f5f7fa;
-  --color-chat-foreground: var(--color-neutral-800);
 
-  /* Scrollbar - neutral colors, not affected by theme style */
+/*
+ * 品牌覆盖层（规范 §2.3）。
+ * neutral 基础层（@theme inline / @custom-variant / neutral :root/.dark / keyframes）
+ * 全部来自 @neo/ui/globals.css，desktop 仅覆盖品牌色、ring 派生、滚动条、字体、代码色。
+ */
+
+@font-face {
+  font-family: "Inter";
+  src: url("./fonts/Inter-Variable.woff2") format("woff2-variations");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("./fonts/JetBrainsMono-Variable.woff2") format("woff2-variations");
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* 品牌主色（热粉） */
+  --primary: #b83b5e;
+  /* ring 与 primary 同色相但提亮（oklch L=70%，≈neutral-400 等效明度） */
+  --ring: oklch(from var(--primary) 70% c h);
+  --sidebar-ring: var(--ring);
+
+  /* 滚动条（明） */
   --scrollbar-thumb: --alpha(var(--color-black) / 15%);
   --scrollbar-thumb-hover: --alpha(var(--color-black) / 30%);
 
-  /* Glass system */
-  --glass-tint: var(--color-white);
-  --glass-border: --alpha(var(--color-black) / 6%);
-  --glass-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.08);
-  --glass-1: --alpha(var(--glass-tint) / 72%);
-  --glass-2: --alpha(var(--glass-tint) / 80%);
-  --glass-3: --alpha(var(--glass-tint) / 88%);
-  --glass-4: --alpha(var(--glass-tint) / 92%);
-  --glass-blur-1: 24px;
-  --glass-blur-2: 16px;
-  --glass-blur-3: 12px;
-  --glass-blur-4: 8px;
+  /* 字体 */
+  --font-sans: "Inter", ui-sans-serif, system-ui, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-heading: "Inter", ui-sans-serif, system-ui, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono:
+    "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", "Cascadia Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
 
-  /* Semantic colors - Diff */
-  --diff-added: #00a240;
-  --diff-added-foreground: #006428;
-  --diff-added-bg: --alpha(#00a240 / 12%);
-  --diff-removed: #e02e2a;
-  --diff-removed-foreground: #991b1b;
-  --diff-removed-bg: --alpha(#e02e2a / 12%);
-
-  /* Semantic colors - Skill */
-  --skill: #751ed9;
-  --skill-foreground: #5b21b6;
-  --skill-bg: --alpha(#751ed9 / 12%);
+  /* 代码块底色（明） */
+  --code: var(--color-neutral-100);
+  --code-foreground: var(--foreground);
 }
-.dark {
-  --accent: --alpha(var(--color-white) / 6%);
-  --accent-foreground: var(--color-neutral-100);
-  --background: #0a0a0a;
-  --background-secondary: #0a0a0a;
-  --border: --alpha(var(--color-white) / 8%);
-  --card: #1a1a1a;
-  --card-foreground: var(--color-neutral-100);
-  --destructive: color-mix(in srgb, var(--color-red-500) 90%, var(--color-white));
-  --destructive-foreground: var(--color-red-400);
-  --foreground: var(--color-neutral-100);
-  --info: var(--color-blue-500);
-  --info-foreground: var(--color-blue-400);
-  --input: --alpha(var(--color-white) / 10%);
-  --muted: --alpha(var(--color-white) / 6%);
-  --muted-foreground: color-mix(in srgb, var(--color-neutral-500) 90%, var(--color-white));
-  --popover: #1e1e1e;
-  --popover-foreground: var(--color-neutral-100);
-  --primary: #eb6b8e;
-  --primary-foreground: var(--color-white);
-  --ring: #eb6b8e;
-  --secondary: #ffffff;
-  --secondary-foreground: #000000;
-  --sidebar: #141414;
-  --sidebar-foreground: color-mix(in srgb, var(--color-neutral-100) 72%, var(--sidebar));
-  --sidebar-primary: var(--color-neutral-100);
-  --sidebar-primary-foreground: var(--color-neutral-800);
-  --sidebar-accent: --alpha(var(--color-white) / 6%);
-  --sidebar-accent-foreground: var(--color-neutral-100);
-  --sidebar-border: --alpha(var(--color-white) / 8%);
-  --sidebar-ring: #eb6b8e;
-  --success: var(--color-emerald-500);
-  --success-foreground: var(--color-emerald-400);
-  --warning: var(--color-amber-500);
-  --warning-foreground: var(--color-amber-400);
-  --color-chat: #161616;
-  --color-chat-foreground: var(--color-neutral-100);
 
-  /* Scrollbar - neutral colors, not affected by theme style */
+.dark {
+  /* 品牌主色（暗） */
+  --primary: #eb6b8e;
+  /* ring 明度压到 ~55%（≈neutral-500 等效） */
+  --ring: oklch(from var(--primary) 55% c h);
+  --sidebar-ring: var(--ring);
+
+  /* 滚动条（暗） */
   --scrollbar-thumb: --alpha(var(--color-white) / 15%);
   --scrollbar-thumb-hover: --alpha(var(--color-white) / 30%);
 
-  /* Glass system (Dark) */
-  --glass-tint: #1e1e1e;
-  --glass-border: --alpha(var(--color-white) / 10%);
-  --glass-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.4);
-  --glass-1: --alpha(var(--glass-tint) / 72%);
-  --glass-2: --alpha(var(--glass-tint) / 80%);
-  --glass-3: --alpha(var(--glass-tint) / 88%);
-  --glass-4: --alpha(var(--glass-tint) / 92%);
-
-  /* Semantic colors - Diff (Dark) */
-  --diff-added: #00a240;
-  --diff-added-foreground: #4ade80;
-  --diff-added-bg: --alpha(#00a240 / 15%);
-  --diff-removed: #e02e2a;
-  --diff-removed-foreground: #f87171;
-  --diff-removed-bg: --alpha(#e02e2a / 15%);
-
-  /* Semantic colors - Skill (Dark) */
-  --skill: #b06dff;
-  --skill-foreground: #c4b5fd;
-  --skill-bg: --alpha(#b06dff / 15%);
+  /* 代码块底色（暗） */
+  --code: var(--color-neutral-800);
+  --code-foreground: var(--foreground);
 }
 
-/* ========================================
-   Theme Style: Default (explicit selector for preview isolation)
-   ======================================== */
-[data-style="default"] {
-  --primary: #b83b5e;
-  --background: #f5f7fa;
-  --sidebar: #fafafa;
-}
-[data-style="default"].dark {
-  --primary: #eb6b8e;
-  --background: #0a0a0a;
-  --sidebar: #141414;
-}
+/*
+ * 主题风格（规范 §2.5）。
+ * default 不写 [data-style] 块——直接回退到 :root / .dark。
+ * StyleSync 切回 default 时 delete data-style 属性（见 core/app.tsx StyleSync）。
+ */
 
-/* ========================================
-   Theme Style: Claude (Warm, humanistic)
-   ======================================== */
+/* Theme Style: Claude (Warm, humanistic) */
 [data-style="claude"] {
   --primary: #d87656;
   --primary-foreground: var(--color-white);
-  --ring: #d87656;
+  --ring: oklch(from var(--primary) 70% c h);
   --background: #faf9f5;
-  --background-secondary: var(--color-white);
   --card: var(--color-white);
   --card-foreground: var(--color-neutral-800);
   --sidebar: #f5f0e8;
   --sidebar-foreground: color-mix(in srgb, var(--color-neutral-800) 64%, var(--sidebar));
-  --sidebar-ring: #d87656;
-  --color-chat: #faf9f5;
-  --color-chat-foreground: var(--color-neutral-800);
-
-  /* Glass system - warm tint */
-  --glass-tint: #fdfbf8;
+  --sidebar-ring: var(--ring);
 }
 [data-style="claude"].dark {
   --primary: #e8a88a;
   --primary-foreground: var(--color-white);
-  --ring: #e8a88a;
+  --ring: oklch(from var(--primary) 55% c h);
   --background: #1a1816;
-  --background-secondary: #1a1816;
   --card: #242220;
   --card-foreground: var(--color-neutral-100);
   --popover: #242220;
   --popover-foreground: var(--color-neutral-100);
   --sidebar: #1e1c1a;
   --sidebar-foreground: color-mix(in srgb, var(--color-neutral-100) 72%, var(--sidebar));
-  --sidebar-ring: #e8a88a;
-  --color-chat: #1e1c1a;
-  --color-chat-foreground: var(--color-neutral-100);
-
-  /* Glass system - warm dark tint */
-  --glass-tint: #242220;
+  --sidebar-ring: var(--ring);
 }
 
-/* ========================================
-   Theme Style: Codex (ChatGPT-like, clean tech)
-   ======================================== */
+/* Theme Style: Codex (ChatGPT-like, clean tech) */
 [data-style="codex"] {
   --primary: #10a37f;
   --primary-foreground: var(--color-white);
-  --ring: #10a37f;
+  --ring: oklch(from var(--primary) 70% c h);
   --background: #f7f7f8;
-  --background-secondary: var(--color-white);
   --card: var(--color-white);
   --card-foreground: var(--color-neutral-800);
   --sidebar: #ececf1;
   --sidebar-foreground: color-mix(in srgb, var(--color-neutral-800) 64%, var(--sidebar));
-  --sidebar-ring: #10a37f;
-  --color-chat: #f7f7f8;
-  --color-chat-foreground: var(--color-neutral-800);
-
-  /* Glass system */
-  --glass-tint: var(--color-white);
+  --sidebar-ring: var(--ring);
 }
 [data-style="codex"].dark {
   --primary: #19c37d;
   --primary-foreground: var(--color-white);
-  --ring: #19c37d;
+  --ring: oklch(from var(--primary) 55% c h);
   --background: #202123;
-  --background-secondary: #202123;
   --card: #343541;
   --card-foreground: var(--color-neutral-100);
   --popover: #343541;
   --popover-foreground: var(--color-neutral-100);
   --sidebar: #202123;
   --sidebar-foreground: color-mix(in srgb, var(--color-neutral-100) 72%, var(--sidebar));
-  --sidebar-ring: #19c37d;
-  --color-chat: #343541;
-  --color-chat-foreground: var(--color-neutral-100);
-
-  /* Glass system */
-  --glass-tint: #343541;
+  --sidebar-ring: var(--ring);
 }
 
-/* ========================================
-   Theme Style: Nord (Nordic, aurora-inspired)
-   ======================================== */
+/* Theme Style: Nord (Nordic, aurora-inspired) */
 [data-style="nord"] {
   --primary: #5e81ac;
   --primary-foreground: var(--color-white);
-  --ring: #5e81ac;
+  --ring: oklch(from var(--primary) 70% c h);
   --background: #eceff4;
-  --background-secondary: var(--color-white);
   --card: var(--color-white);
   --card-foreground: #2e3440;
   --foreground: #2e3440;
   --sidebar: #e5e9f0;
   --sidebar-foreground: color-mix(in srgb, #2e3440 64%, var(--sidebar));
-  --sidebar-ring: #5e81ac;
-  --color-chat: #eceff4;
-  --color-chat-foreground: #2e3440;
-
-  /* Glass system - cool tint */
-  --glass-tint: #eceff4;
+  --sidebar-ring: var(--ring);
 }
 [data-style="nord"].dark {
   --primary: #88c0d0;
   --primary-foreground: #2e3440;
-  --ring: #88c0d0;
+  --ring: oklch(from var(--primary) 55% c h);
   --background: #2e3440;
-  --background-secondary: #2e3440;
   --card: #3b4252;
   --card-foreground: #eceff4;
   --foreground: #eceff4;
@@ -318,21 +146,10 @@
   --popover-foreground: #eceff4;
   --sidebar: #2e3440;
   --sidebar-foreground: color-mix(in srgb, #eceff4 72%, var(--sidebar));
-  --sidebar-ring: #88c0d0;
-  --color-chat: #3b4252;
-  --color-chat-foreground: #eceff4;
-
-  /* Glass system - nord dark tint */
-  --glass-tint: #3b4252;
+  --sidebar-ring: var(--ring);
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -348,7 +165,7 @@
     background: var(--scrollbar-thumb-hover);
   }
 
-  /* Tiptap editor styles */
+  /* Tiptap editor styles (规范 §5.9) */
   .tiptap p.is-editor-empty:first-child::before {
     content: attr(data-placeholder);
     float: left;
@@ -398,28 +215,5 @@
     color: inherit;
     font-size: 0.8125rem;
     padding: 0;
-  }
-}
-@layer utilities {
-  .glass-card {
-    background: var(--glass-2);
-    backdrop-filter: blur(var(--glass-blur-2));
-    -webkit-backdrop-filter: blur(var(--glass-blur-2));
-    border-color: var(--glass-border);
-    box-shadow: var(--glass-shadow);
-  }
-
-  .glass-popover {
-    background: var(--glass-3);
-    backdrop-filter: blur(var(--glass-blur-3));
-    -webkit-backdrop-filter: blur(var(--glass-blur-3));
-    border-color: var(--glass-border);
-    box-shadow: var(--glass-shadow);
-  }
-
-  .glass-sidebar {
-    background: var(--glass-1);
-    backdrop-filter: blur(var(--glass-blur-1));
-    -webkit-backdrop-filter: blur(var(--glass-blur-1));
   }
 }

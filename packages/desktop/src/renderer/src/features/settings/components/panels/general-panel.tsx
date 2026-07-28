@@ -1,3 +1,7 @@
+import { Button } from "@neo/ui/components/button";
+import { Input } from "@neo/ui/components/input";
+import { Spinner } from "@neo/ui/components/spinner";
+import { Switch } from "@neo/ui/components/switch";
 import createDebug from "debug";
 import { Settings } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -8,10 +12,6 @@ import { useShallow } from "zustand/react/shallow";
 import type { ThemeStyle } from "../../../../../../shared/features/config/types";
 import type { LocalePreference } from "../../../../core/i18n";
 
-import { Button } from "../../../../components/ui/button";
-import { Input } from "../../../../components/ui/input";
-import { Spinner } from "../../../../components/ui/spinner";
-import { Switch } from "../../../../components/ui/switch";
 import { ToggleOptions } from "../../../../components/ui/toggle-options";
 import { useRendererApp } from "../../../../core/app";
 import { formatKeyForDisplay } from "../../../../lib/keybindings";

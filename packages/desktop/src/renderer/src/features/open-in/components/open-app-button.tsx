@@ -1,3 +1,11 @@
+import { Button } from "@neo/ui/components/button";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@neo/ui/components/menu";
 import { ChevronDown, Copy } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -16,14 +24,6 @@ import vscodeIcon from "../../../assets/icons/vscode.png";
 import warpIcon from "../../../assets/icons/warp.png";
 import windsurfIcon from "../../../assets/icons/windsurf.png";
 import zedIcon from "../../../assets/icons/zed.png";
-import { Button } from "../../../components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from "../../../components/ui/menu";
 import { DEFAULT_KEYBINDINGS, formatKeyForDisplay } from "../../../lib/keybindings";
 import { client } from "../../../orpc";
 import { useConfigStore } from "../../config/store";

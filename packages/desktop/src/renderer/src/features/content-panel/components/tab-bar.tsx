@@ -1,6 +1,7 @@
+import { ScrollArea } from "@neo/ui/components/scroll-area";
+
 import type { Tab } from "../types";
 
-import { ScrollArea } from "../../../components/ui/scroll-area";
 import { NewTabMenu } from "./new-tab-menu";
 import { TabItem } from "./tab-item";
 

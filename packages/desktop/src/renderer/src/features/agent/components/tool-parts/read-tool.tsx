@@ -1,3 +1,5 @@
+import { Badge } from "@neo/ui/components/badge";
+import { Tooltip, TooltipPopup, TooltipProvider, TooltipTrigger } from "@neo/ui/components/tooltip";
 import { File } from "@pierre/diffs/react";
 import { FileText } from "lucide-react";
 import { useCallback } from "react";
@@ -10,13 +12,6 @@ import {
   ToolHeader,
   ToolHeaderIcon,
 } from "../../../../components/ai-elements/tool";
-import { Badge } from "../../../../components/ui/badge";
-import {
-  Tooltip,
-  TooltipPopup,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../../../../components/ui/tooltip";
 import { useRendererApp } from "../../../../core";
 
 export function ReadTool({ invocation }: { invocation: ReadUIToolInvocation }) {

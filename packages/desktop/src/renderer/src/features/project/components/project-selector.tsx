@@ -2,12 +2,12 @@ import type React from "react";
 
 import { Delete02Icon, FolderIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Popover, PopoverPopup, PopoverTrigger } from "@neo/ui/components/popover";
 import { CheckIcon, ChevronsUpDownIcon, SearchIcon, TriangleAlertIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { PLAYGROUND_PROJECT_ID } from "../../../../../shared/features/project/constants";
-import { Popover, PopoverPopup, PopoverTrigger } from "../../../components/ui/popover";
 import { useProject } from "../hooks/use-project";
 
 interface ProjectSelectorProps {
@@ -95,7 +95,7 @@ export function ProjectSelector({ children, variant = "menu" }: ProjectSelectorP
       {variant === "select" ? (
         <PopoverTrigger
           render={
-            <button className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-input bg-[var(--background-secondary)] px-4 py-2 text-sm hover:bg-accent/50">
+            <button className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-input bg-card px-4 py-2 text-sm hover:bg-accent/50">
               <span className={activeProject ? "text-foreground" : "text-muted-foreground"}>
                 {activeProject?.name ?? t("project.selectProject")}
               </span>

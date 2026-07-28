@@ -1,9 +1,9 @@
+import { Button } from "@neo/ui/components/button";
 import debug from "debug";
 import { Keyboard, Lock } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { Button } from "../../../../components/ui/button";
 import {
   captureKeybinding,
   DEFAULT_KEYBINDINGS,

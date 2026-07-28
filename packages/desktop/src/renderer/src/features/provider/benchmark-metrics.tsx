@@ -1,6 +1,6 @@
+import { Badge } from "@neo/ui/components/badge";
 import { useTranslation } from "react-i18next";
 
-import { Badge } from "../../components/ui/badge";
 import {
   formatMs,
   formatTpot,

@@ -1,8 +1,4 @@
-import debug from "debug";
-import { useCallback, useState } from "react";
-import { useTranslation } from "react-i18next";
-
-import { Button } from "../../../components/ui/button";
+import { Button } from "@neo/ui/components/button";
 import {
   Dialog,
   DialogPopup,
@@ -10,9 +6,13 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "../../../components/ui/dialog";
-import { Input } from "../../../components/ui/input";
-import { Spinner } from "../../../components/ui/spinner";
+} from "@neo/ui/components/dialog";
+import { Input } from "@neo/ui/components/input";
+import { Spinner } from "@neo/ui/components/spinner";
+import debug from "debug";
+import { useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
+
 import { client } from "../../../orpc";
 
 const log = debug("neovate:create-branch-dialog");

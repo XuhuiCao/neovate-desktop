@@ -3,11 +3,16 @@
 import type { LucideIcon } from "lucide-react";
 import type { ComponentProps, HTMLAttributes } from "react";
 
+import { Button } from "@neo/ui/components/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@neo/ui/components/tooltip";
 import { XIcon } from "lucide-react";
 
 import { cn } from "../../lib/utils";
-import { Button } from "../ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 export type ArtifactProps = HTMLAttributes<HTMLDivElement>;
 

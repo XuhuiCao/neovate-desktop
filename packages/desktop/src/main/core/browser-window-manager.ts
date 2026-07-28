@@ -16,8 +16,8 @@ import log from "./logger";
 
 const analyticsLog = debug("neovate:analytics");
 
-// fixed(48) + primarySidebar.min(250) + chatPanel comfortable min(480) + 1 handle(5)
-const MAIN_WINDOW_MIN_WIDTH = 783;
+// fixed(8) + primarySidebar.min(250) + chatPanel comfortable min(480) + 1 handle(5)
+const MAIN_WINDOW_MIN_WIDTH = 743;
 
 type WindowStore = {
   bounds: Electron.Rectangle;

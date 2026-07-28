@@ -1,8 +1,7 @@
+import { toastManager } from "@neo/ui/components/toast";
 import { useEffect } from "react";
 
 import type { NotificationKind } from "../../../../shared/features/notification/contract";
-
-import { toastManager } from "../../components/ui/toast";
 
 /**
  * 监听 main 侧 `notification:show` 事件（由 `NotificationService.show` 经

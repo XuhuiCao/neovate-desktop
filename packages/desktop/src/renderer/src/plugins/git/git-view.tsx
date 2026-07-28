@@ -1,6 +1,21 @@
 import { FileSearchIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
+  AlertDialog,
+  AlertDialogClose,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogPopup,
+  AlertDialogTitle,
+} from "@neo/ui/components/alert-dialog";
+import { Button, buttonVariants } from "@neo/ui/components/button";
+import { Group } from "@neo/ui/components/button-group";
+import { Input } from "@neo/ui/components/input";
+import { Menu, MenuTrigger, MenuPopup, MenuItem } from "@neo/ui/components/menu";
+import { toastManager } from "@neo/ui/components/toast";
+import { Tooltip, TooltipTrigger, TooltipPopup, TooltipProvider } from "@neo/ui/components/tooltip";
+import {
   ChevronDown,
   ChevronRight,
   RefreshCw,
@@ -15,28 +30,8 @@ import {
 import { memo, useEffect, useState } from "react";
 
 import { type GitFile } from "../../../../shared/plugins/git/contract";
-import { useLayoutStore } from "../../components/app-layout/store";
-import {
-  AlertDialog,
-  AlertDialogClose,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogPopup,
-  AlertDialogTitle,
-} from "../../components/ui/alert-dialog";
-import { Button, buttonVariants } from "../../components/ui/button";
-import { Group } from "../../components/ui/button-group";
-import { Input } from "../../components/ui/input";
-import { Menu, MenuTrigger, MenuPopup, MenuItem } from "../../components/ui/menu";
-import { toastManager } from "../../components/ui/toast";
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipPopup,
-  TooltipProvider,
-} from "../../components/ui/tooltip";
 import { usePluginContext } from "../../core/app";
+import { useContentPanelViewContext } from "../../features/content-panel/components/view-context";
 import { useProjectStore } from "../../features/project/store";
 import { useGit } from "./hooks/useGit";
 import { useGitTranslation } from "./i18n";
@@ -185,9 +180,7 @@ export default memo(function GitView() {
     window.pendingEditorRequest = { fullPath: file.fullPath };
   };
 
-  const isGitPanelVisible = useLayoutStore(
-    (s) => !s.panels.secondarySidebar?.collapsed && s.panels.secondarySidebar?.activeView === "git",
-  );
+  const { isActive: isGitPanelVisible } = useContentPanelViewContext();
 
   // Poll git status when the git panel is visible
   useEffect(() => {

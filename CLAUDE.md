@@ -77,20 +77,20 @@ Professional developers who use AI-assisted coding tools daily. They value effic
 
 ### Brand Personality
 
-**Minimal, quiet, elegant.** Understated sophistication like iA Writer or Things. The hot pink primary (`#fa216e`) provides a single bold accent against otherwise restrained, neutral surfaces.
+**Minimal, quiet, elegant.** Understated sophistication like iA Writer or Things. The hot pink primary (`#b83b5e`) provides a single bold accent against otherwise restrained, neutral surfaces.
 
 ### Aesthetic Direction
 
 - **Visual tone:** Clean, spacious, low-contrast surfaces with precise typography and subtle depth. Information-dense when needed, but never cluttered.
 - **References:** Claude/ChatGPT conversational AI interfaces — clean chat with clear message hierarchy, generous whitespace, readable markdown rendering.
 - **Anti-references:** Overly decorative UIs, heavy gradients, gamified elements, neon/cyberpunk aesthetics.
-- **Theme:** Full light and dark mode. Light uses cool gray-blue (`#f5f7fa`) backgrounds; dark uses near-black neutrals. Both themes share the `#fa216e` accent.
+- **Theme:** Full light and dark mode. Light uses neutral white backgrounds; dark uses near-black neutrals. Both themes share the `#b83b5e` accent.
 - **Logo:** Geometric angular arrow mark — sharp, abstract, black/white. Matches the minimal brand voice.
 
 ### Design Principles
 
 1. **Quiet confidence** — The UI should feel calm and authoritative. Avoid visual noise, excessive borders, and competing focal points. Let content breathe.
 2. **Developer-first density** — Respect screen real estate. Provide information density when developers need it (code, diffs, terminals) while keeping chat conversational and spacious.
-3. **One accent, used sparingly** — `#fa216e` is the single brand color. Use it for primary actions and key interactive states only. Everything else stays neutral.
+3. **One accent, used sparingly** — `#b83b5e` is the single brand color. Use it for primary actions and key interactive states only. Everything else stays neutral.
 4. **Motion with purpose** — Animations should orient and inform, never decorate. Use `motion` library for transitions that help users track state changes.
 5. **Consistent primitives** — Build from the existing shadcn/base-ui component library. Maintain consistent spacing, radius (`0.625rem`), and token usage across all features.

@@ -1,14 +1,12 @@
 import { lazy, Suspense, useEffect } from "react";
 
 import {
-  AppLayoutActivityBar,
   AppLayoutChatPanel,
   AppLayoutContentPanel,
   AppLayoutPanelSeparator,
   AppLayoutPrimarySidebar,
   AppLayoutPrimaryTitleBar,
   AppLayoutRoot,
-  AppLayoutSecondarySidebar,
   AppLayoutSecondaryTitleBar,
   AppLayoutTitleBar,
   AppLayoutTrafficLights,
@@ -89,10 +87,6 @@ export default function App() {
           <ContentPanelRenderer />
         </AppLayoutContentPanel>
 
-        <AppLayoutPanelSeparator id="contentPanel:secondarySidebar" />
-
-        <AppLayoutSecondarySidebar />
-        <AppLayoutActivityBar />
         <FullRightPanel />
         <UpdaterToast />
       </AppLayoutRoot>

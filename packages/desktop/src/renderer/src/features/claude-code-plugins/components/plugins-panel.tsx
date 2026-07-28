@@ -1,3 +1,8 @@
+import { Badge } from "@neo/ui/components/badge";
+import { Button } from "@neo/ui/components/button";
+import { Input } from "@neo/ui/components/input";
+import { Spinner } from "@neo/ui/components/spinner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@neo/ui/components/tabs";
 import debug from "debug";
 import {
   AlertTriangle,
@@ -19,11 +24,6 @@ import type {
   PluginUpdate,
 } from "../../../../../shared/features/claude-code-plugins/types";
 
-import { Badge } from "../../../components/ui/badge";
-import { Button } from "../../../components/ui/button";
-import { Input } from "../../../components/ui/input";
-import { Spinner } from "../../../components/ui/spinner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs";
 import { cn } from "../../../lib/utils";
 import { client } from "../../../orpc";
 import { claudeCodeChatManager } from "../../agent/chat-manager";

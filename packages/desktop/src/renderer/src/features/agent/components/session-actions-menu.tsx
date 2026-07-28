@@ -1,12 +1,13 @@
 import type { ReactElement, ReactNode } from "react";
 
+import { Button } from "@neo/ui/components/button";
+import { Menu, MenuItem, MenuPopup, MenuSeparator, MenuTrigger } from "@neo/ui/components/menu";
 import debug from "debug";
 import { MoreHorizontal } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { encodeProjectPath } from "../../../../../shared/claude-code/paths";
 import { DEEPLINK_SCHEME } from "../../../../../shared/constants";
-import { Button } from "../../../components/ui/button";
 import {
   ContextMenu,
   ContextMenuItem,
@@ -14,7 +15,6 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "../../../components/ui/context-menu";
-import { Menu, MenuItem, MenuPopup, MenuSeparator, MenuTrigger } from "../../../components/ui/menu";
 import { useConfigStore } from "../../config/store";
 import { useProjectStore } from "../../project/store";
 import { claudeCodeChatManager } from "../chat-manager";

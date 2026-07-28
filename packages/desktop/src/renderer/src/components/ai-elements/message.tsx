@@ -3,15 +3,20 @@
 import type { UIMessage } from "ai";
 import type { ComponentProps, FC, HTMLAttributes, ReactElement } from "react";
 
+import { Button } from "@neo/ui/components/button";
+import { ButtonGroup, ButtonGroupText } from "@neo/ui/components/group";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@neo/ui/components/tooltip";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { createContext, memo, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { Streamdown } from "streamdown";
 
 import { markdownPlugins } from "../../lib/markdown";
 import { cn } from "../../lib/utils";
-import { Button } from "../ui/button";
-import { ButtonGroup, ButtonGroupText } from "../ui/group";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 import { markdownBaseComponents } from "./markdown-base-components";
 
 export type MessageProps = HTMLAttributes<HTMLDivElement> & {
@@ -35,7 +40,7 @@ export const MessageContent = ({ children, className, ...props }: MessageContent
   <div
     className={cn(
       "flex w-fit min-w-0 max-w-full flex-col gap-2 overflow-hidden text-sm leading-relaxed",
-      "group-[.is-user]:ml-auto group-[.is-user]:rounded-2xl group-[.is-user]:rounded-tr-md group-[.is-user]:bg-muted/60 group-[.is-user]:px-3.5 group-[.is-user]:py-2 group-[.is-user]:text-foreground",
+      "group-[.is-user]:ml-auto group-[.is-user]:rounded-xl group-[.is-user]:rounded-tr-md group-[.is-user]:bg-primary/8 dark:group-[.is-user]:bg-primary/15 group-[.is-user]:px-3.5 group-[.is-user]:py-2 group-[.is-user]:text-foreground",
       "group-[.is-assistant]:w-full group-[.is-assistant]:text-foreground",
       className,
     )}

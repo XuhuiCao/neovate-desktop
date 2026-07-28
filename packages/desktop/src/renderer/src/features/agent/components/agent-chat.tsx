@@ -26,12 +26,13 @@ function attachmentsToFileParts(attachments?: ImageAttachment[]): FileUIPart[] {
     url: `data:${a.mediaType};base64,${a.base64}`,
   }));
 }
+import { Button } from "@neo/ui/components/button";
+
 import {
   Conversation,
   ConversationContent,
   ConversationScrollButton,
 } from "../../../components/ai-elements/conversation";
-import { Button } from "../../../components/ui/button";
 import { cn } from "../../../lib/utils";
 import { claudeCodeChatManager } from "../chat-manager";
 import { useClaudeCodeChat } from "../hooks/use-claude-code-chat";

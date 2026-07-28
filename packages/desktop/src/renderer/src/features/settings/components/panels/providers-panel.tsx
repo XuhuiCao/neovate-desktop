@@ -1,3 +1,25 @@
+import {
+  AlertDialog,
+  AlertDialogClose,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogPopup,
+  AlertDialogTitle,
+} from "@neo/ui/components/alert-dialog";
+import { Badge } from "@neo/ui/components/badge";
+import { Button } from "@neo/ui/components/button";
+import { Input } from "@neo/ui/components/input";
+import {
+  Select,
+  SelectItem,
+  SelectPopup,
+  SelectTrigger,
+  SelectValue,
+} from "@neo/ui/components/select";
+import { Spinner } from "@neo/ui/components/spinner";
+import { Switch } from "@neo/ui/components/switch";
+import { Tooltip, TooltipPopup, TooltipTrigger } from "@neo/ui/components/tooltip";
 import debug from "debug";
 import {
   AlertCircle,
@@ -33,28 +55,6 @@ import {
   getModelMapDrift,
   getNewTemplateModels,
 } from "../../../../../../shared/features/provider/sync";
-import {
-  AlertDialog,
-  AlertDialogClose,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogPopup,
-  AlertDialogTitle,
-} from "../../../../components/ui/alert-dialog";
-import { Badge } from "../../../../components/ui/badge";
-import { Button } from "../../../../components/ui/button";
-import { Input } from "../../../../components/ui/input";
-import {
-  Select,
-  SelectItem,
-  SelectPopup,
-  SelectTrigger,
-  SelectValue,
-} from "../../../../components/ui/select";
-import { Spinner } from "../../../../components/ui/spinner";
-import { Switch } from "../../../../components/ui/switch";
-import { Tooltip, TooltipPopup, TooltipTrigger } from "../../../../components/ui/tooltip";
 import { useRendererApp } from "../../../../core/app";
 import { cn } from "../../../../lib/utils";
 import { BenchmarkButton } from "../../../provider/benchmark-button";

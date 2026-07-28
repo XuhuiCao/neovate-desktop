@@ -2,14 +2,21 @@ import {
   ArrowDown01Icon,
   FolderIcon,
   PanelLeftIcon,
-  PanelRightIcon,
   Settings03Icon,
   ViewSidebarLeftIcon,
-  ViewSidebarRightIcon,
   SidebarRightIcon,
   SidebarRight01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Button } from "@neo/ui/components/button";
+import { Separator } from "@neo/ui/components/separator";
+import {
+  Tooltip,
+  TooltipCreateHandle,
+  TooltipPopup,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@neo/ui/components/tooltip";
 import { Plus } from "lucide-react";
 import { motion } from "motion/react";
 import { useTheme } from "next-themes";
@@ -33,15 +40,6 @@ import { useProjectStore } from "../../features/project/store";
 import { useSettingsStore } from "../../features/settings";
 import { cn } from "../../lib/utils";
 import { client } from "../../orpc";
-import { Button } from "../ui/button";
-import { Separator } from "../ui/separator";
-import {
-  Tooltip,
-  TooltipCreateHandle,
-  TooltipPopup,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../ui/tooltip";
 import {
   APP_LAYOUT_COLLAPSED_TITLEBAR_LEFT_MARGIN,
   APP_LAYOUT_GRID,
@@ -239,8 +237,6 @@ const secondaryTitlebarTooltipHandle = TooltipCreateHandle<string>();
 
 export function AppLayoutSecondaryTitleBar() {
   const { t, i18n } = useTranslation();
-  const secondaryCollapsed = useLayoutStore((s) => s.panels.secondarySidebar?.collapsed);
-  const togglePanel = useLayoutStore((s) => s.togglePanel);
   const activeProject = useProjectStore((s) => s.activeProject);
   const setShowSettings = useSettingsStore((s) => s.setShowSettings);
   const locale = normalizeLocale(i18n.language);
@@ -281,19 +277,6 @@ export function AppLayoutSecondaryTitleBar() {
         </TooltipProvider>
         <Separator orientation="vertical" className="mx-2 my-1 w-[2px] rounded-xl" />
         <ContentPanelToggle />
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={() => togglePanel("secondarySidebar")}
-          title={secondaryCollapsed ? t("sidebar.showSidebar") : t("sidebar.hideSidebar")}
-          className={cn("hover:bg-accent", !secondaryCollapsed && "bg-accent")}
-        >
-          <HugeiconsIcon
-            icon={secondaryCollapsed ? PanelRightIcon : ViewSidebarRightIcon}
-            size={16}
-            strokeWidth={1.8}
-          />
-        </Button>
         <Button
           variant="ghost"
           size="icon-sm"

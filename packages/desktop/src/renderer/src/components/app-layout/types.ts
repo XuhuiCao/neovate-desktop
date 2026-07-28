@@ -1,19 +1,15 @@
-export type PanelId = "primarySidebar" | "chatPanel" | "contentPanel" | "secondarySidebar";
+export type PanelId = "primarySidebar" | "chatPanel" | "contentPanel";
 
 export type PanelState = {
   width: number;
   collapsed: boolean;
-  activeView?: string;
 };
 
 export type PanelMap = Record<PanelId, PanelState>;
 
 export type SeparatorIndex = number;
 
-export type SeparatorId =
-  | "primarySidebar:chatPanel"
-  | "chatPanel:contentPanel"
-  | "contentPanel:secondarySidebar";
+export type SeparatorId = "primarySidebar:chatPanel" | "chatPanel:contentPanel";
 
 export type LayoutContext = {
   windowWidth: number;

@@ -1,3 +1,4 @@
+import { toastManager } from "@neo/ui/components/toast";
 import Placeholder from "@tiptap/extension-placeholder";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { Extension, useEditor, EditorContent, type JSONContent } from "@tiptap/react";
@@ -9,7 +10,6 @@ import { useTranslation } from "react-i18next";
 
 import type { ImageAttachment, PermissionMode } from "../../../../../shared/features/agent/types";
 
-import { toastManager } from "../../../components/ui/toast";
 import { useEventCallback } from "../../../hooks/use-event-callback";
 import { useLatestRef } from "../../../hooks/use-latest-ref";
 import { cn } from "../../../lib/utils";
@@ -307,7 +307,7 @@ export function MessageInput({
     editorProps: {
       attributes: {
         class:
-          "tiptap min-h-[76px] max-h-[240px] overflow-y-auto px-3 py-2 text-sm outline-none bg-background-secondary",
+          "tiptap min-h-[76px] max-h-[240px] overflow-y-auto px-3 py-2 text-sm outline-none bg-card",
       },
       transformPastedHTML(html) {
         const doc = new DOMParser().parseFromString(html, "text/html");

@@ -1,3 +1,22 @@
+import {
+  Menu,
+  MenuGroup,
+  MenuGroupLabel,
+  MenuPopup,
+  MenuRadioGroup,
+  MenuRadioItem,
+  MenuSeparator,
+  MenuTrigger,
+} from "@neo/ui/components/menu";
+import {
+  Select,
+  SelectItem,
+  SelectPopup,
+  SelectTrigger,
+  SelectValue,
+} from "@neo/ui/components/select";
+import { Spinner } from "@neo/ui/components/spinner";
+import { Switch } from "@neo/ui/components/switch";
 import debug from "debug";
 import { Bot, ChevronDown, Code, Hand, TriangleAlert } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -9,25 +28,6 @@ import type {
   SendMessageWith,
 } from "../../../../../../shared/features/config/types";
 
-import {
-  Menu,
-  MenuGroup,
-  MenuGroupLabel,
-  MenuPopup,
-  MenuRadioGroup,
-  MenuRadioItem,
-  MenuSeparator,
-  MenuTrigger,
-} from "../../../../components/ui/menu";
-import {
-  Select,
-  SelectItem,
-  SelectPopup,
-  SelectTrigger,
-  SelectValue,
-} from "../../../../components/ui/select";
-import { Spinner } from "../../../../components/ui/spinner";
-import { Switch } from "../../../../components/ui/switch";
 import { ToggleOptions } from "../../../../components/ui/toggle-options";
 import { client } from "../../../../orpc";
 import { claudeCodeChatManager } from "../../../agent/chat-manager";

@@ -6,6 +6,10 @@ export default defineProject({
     __APP_ID__: JSON.stringify("neovate-desktop"),
     __DEEPLINK_SCHEME__: JSON.stringify("neovate"),
   },
+  esbuild: {
+    jsx: "automatic",
+    jsxImportSource: "react",
+  },
   test: {
     environment: "node",
     include: ["src/**/__tests__/**/*.test.{ts,tsx}", "test/**/*.test.{ts,tsx}"],

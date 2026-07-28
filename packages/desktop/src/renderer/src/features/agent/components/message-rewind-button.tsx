@@ -1,3 +1,11 @@
+import { Popover, PopoverPopup, PopoverTrigger } from "@neo/ui/components/popover";
+import { toastManager } from "@neo/ui/components/toast";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@neo/ui/components/tooltip";
 import debug from "debug";
 import { RotateCcwIcon, LoaderCircleIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -5,14 +13,6 @@ import { useTranslation } from "react-i18next";
 
 import type { RewindFilesResult } from "../../../../../shared/features/agent/types";
 
-import { Popover, PopoverPopup, PopoverTrigger } from "../../../components/ui/popover";
-import { toastManager } from "../../../components/ui/toast";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../../../components/ui/tooltip";
 import { cn } from "../../../lib/utils";
 import { claudeCodeChatManager } from "../chat-manager";
 import { useAgentStore } from "../store";

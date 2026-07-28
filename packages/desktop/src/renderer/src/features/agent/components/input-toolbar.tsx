@@ -1,5 +1,14 @@
 import type { StoreApi } from "zustand";
 
+import { Button } from "@neo/ui/components/button";
+import {
+  Menu,
+  MenuTrigger,
+  MenuPopup,
+  MenuRadioGroup,
+  MenuRadioItem,
+} from "@neo/ui/components/menu";
+import { Spinner } from "@neo/ui/components/spinner";
 import debug from "debug";
 import {
   ArrowUp,
@@ -23,7 +32,6 @@ import { useStore } from "zustand";
 import type { ModelScope, PermissionMode } from "../../../../../shared/features/agent/types";
 import type { ClaudeCodeChatStoreState } from "../chat-state";
 
-import { Button } from "../../../components/ui/button";
 import {
   ContextMenu,
   ContextMenuTrigger,
@@ -31,14 +39,6 @@ import {
   ContextMenuItem,
   ContextMenuSeparator,
 } from "../../../components/ui/context-menu";
-import {
-  Menu,
-  MenuTrigger,
-  MenuPopup,
-  MenuRadioGroup,
-  MenuRadioItem,
-} from "../../../components/ui/menu";
-import { Spinner } from "../../../components/ui/spinner";
 import { cn } from "../../../lib/utils";
 import { client } from "../../../orpc";
 import { useConfigStore } from "../../config/store";
@@ -86,7 +86,7 @@ export function InputToolbar({
 
   return (
     <div
-      className="flex items-center gap-1 border-border/50 px-2 py-2 bg-background-secondary"
+      className="flex items-center gap-1 border-border/50 px-2 py-2 bg-card"
       role="toolbar"
       aria-label={t("chat.messageActions")}
     >
@@ -220,7 +220,7 @@ function ConnectedPermissionModeSelect({
     <Menu>
       <MenuTrigger
         disabled={disabled}
-        className="inline-flex h-7 min-w-0 items-center gap-1 rounded-md bg-background-secondary px-2 text-xs text-muted-foreground outline-none disabled:opacity-50 hover:!bg-background/80 cursor-pointer"
+        className="inline-flex h-7 min-w-0 items-center gap-1 rounded-md bg-card px-2 text-xs text-muted-foreground outline-none disabled:opacity-50 hover:!bg-background/80 cursor-pointer"
       >
         <Shield className="h-3 w-3 shrink-0" />
         <span className="min-w-0 truncate">{t(PERMISSION_MODE_I18N_KEYS[permissionMode])}</span>
@@ -500,7 +500,7 @@ function ConnectedModelSelect({
         <Menu open={menuOpen} onOpenChange={setMenuOpen}>
           <MenuTrigger
             disabled={disabled}
-            className="inline-flex h-7 min-w-0 items-center gap-1 rounded-md bg-background-secondary px-2 text-xs text-muted-foreground outline-none disabled:opacity-50 hover:!bg-background/80 cursor-pointer"
+            className="inline-flex h-7 min-w-0 items-center gap-1 rounded-md bg-card px-2 text-xs text-muted-foreground outline-none disabled:opacity-50 hover:!bg-background/80 cursor-pointer"
           >
             <ScopeBadge scope={modelScope} />
             <span className="min-w-0 truncate">{buttonLabel}</span>

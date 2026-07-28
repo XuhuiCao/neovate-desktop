@@ -1,8 +1,7 @@
+import { toastManager } from "@neo/ui/components/toast";
 import debug from "debug";
 
 import type { DeeplinkEvent } from "../../../../shared/features/deeplink/contract";
-
-import { toastManager } from "../../components/ui/toast";
 
 const log = debug("neovate:deeplink");
 

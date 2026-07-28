@@ -3,6 +3,14 @@
 import type { ComponentProps, CSSProperties, FC, HTMLAttributes } from "react";
 import type { BundledLanguage, BundledTheme, HighlighterGeneric, ThemedToken } from "shiki";
 
+import { Button } from "@neo/ui/components/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@neo/ui/components/select";
 import { CheckIcon, CopyIcon } from "lucide-react";
 import {
   createContext,
@@ -17,8 +25,6 @@ import {
 import { createHighlighter } from "shiki";
 
 import { cn } from "../../lib/utils";
-import { Button } from "../ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 // Shiki uses bitflags for font styles: 1=italic, 2=bold, 4=underline
 // biome-ignore lint/suspicious/noBitwiseOperators: shiki bitflag check

@@ -1,9 +1,9 @@
+import { toastManager } from "@neo/ui/components/toast";
 import { useTheme } from "next-themes";
 import { useEffect } from "react";
 
 import { PLAYGROUND_PROJECT_ID } from "../../../shared/features/project/constants";
 import { layoutStore } from "../components/app-layout/store";
-import { toastManager } from "../components/ui/toast";
 import { useRendererApp } from "../core/app";
 import { useNewSession } from "../features/agent/hooks/use-new-session";
 import { navigateSession } from "../features/agent/navigate-session";
@@ -114,7 +114,7 @@ export function useGlobalKeybindings(): void {
       // Toggle Files
       if (matchesBinding(e, keybindings.toggleFiles)) {
         e.preventDefault();
-        layoutStore.getState().setSecondarySidebarActiveView("files");
+        app.workbench.contentPanel.toggleView("files");
         return;
       }
 

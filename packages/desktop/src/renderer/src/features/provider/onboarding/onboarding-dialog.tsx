@@ -1,12 +1,12 @@
+import { Button } from "@neo/ui/components/button";
+import { Input } from "@neo/ui/components/input";
+import { Spinner } from "@neo/ui/components/spinner";
 import debug from "debug";
 import { KeyRound, LogIn, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { APP_NAME } from "../../../../../shared/constants";
-import { Button } from "../../../components/ui/button";
-import { Input } from "../../../components/ui/input";
-import { Spinner } from "../../../components/ui/spinner";
 import { client } from "../../../orpc";
 import { useProviderStore } from "../store";
 

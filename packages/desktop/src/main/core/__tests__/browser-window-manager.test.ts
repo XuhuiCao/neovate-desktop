@@ -75,7 +75,7 @@ describe("BrowserWindowManager.ensureMinWidth", () => {
 
     manager.ensureMinWidth(700);
 
-    expect(win.setMinimumSize).toHaveBeenCalledWith(783, 600);
+    expect(win.setMinimumSize).toHaveBeenCalledWith(743, 600);
     expect(win.setSize).not.toHaveBeenCalled();
   });
 

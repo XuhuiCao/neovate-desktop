@@ -5,12 +5,13 @@ import { useState } from "react";
 
 const log = debug("neovate:git");
 
+import { toastManager } from "@neo/ui/components/toast";
+
 import type { GitFile } from "../../../../../shared/plugins/git/contract";
 
 import { llmContract } from "../../../../../shared/features/llm/contract";
 import { utilsContract } from "../../../../../shared/features/utils/contract";
 import { gitContract } from "../../../../../shared/plugins/git/contract";
-import { toastManager } from "../../../components/ui/toast";
 import { usePluginContext } from "../../../core/app";
 import { GIT_COMMIT_MSG_PROMPT, GIT_COMMIT_MSG_PROMPT_SUFFIX } from "./commit-rule";
 import { truncateDiff } from "./truncate";

@@ -1,12 +1,12 @@
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
-
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "../../../components/ui/tooltip";
+} from "@neo/ui/components/tooltip";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+
 import { cn } from "../../../lib/utils";
 import { useAgentStore } from "../store";
 
