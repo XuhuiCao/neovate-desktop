@@ -26,6 +26,16 @@ type ProjectState = {
   setLoading: (loading: boolean) => void;
   switchToProjectByPath: (projectPath: string) => void;
   archiveSession: (projectPath: string, sessionId: string, isActive?: boolean) => void;
+  /**
+   * Un-archive a session.
+   *
+   * NOTE: deliberate asymmetry with `archiveSession`. Archive is called from
+   * the sidebar with the active project's id. Un-archive is called from the
+   * archived-sessions settings panel, which iterates the `archivedSessions`
+   * map whose keys are projectPaths — including orphans whose project may no
+   * longer be in `projects[]`.
+   */
+  unarchiveSession: (projectPath: string, sessionId: string) => void;
   togglePinSession: (projectPath: string, sessionId: string) => void;
   setClosedProjectAccordions: (ids: string[]) => void;
   reorderProjects: (projectIds: string[]) => void;
@@ -102,6 +112,20 @@ export const useProjectStore = create<ProjectState>()(
             .catch(() => {});
         }
       }
+    },
+    unarchiveSession: (projectPath, sessionId) => {
+      log("unarchive session", { projectPath, sessionId });
+      client.project.unarchiveSession({ projectPath, sessionId }).catch(() => {});
+      set((state) => {
+        const list = state.archivedSessions[projectPath];
+        if (!list) return;
+        const next = list.filter((id) => id !== sessionId);
+        if (next.length === 0) {
+          delete state.archivedSessions[projectPath];
+        } else {
+          state.archivedSessions[projectPath] = next;
+        }
+      });
     },
     togglePinSession: (projectPath, sessionId) => {
       log("toggle pin session", { projectPath, sessionId });

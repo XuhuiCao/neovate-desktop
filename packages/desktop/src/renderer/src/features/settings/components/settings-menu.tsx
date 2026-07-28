@@ -1,4 +1,15 @@
-import { ArrowLeft, BookOpen, Bot, HelpCircle, Keyboard, Radio, Server, Bolt } from "lucide-react";
+import {
+  ArrowLeft,
+  ArchiveIcon,
+  Bell,
+  BookOpen,
+  Bot,
+  HelpCircle,
+  Keyboard,
+  Radio,
+  Server,
+  Bolt,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import type { SettingsMenuId } from "../store";
@@ -17,6 +28,8 @@ const menuItems: MenuItem[] = [
   { id: "providers", icon: Server },
   { id: "rules", icon: BookOpen },
   { id: "remoteControl", icon: Radio },
+  { id: "notifications", icon: Bell },
+  { id: "archivedSessions", icon: ArchiveIcon },
   { id: "keybindings", icon: Keyboard },
   { id: "about", icon: HelpCircle },
 ];
@@ -27,6 +40,8 @@ const MENU_LABEL_KEYS = {
   providers: "settings.providers",
   remoteControl: "settings.remoteControl",
   rules: "settings.rules",
+  notifications: "settings.notifications",
+  archivedSessions: "settings.archivedSessions",
   keybindings: "settings.keybindings",
   about: "settings.about",
 } as const satisfies Record<SettingsMenuId, string>;

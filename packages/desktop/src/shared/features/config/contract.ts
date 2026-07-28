@@ -1,6 +1,7 @@
 import { oc, type } from "@orpc/contract";
 import { z } from "zod";
 
+import type { AgentNotificationConfig } from "../agent/notification";
 import type { AppConfig } from "./types";
 
 // Value schemas for each key
@@ -25,6 +26,19 @@ const agentLanguageValueSchema = z.enum([
 ]);
 const sidebarOrganizeValueSchema = z.enum(["byProject", "chronological"]);
 const sidebarSortByValueSchema = z.enum(["created", "updated"]);
+
+/**
+ * Per-event agent notification config schema. Mirrors AgentNotificationConfig
+ * (events keyed by AgentNotificationEvent + sound); kept loose to avoid
+ * duplicating the event vocab here.
+ */
+const agentNotificationValueSchema: z.ZodType<AgentNotificationConfig> = z.object({
+  events: z.record(
+    z.enum(["agentTurnComplete", "agentPermissionRequest", "agentQuestionRequest"]),
+    z.object({ delivery: z.enum(["off", "systemWhenBlur", "system", "adaptive", "inApp"]) }),
+  ),
+  sound: z.enum(["off", "default"]),
+});
 
 export const configContract = {
   get: oc.output(type<AppConfig>()),
@@ -57,6 +71,7 @@ export const configContract = {
         z.object({ key: z.literal("agentLanguage"), value: agentLanguageValueSchema }),
         z.object({ key: z.literal("permissionMode"), value: permissionModeValueSchema }),
         z.object({ key: z.literal("notificationSound"), value: notificationSoundValueSchema }),
+        z.object({ key: z.literal("agentNotification"), value: agentNotificationValueSchema }),
         z.object({ key: z.literal("keybindings"), value: keybindingsValueSchema }),
         z.object({ key: z.literal("sidebarOrganize"), value: sidebarOrganizeValueSchema }),
         z.object({ key: z.literal("tokenOptimization"), value: booleanValueSchema }),

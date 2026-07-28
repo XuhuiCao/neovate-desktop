@@ -26,6 +26,10 @@ export const projectContract = {
     .input(z.object({ projectPath: z.string(), sessionId: z.string() }))
     .output(type<void>()),
 
+  unarchiveSession: oc
+    .input(z.object({ projectPath: z.string(), sessionId: z.string() }))
+    .output(type<void>()),
+
   getPinnedSessions: oc.output(type<Record<string, string[]>>()),
 
   togglePinSession: oc

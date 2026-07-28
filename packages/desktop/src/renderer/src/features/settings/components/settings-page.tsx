@@ -6,8 +6,10 @@ import { useConfigStore } from "../../config/store";
 import { useSettingsStore } from "../store";
 import { AboutPanel } from "./panels/about-panel";
 import { AgentsPanel } from "./panels/agents-panel";
+import { ArchivedSessionsPanel } from "./panels/archived-sessions-panel";
 import { GeneralPanel } from "./panels/general-panel";
 import { KeybindingsPanel } from "./panels/keybindings-panel";
+import { NotificationsPanel } from "./panels/notifications-panel";
 import { ProvidersPanel } from "./panels/providers-panel";
 import { RemoteControlPanel } from "./panels/remote-control-panel";
 import { RulesPanel } from "./panels/rules-panel";
@@ -65,6 +67,8 @@ export const SettingsPage = () => {
           {activeMenu === "keybindings" && <KeybindingsPanel />}
           {activeMenu === "providers" && <ProvidersPanel />}
           {activeMenu === "remoteControl" && <RemoteControlPanel />}
+          {activeMenu === "notifications" && <NotificationsPanel />}
+          {activeMenu === "archivedSessions" && <ArchivedSessionsPanel />}
           {activeMenu === "about" && <AboutPanel />}
         </div>
       </div>

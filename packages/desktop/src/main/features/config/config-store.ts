@@ -4,6 +4,7 @@ import Store from "electron-store";
 import type { AppConfig, SkillsRegistry } from "../../../shared/features/config/types";
 import type { Provider } from "../../../shared/features/provider/types";
 
+import { DEFAULT_AGENT_NOTIFICATION_CONFIG } from "../../../shared/features/agent/notification";
 import { APP_DATA_DIR } from "../../core/app-paths";
 
 const log = debug("neovate:config-store");
@@ -37,6 +38,7 @@ const DEFAULT_APP_CONFIG: AppConfig = {
   agentLanguage: "English",
   permissionMode: "default",
   notificationSound: "default",
+  agentNotification: DEFAULT_AGENT_NOTIFICATION_CONFIG,
   tokenOptimization: true,
   networkInspector: false,
   keepAwake: false,

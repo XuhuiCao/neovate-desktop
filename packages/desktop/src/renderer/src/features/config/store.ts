@@ -6,6 +6,7 @@ const log = debug("neovate:config");
 
 import type { AppConfig } from "../../../../shared/features/config/types";
 
+import { DEFAULT_AGENT_NOTIFICATION_CONFIG } from "../../../../shared/features/agent/notification";
 import { DEFAULT_KEYBINDINGS, type KeybindingAction } from "../../lib/keybindings";
 import { client } from "../../orpc";
 
@@ -44,6 +45,7 @@ const DEFAULT_CONFIG: AppConfig = {
   agentLanguage: "English",
   permissionMode: "default",
   notificationSound: "default",
+  agentNotification: DEFAULT_AGENT_NOTIFICATION_CONFIG,
   tokenOptimization: true,
   networkInspector: false,
   keepAwake: false,

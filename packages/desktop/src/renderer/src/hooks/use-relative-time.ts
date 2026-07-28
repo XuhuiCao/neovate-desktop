@@ -67,3 +67,11 @@ export function formatRelativeTime(iso: string): string {
 export function useRelativeTime(iso: string): string {
   return useSyncExternalStore(subscribe, () => formatRelativeTime(iso));
 }
+
+/**
+ * Like `useRelativeTime`, but returns null for missing/empty timestamps so
+ * callers can render a placeholder (e.g. "—") without throwing.
+ */
+export function useOptionalRelativeTime(iso: string | undefined | null): string | null {
+  return useSyncExternalStore(subscribe, () => (iso ? formatRelativeTime(iso) : null));
+}

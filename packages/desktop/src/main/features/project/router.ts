@@ -154,6 +154,11 @@ export const projectRouter = os.project.router({
     context.projectStore.archiveSession(input.projectPath, input.sessionId);
   }),
 
+  unarchiveSession: os.project.unarchiveSession.handler(({ input, context }) => {
+    log("unarchive session", { projectPath: input.projectPath, sessionId: input.sessionId });
+    context.projectStore.unarchiveSession(input.projectPath, input.sessionId);
+  }),
+
   getPinnedSessions: os.project.getPinnedSessions.handler(({ context }) => {
     return context.projectStore.getPinnedSessions();
   }),
