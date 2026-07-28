@@ -120,3 +120,17 @@
 renderer 大部分可迁移域依赖 agent 域领先组件 + react-query + changes feature，非独立。
 路径：先加 react-query 生态 → 迁 changes → 迁 agent 领先组件 → 解锁 summary。
 SDK 0.3.x 升级是 session-manager/agent 域改造的前提，应与 agent 域批合并。
+
+### 已完成（追加）
+
+- ✅ SDK 0.2.108→0.3.199 升级（ModelInfo 适配 + closeSession/interrupt 异常吸收 + result union 断言）
+
+### 下一批路线（按依赖序）
+
+1. react-query 引入（lib/query-client 纯前端版 + orpc.ts 加 orpcQueryUtils + core/app QueryClientProvider）—— 解锁 summary/changes/project-info 的 useQuery 调用
+2. changes feature 化（1307行 + 测试）—— 对接 git:/changes: 路由
+3. agent 域领先组件（draft-store/turn-artifacts/chat-manager/tool-parts）—— 与 react-query 协同
+4. summary 面板 —— 依赖 1+2+3
+5. dev-workflow marketplace（12端）+ agent-plugins/claude-code/\* —— 替换开源 dev-workflow 语义
+6. git-service（665行）+ process-scheduler/fd-diagnostics —— EBADF防御（可选，SDK 升级后非阻塞）
+7. 既有域对齐：worktree完整子树/settings多panel/project clone/command-palette/skills builtin/deeplink handle/llm双provider/analytics

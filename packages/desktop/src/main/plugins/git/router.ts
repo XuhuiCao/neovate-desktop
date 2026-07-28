@@ -1,7 +1,10 @@
+import { eventIterator } from "@orpc/server";
+import chokidar from "chokidar";
 import debug from "debug";
 import fs from "node:fs";
 import path from "node:path";
 import git from "simple-git";
+import { z } from "zod";
 
 import type { GitBranch, GitBranchFile } from "../../../shared/plugins/git/contract";
 import type { PluginContext } from "../../core/plugin/types";
@@ -45,7 +48,7 @@ export function createGitRouter(orpcServer: PluginContext["orpcServer"]) {
       try {
         const { working, staged } = await getFiles(cwd);
         log("files: done", { working: working.length, staged: staged.length });
-        return { success: true, data: { working, staged } };
+        return { success: true, data: { working, staged, operationState: null } };
       } catch (error) {
         return {
           success: false,
@@ -97,10 +100,14 @@ export function createGitRouter(orpcServer: PluginContext["orpcServer"]) {
       }
     }),
     commit: orpcServer.handler(async ({ input }) => {
-      const { cwd, message } = input as { cwd: string; message: string };
-      log("commit: creating commit", { cwd, message });
+      const { cwd, message, noVerify } = input as {
+        cwd: string;
+        message: string;
+        noVerify?: boolean;
+      };
+      log("commit: creating commit", { cwd, message, noVerify });
       try {
-        await gitCommit(cwd, message);
+        await gitCommit(cwd, message, { noVerify });
         return { success: true, data: {} };
       } catch (error) {
         return {
@@ -125,11 +132,39 @@ export function createGitRouter(orpcServer: PluginContext["orpcServer"]) {
         };
       }
     }),
+    pull: orpcServer.handler(async ({ input }) => {
+      const { cwd } = input as { cwd: string };
+      log("pull: pulling from remote", { cwd });
+      try {
+        const gitClient = git(cwd);
+        await gitClient.pull();
+        return { success: true, data: {} };
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : "Unknown error occurred",
+        };
+      }
+    }),
     cachedDiff: orpcServer.handler(async ({ input }) => {
       const { cwd } = input as { cwd: string };
       log("cachedDiff: getting staged diff", { cwd });
       try {
         const diff = await gitDiffCached(cwd);
+        return { success: true, data: diff };
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : "Unknown error occurred",
+        };
+      }
+    }),
+    workingDiff: orpcServer.handler(async ({ input }) => {
+      const { cwd } = input as { cwd: string };
+      log("workingDiff: getting working tree diff", { cwd });
+      try {
+        const gitClient = git(cwd);
+        const diff = await gitClient.diff();
         return { success: true, data: diff };
       } catch (error) {
         return {
@@ -238,6 +273,121 @@ export function createGitRouter(orpcServer: PluginContext["orpcServer"]) {
         };
       }
     }),
+    watchBranch: orpcServer
+      .output(eventIterator(z.object({ timestamp: z.number() })))
+      .handler(async function* ({ input, signal }) {
+        const { cwd } = input as { cwd: string };
+        log("watchBranch: subscribing", { cwd });
+        const gitClient = git(cwd);
+        let lastHead: string | null = null;
+        try {
+          lastHead = (await gitClient.revparse(["HEAD"])).trim();
+        } catch {
+          return;
+        }
+        const poll = setInterval(async () => {
+          try {
+            const head = (await gitClient.revparse(["HEAD"])).trim();
+            if (head !== lastHead) {
+              lastHead = head;
+            }
+          } catch {
+            // ignore
+          }
+        }, 5000);
+        const watcher = chokidar.watch(path.join(cwd, ".git", "HEAD"), {
+          ignoreInitial: true,
+          persistent: false,
+        });
+        const queue: { timestamp: number }[] = [];
+        let resolveNext: ((v: IteratorResult<{ timestamp: number }>) => void) | null = null;
+        const emit = () => {
+          const evt = { timestamp: Date.now() };
+          if (resolveNext) {
+            const r = resolveNext;
+            resolveNext = null;
+            r({ value: evt, done: false });
+          } else {
+            queue.push(evt);
+          }
+        };
+        watcher.on("change", emit);
+        watcher.on("add", emit);
+        const intervalEmit = setInterval(emit, 10_000);
+        const onAbort = () => {
+          clearInterval(poll);
+          clearInterval(intervalEmit);
+          watcher.close().catch(() => {});
+        };
+        signal?.addEventListener("abort", onAbort);
+        try {
+          while (!signal?.aborted) {
+            if (queue.length > 0) {
+              yield queue.shift()!;
+              continue;
+            }
+            const next = await new Promise<IteratorResult<{ timestamp: number }>>((resolve) => {
+              resolveNext = resolve;
+            });
+            if (signal?.aborted) break;
+            yield next.value;
+          }
+        } finally {
+          onAbort();
+          signal?.removeEventListener("abort", onAbort);
+        }
+      }),
+    watchWorkingTree: orpcServer
+      .output(eventIterator(z.object({ timestamp: z.number(), kind: z.enum(["fs", "index"]) })))
+      .handler(async function* ({ input, signal }) {
+        const { cwd } = input as { cwd: string };
+        log("watchWorkingTree: subscribing", { cwd });
+        const gitRoot = (await git(cwd).revparse(["--show-toplevel"])).trim();
+        const watcher = chokidar.watch(gitRoot, {
+          ignored: (p) => p.includes(`${path.sep}.git${path.sep}`) || p.endsWith(`${path.sep}.git`),
+          ignoreInitial: true,
+          persistent: false,
+        });
+        const queue: { timestamp: number; kind: "fs" | "index" }[] = [];
+        let resolveNext:
+          | ((v: IteratorResult<{ timestamp: number; kind: "fs" | "index" }>) => void)
+          | null = null;
+        const emit = (kind: "fs" | "index") => {
+          const evt = { timestamp: Date.now(), kind };
+          if (resolveNext) {
+            const r = resolveNext;
+            resolveNext = null;
+            r({ value: evt, done: false });
+          } else {
+            queue.push(evt);
+          }
+        };
+        watcher.on("all", () => emit("fs"));
+        const indexInterval = setInterval(() => emit("index"), 5000);
+        const onAbort = () => {
+          clearInterval(indexInterval);
+          watcher.close().catch(() => {});
+        };
+        signal?.addEventListener("abort", onAbort);
+        try {
+          while (!signal?.aborted) {
+            if (queue.length > 0) {
+              yield queue.shift()!;
+              continue;
+            }
+            const next = await new Promise<
+              IteratorResult<{ timestamp: number; kind: "fs" | "index" }>
+            >((resolve) => {
+              resolveNext = resolve;
+            });
+            if (signal?.aborted) break;
+            yield next.value;
+          }
+        } finally {
+          onAbort();
+          signal?.removeEventListener("abort", onAbort);
+        }
+      }),
   });
 }
 
@@ -572,7 +722,7 @@ async function getBranchFiles(cwd: string) {
     // no diff available
   }
 
-  return { success: true, data: { local, tracking, ahead, behind, files } };
+  return { success: true, data: { local, tracking, compareRef: mergeBase, ahead, behind, files } };
 }
 
 async function getBranchFileDiff(cwd: string, file: string) {
