@@ -185,3 +185,32 @@ SDK 0.3.x 升级是 session-manager/agent 域改造的前提，应与 agent 域�
 - skills builtin tab（框架可迁但 builtin skills 内容全内部 @antskill，无内容价值）
 - feedback panel（DIMA/AFTS 不可迁）
 - agent 域 draft-store/branch-switcher/cloud 系（强依赖内部多 draft/cloud 体系）
+
+### 已完成（追加 1）— 全部可迁移域覆盖完成
+
+- ✅ llm 双 provider fallback（queryMessages doRequest + auxiliary→primary 回退）+ deeplink handle endpoint + SessionNew/ResumeDeeplinkData 判别联合
+
+## 五、还原总结（2026-07-28）
+
+本次共 17 个 commit 完成 neo-monorepo（@neo/desktop v0.16.5）→ 开源 refactor/desktop-update 还原：
+
+**视觉设计系统（100% 还原）**：@neo/ui 4 独有组件 + chart/toast token + toast 复位动画 +
+sidebar hover + content-panel border 收缩 + highlight-match + image-zoom + use-media-query + components.json
+
+**功能域**：chat.attachments（全栈+16测试）/ shared 契约沉淀（attachments/neo-desktop-mcp/spawn-errors）/
+extensions 统一面板 / SDK 0.2.108→0.3.199 升级（ModelInfo 适配+运行期防御）/ react-query 基础设施 /
+changes feature 化 + git contract 扩展 / agent 域 turn-artifacts / summary 面板+挂载 /
+dev-workflow plugin marketplace（15端+agent-plugins 9文件+claude-binary）/ worktree 子树 /
+settings archived-sessions+notifications panel / project clone / llm 双provider fallback / deeplink handle
+
+**明确排除（不可迁移）**：auth 登录 / daemon / antcode / swift/cloud / neolens / feedback(DIMA/AFTS) /
+usage-dashboard(语燕API) / token-usage 内部上报版 / 内置 @antskill 技能 / cloud/draft 体系组件
+
+**评估跳过（低价值）**：command-palette 命令对齐 / skills builtin tab（无内容）
+
+**遗留**（非阻塞，运行时验证后按需）：
+
+- transformer isSuppressedResult/recoverToolInput defensive 修复
+- network interceptor spawn signal 0.3 grace-period 回归需实测
+- worktree branch-switching/session-target-combobox 待 draft-store 体系（开源无）才有意义
+- macOS packaged binary 实测（claude-binary.ts 已就绪）
