@@ -28,7 +28,7 @@ import { attachmentsRouter } from "./features/chat/attachments/router";
 import { pluginsRouter } from "./features/claude-code-plugins/router";
 import { configRouter } from "./features/config/router";
 import { deeplinkRouter } from "./features/deeplink/router";
-import { devWorkflowRouter } from "./features/dev-workflow/router";
+import { createDevWorkflowFeatureRouter } from "./features/dev-workflow";
 import { electronRouter } from "./features/electron/router";
 import { fsRouter } from "./features/fs/router";
 import { llmRouter } from "./features/llm/router";
@@ -76,7 +76,7 @@ export function buildRouter(pluginRouters: Contribution<AnyRouter>[]) {
     chat: { attachments: attachmentsRouter },
     config: configRouter,
     deeplink: deeplinkRouter,
-    devWorkflow: devWorkflowRouter,
+    devWorkflow: createDevWorkflowFeatureRouter(),
     electron: electronRouter,
     fs: fsRouter,
     llm: llmRouter,
