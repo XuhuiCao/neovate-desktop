@@ -45,6 +45,17 @@ export function useProject() {
     return project;
   }, [fetchProjects]);
 
+  const openProjectByPath = useCallback(
+    async (path: string) => {
+      log("opening project at path", { path });
+      const project = await client.project.open({ path });
+      log("project opened", { id: project.id, name: project.name });
+      await fetchProjects();
+      return project;
+    },
+    [fetchProjects],
+  );
+
   const createProject = useCallback(
     async (path: string, name?: string) => {
       log("create project", { path, name });
@@ -95,6 +106,7 @@ export function useProject() {
     activeProject,
     loading,
     openProject,
+    openProjectByPath,
     createProject,
     removeProject,
     switchProject,

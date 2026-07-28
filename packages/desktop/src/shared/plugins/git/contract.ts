@@ -2,6 +2,27 @@ import { eventIterator, oc, type } from "@orpc/contract";
 
 export type GitOperationType = "merge" | "rebase" | "cherry-pick" | "revert";
 
+export interface GitCloneResponse {
+  success: boolean;
+  data?: { path: string; name: string };
+  error?: string;
+}
+
+export interface CloneProgress {
+  phase:
+    | "initiating"
+    | "compressing"
+    | "counting"
+    | "receiving"
+    | "resolving"
+    | "writing"
+    | "done"
+    | "error";
+  percent: number;
+  message: string;
+  error?: boolean;
+}
+
 export interface GitOperationState {
   type: GitOperationType;
   conflictCount: number;
@@ -138,4 +159,6 @@ export const gitContract = {
   watchWorkingTree: oc
     .input(type<{ cwd: string }>())
     .output(eventIterator(type<{ timestamp: number; kind: "fs" | "index" }>())),
+  clone: oc.input(type<{ url: string; targetDir: string }>()).output(type<GitCloneResponse>()),
+  subscribeCloneProgress: oc.output(eventIterator(type<CloneProgress>())),
 };

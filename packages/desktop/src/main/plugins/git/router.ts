@@ -9,6 +9,7 @@ import { z } from "zod";
 import type { GitBranch, GitBranchFile } from "../../../shared/plugins/git/contract";
 import type { PluginContext } from "../../core/plugin/types";
 
+import { cloneService } from "./clone-service";
 import { gitAdd } from "./utils/add";
 import { gitCommit } from "./utils/commit";
 import { getFileDiff, gitDiffCached } from "./utils/diff";
@@ -388,6 +389,33 @@ export function createGitRouter(orpcServer: PluginContext["orpcServer"]) {
           signal?.removeEventListener("abort", onAbort);
         }
       }),
+    clone: orpcServer.handler(async ({ input }) => {
+      const { url, targetDir } = input as { url: string; targetDir: string };
+      log("clone: starting", { url, targetDir });
+      return cloneService.clone(url, targetDir);
+    }),
+    subscribeCloneProgress: orpcServer.handler(async function* ({ signal }) {
+      // Yield current progress if any
+      if (cloneService.progress) {
+        yield cloneService.progress;
+      }
+      // Abort when either the client cancels (signal) or the service is disposed.
+      const combinedController = new AbortController();
+      const abortHandler = () => combinedController.abort();
+      signal?.addEventListener("abort", abortHandler);
+      cloneService.signal.addEventListener("abort", abortHandler);
+
+      try {
+        for await (const progress of cloneService.publisher.subscribe("progress", {
+          signal: combinedController.signal,
+        })) {
+          yield progress;
+        }
+      } finally {
+        signal?.removeEventListener("abort", abortHandler);
+        cloneService.signal.removeEventListener("abort", abortHandler);
+      }
+    }),
   });
 }
 
