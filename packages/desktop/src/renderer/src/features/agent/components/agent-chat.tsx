@@ -13,6 +13,11 @@ import type { ImageAttachment } from "../../../../../shared/features/agent/types
 import { client } from "../../../orpc";
 import { useConfigStore } from "../../config/store";
 import { useProjectStore } from "../../project/store";
+import {
+  SummaryPanelProvider,
+  SummaryPinnedPanel,
+  SummaryTriggerButton,
+} from "../../summary/summary-floating-trigger";
 import { useAgentStore } from "../store";
 
 const chatLog = debug("neovate:agent-chat");
@@ -306,55 +311,61 @@ function AgentChatSession({ sessionId, cwd }: { sessionId: string; cwd: string }
   };
 
   return (
-    <div className="@container/chat flex h-full flex-col">
-      <Conversation contextRef={conversationContextRef} initial={initialScrollBehavior}>
-        <ConversationContent>
-          {messages.map((message, i) => (
-            <MessageParts
-              key={message.id}
-              message={message}
-              isComplete={
-                (status !== "streaming" && status !== "submitted") || i !== messages.length - 1
-              }
-              renderToolPart={(_partMessage, part) => <ClaudeCodeToolUIPart part={part} />}
-              sessionId={sessionId}
-              isStreaming={status === "streaming" || status === "submitted"}
-            />
-          ))}
-        </ConversationContent>
-        <ConversationScrollButton />
-      </Conversation>
-      <div className="shrink-0 max-w-3xl mx-auto w-full">
-        <TaskProgress tasks={tasks} />
-        {error && <ChatError message={error.message} onDismiss={clearError} />}
-        <div className={cn("relative min-w-0", hasPendingRequest && "grid")}>
-          <div className={cn(hasPendingRequest && "col-start-1 row-start-1 self-end z-10 min-w-0")}>
-            <PermissionDialog sessionId={sessionId} />
+    <SummaryPanelProvider>
+      <div className="@container/chat flex h-full flex-col" data-slot="chat-session">
+        <SummaryTriggerButton />
+        <Conversation contextRef={conversationContextRef} initial={initialScrollBehavior}>
+          <ConversationContent>
+            {messages.map((message, i) => (
+              <MessageParts
+                key={message.id}
+                message={message}
+                isComplete={
+                  (status !== "streaming" && status !== "submitted") || i !== messages.length - 1
+                }
+                renderToolPart={(_partMessage, part) => <ClaudeCodeToolUIPart part={part} />}
+                sessionId={sessionId}
+                isStreaming={status === "streaming" || status === "submitted"}
+              />
+            ))}
+          </ConversationContent>
+          <ConversationScrollButton />
+        </Conversation>
+        <div className="shrink-0 max-w-3xl mx-auto w-full">
+          <TaskProgress tasks={tasks} />
+          {error && <ChatError message={error.message} onDismiss={clearError} />}
+          <div className={cn("relative min-w-0", hasPendingRequest && "grid")}>
+            <div
+              className={cn(hasPendingRequest && "col-start-1 row-start-1 self-end z-10 min-w-0")}
+            >
+              <PermissionDialog sessionId={sessionId} />
+            </div>
+            <div
+              className={cn(
+                "relative min-w-0",
+                hasPendingRequest && "col-start-1 row-start-1 self-end pointer-events-none z-0",
+              )}
+            >
+              <MessageInput
+                onSend={handleSend}
+                onCancel={handleCancel}
+                streaming={status === "streaming"}
+                disabled={hasPendingRequest}
+                cwd={cwd}
+                dockAttached={hasPendingRequest}
+              />
+            </div>
           </div>
-          <div
-            className={cn(
-              "relative min-w-0",
-              hasPendingRequest && "col-start-1 row-start-1 self-end pointer-events-none z-0",
-            )}
-          >
-            <MessageInput
-              onSend={handleSend}
-              onCancel={handleCancel}
-              streaming={status === "streaming"}
-              disabled={hasPendingRequest}
-              cwd={cwd}
-              dockAttached={hasPendingRequest}
-            />
-          </div>
+          {cwd && (
+            <div className="flex items-center px-4 pb-2">
+              <BranchSwitcher cwd={cwd} disabled={status === "streaming"} />
+              <div className="flex-1" />
+              <ContextLeft sessionId={sessionId} />
+            </div>
+          )}
         </div>
-        {cwd && (
-          <div className="flex items-center px-4 pb-2">
-            <BranchSwitcher cwd={cwd} disabled={status === "streaming"} />
-            <div className="flex-1" />
-            <ContextLeft sessionId={sessionId} />
-          </div>
-        )}
+        <SummaryPinnedPanel />
       </div>
-    </div>
+    </SummaryPanelProvider>
   );
 }
