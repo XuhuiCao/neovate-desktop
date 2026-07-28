@@ -16,6 +16,7 @@ function makeContext(overrides?: Partial<AppContext>): AppContext {
       closeAll: vi.fn(),
     } as unknown as SessionManager,
     requestTracker: new RequestTracker(),
+    attachmentService: {} as any,
     configStore: {} as any,
     devWorkflowService: {} as any,
     llmService: {} as any,

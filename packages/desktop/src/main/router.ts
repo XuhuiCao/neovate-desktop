@@ -7,6 +7,7 @@ import type { StorageService } from "./core/storage-service";
 import type { IMainApp } from "./core/types";
 import type { RequestTracker } from "./features/agent/request-tracker";
 import type { SessionManager } from "./features/agent/session-manager";
+import type { AttachmentService } from "./features/chat/attachments/service";
 import type { PluginsService } from "./features/claude-code-plugins/plugins-service";
 import type { ConfigStore } from "./features/config/config-store";
 import type { DevWorkflowService } from "./features/dev-workflow/dev-workflow-service";
@@ -23,6 +24,7 @@ import type { WorktreeService } from "./features/worktree/worktree-service";
 
 import { contract } from "../shared/contract";
 import { agentRouter } from "./features/agent/router";
+import { attachmentsRouter } from "./features/chat/attachments/router";
 import { pluginsRouter } from "./features/claude-code-plugins/router";
 import { configRouter } from "./features/config/router";
 import { deeplinkRouter } from "./features/deeplink/router";
@@ -45,6 +47,7 @@ import { worktreeRouter } from "./features/worktree/router";
 export type AppContext = {
   sessionManager: SessionManager;
   requestTracker: RequestTracker;
+  attachmentService: AttachmentService;
   configStore: ConfigStore;
   devWorkflowService: DevWorkflowService;
   fsService: FsService;
@@ -70,6 +73,7 @@ export function buildRouter(pluginRouters: Contribution<AnyRouter>[]) {
   return {
     ping: os.ping.handler(() => "pong" as const),
     agent: agentRouter,
+    chat: { attachments: attachmentsRouter },
     config: configRouter,
     deeplink: deeplinkRouter,
     devWorkflow: devWorkflowRouter,

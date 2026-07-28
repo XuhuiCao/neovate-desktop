@@ -11,6 +11,7 @@ describe("main router context wiring", () => {
     const context = {
       sessionManager: {} as unknown as AppDependencies["sessionManager"],
       requestTracker: new RequestTracker(),
+      attachmentService: {} as unknown as AppDependencies["attachmentService"],
       configStore: {} as unknown as AppDependencies["configStore"],
       devWorkflowService: {} as unknown as AppDependencies["devWorkflowService"],
       projectStore: {} as unknown as AppDependencies["projectStore"],

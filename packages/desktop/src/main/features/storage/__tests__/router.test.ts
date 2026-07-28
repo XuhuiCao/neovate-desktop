@@ -27,6 +27,7 @@ beforeEach(() => {
     storage,
     sessionManager: {} as any,
     requestTracker: new RequestTracker(),
+    attachmentService: {} as any,
     configStore: {} as any,
     devWorkflowService: {} as any,
     llmService: {} as any,

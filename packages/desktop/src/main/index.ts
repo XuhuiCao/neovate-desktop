@@ -14,6 +14,7 @@ import { PowerBlockerService } from "./core/power-blocker-service";
 import { shellEnvService } from "./core/shell-service";
 import { RequestTracker } from "./features/agent/request-tracker";
 import { SessionManager } from "./features/agent/session-manager";
+import { AttachmentService } from "./features/chat/attachments/service";
 import { PluginsService } from "./features/claude-code-plugins/plugins-service";
 import { ConfigStore } from "./features/config/config-store";
 import { DevWorkflowService } from "./features/dev-workflow/dev-workflow-service";
@@ -108,6 +109,7 @@ const sessionManager = new SessionManager(
   () => mainApp.refreshContributions(),
 );
 const fsService = new FsService();
+const attachmentService = new AttachmentService();
 const llmService = new LlmService(configStore, shellEnvService);
 const mainApp = new MainApp({
   appName: app.getName(),
@@ -144,6 +146,7 @@ remoteControlService.registerAdapter(new WeChatAdapter());
 const appContext: AppContext = {
   sessionManager,
   requestTracker,
+  attachmentService,
   configStore,
   devWorkflowService,
   fsService,
