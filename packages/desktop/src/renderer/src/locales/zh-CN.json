@@ -445,6 +445,7 @@
   "sidebar.sessions": "会话",
   "sidebar.filter": "筛选",
   "sidebar.commandPalette": "搜索",
+  "sidebar.extensions": "扩展",
   "sidebar.organize": "组织方式",
   "sidebar.organize.byProject": "按项目",
   "sidebar.organize.chronological": "按时间顺序",
@@ -559,6 +560,8 @@
   "chat.rewind.error": "回退失败",
   "chat.rewind.undoError": "撤销回退失败",
 
+  "settings.extensions.skillsTab": "技能",
+  "settings.extensions.pluginsTab": "插件",
   "settings.plugins": "插件",
   "settings.plugins.title": "插件",
   "settings.plugins.searchPlaceholder": "搜索插件...",

@@ -443,6 +443,7 @@
   "sidebar.sessions": "Sessions",
   "sidebar.filter": "Filter",
   "sidebar.commandPalette": "Search",
+  "sidebar.extensions": "Extensions",
   "sidebar.organize": "Organize",
   "sidebar.organize.byProject": "By project",
   "sidebar.organize.chronological": "Chronological list",
@@ -557,6 +558,8 @@
   "chat.rewind.error": "Failed to rewind",
   "chat.rewind.undoError": "Failed to undo rewind",
 
+  "settings.extensions.skillsTab": "Skills",
+  "settings.extensions.pluginsTab": "Plugins",
   "settings.plugins": "Plugins",
   "settings.plugins.title": "Plugins",
   "settings.plugins.searchPlaceholder": "Search plugins...",

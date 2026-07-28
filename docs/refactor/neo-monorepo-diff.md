@@ -91,3 +91,32 @@
 - 每批迁移后跑 `bun ready`（format+typecheck+lint+test）
 - 视觉优先（P0 视觉 1-12）→ P0 功能（13-17）→ P1（18-22）→ P2 SDK（25-34，最高风险放功能补齐后）→ P3 对齐
 - SDK 升级单独成批，因 breaking change 多，需回归测试
+
+## 四、迁移进度（2026-07-28）
+
+### 已完成（已 commit）
+
+- ✅ 视觉设计系统还原（ui 4组件+chart/toast token+toast动画+use-media-query+components.json+renderer globals工具类+content-panel border+sidebar hover+highlight-match+image-zoom）
+- ✅ shared: chat/attachments contract + neo-desktop-mcp/registry + spawn-errors + contract 聚合
+- ✅ main: chat/attachments feature（service/router/append-line/filename + 16测试）+ AppContext 接入
+
+### 进行中
+
+- 🔄 renderer: extensions 面板（代理迁移中）
+
+### 已归入后续大批（依赖链）
+
+- summary → 依赖 changes feature + agent turn-artifacts/chat-manager + @tanstack/react-query（52处使用）
+- changes feature 化（1307行）→ 依赖 agent turn-file-changes-from-parts
+- agent 域领先组件（draft-store/turn-artifacts/chat-manager/batch-archive/tool-parts 等）→ 与 SDK 0.3.x 升级强耦合
+- orpc-base（99行含daemon分支）→ 需剥离 daemon 适配开源 orpc + 加 @orpc/tanstack-query
+- dev-workflow marketplace（12端）+ agent-plugins/claude-code/\* → 替换开源 dev-workflow 语义
+- git-service（665行）+ process-scheduler/fd-diagnostics/git-client → EBADF防御，归 SDK升级批
+- SDK 0.2.108→0.3.199 升级（10风险点）→ 最高风险，session-manager ctor 融合
+- worktree 完整子树 / settings 多panel / project clone / command-palette 对齐 / skills builtin / deeplink handle / llm 双provider fallback / analytics 对齐
+
+### 关键依赖发现
+
+renderer 大部分可迁移域依赖 agent 域领先组件 + react-query + changes feature，非独立。
+路径：先加 react-query 生态 → 迁 changes → 迁 agent 领先组件 → 解锁 summary。
+SDK 0.3.x 升级是 session-manager/agent 域改造的前提，应与 agent 域批合并。
