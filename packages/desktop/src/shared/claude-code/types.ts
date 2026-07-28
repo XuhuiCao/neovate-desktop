@@ -39,10 +39,24 @@ type Metadata = {
   source?: { platform: string };
 };
 
+export type TurnFileChangeStat = {
+  path: string;
+  insertions: number;
+  deletions: number;
+};
+
+export type TurnFileChanges = {
+  turnUserMessageId: string;
+  files: TurnFileChangeStat[];
+  insertions: number;
+  deletions: number;
+};
+
 type DataTypes = {
   "system/init": SDKSystemMessage;
   "system/compact_boundary": SDKCompactBoundaryMessage;
   "result/success": SDKResultSuccess;
+  "turn-file-changes": TurnFileChanges;
 } & { [K in SDKResultError["subtype"] as `result/${K}`]: SDKResultError };
 
 export type ClaudeCodeUIMessage = UIMessage<Metadata, DataTypes, ClaudeCodeUITools>;
