@@ -6,6 +6,11 @@
     "src"
   ],
   "type": "module",
+  "imports": {
+    "#components/*": "./src/components/*.tsx",
+    "#lib/*": "./src/lib/*.ts",
+    "#hooks/*": "./src/hooks/*.ts"
+  },
   "exports": {
     "./globals.css": "./src/styles/globals.css",
     ".": "./src/index.ts",
@@ -22,10 +27,12 @@
     "./components/card": "./src/components/card.tsx",
     "./components/checkbox-group": "./src/components/checkbox-group.tsx",
     "./components/checkbox": "./src/components/checkbox.tsx",
+    "./components/chart": "./src/components/chart.tsx",
     "./components/collapsible": "./src/components/collapsible.tsx",
     "./components/combobox": "./src/components/combobox.tsx",
     "./components/command": "./src/components/command.tsx",
     "./components/dialog": "./src/components/dialog.tsx",
+    "./components/drawer": "./src/components/drawer.tsx",
     "./components/empty": "./src/components/empty.tsx",
     "./components/field": "./src/components/field.tsx",
     "./components/fieldset": "./src/components/fieldset.tsx",
@@ -39,6 +46,7 @@
     "./components/menu": "./src/components/menu.tsx",
     "./components/meter": "./src/components/meter.tsx",
     "./components/number-field": "./src/components/number-field.tsx",
+    "./components/otp-field": "./src/components/otp-field.tsx",
     "./components/pagination": "./src/components/pagination.tsx",
     "./components/popover": "./src/components/popover.tsx",
     "./components/preview-card": "./src/components/preview-card.tsx",
@@ -56,16 +64,23 @@
     "./components/table": "./src/components/table.tsx",
     "./components/tabs": "./src/components/tabs.tsx",
     "./components/textarea": "./src/components/textarea.tsx",
+    "./components/tiptap/suggestion-list": "./src/components/tiptap/suggestion-list.tsx",
+    "./components/tiptap/suggestion-menu": "./src/components/tiptap/suggestion-menu.tsx",
     "./components/toast": "./src/components/toast.tsx",
     "./components/toggle-group": "./src/components/toggle-group.tsx",
     "./components/toggle": "./src/components/toggle.tsx",
     "./components/toolbar": "./src/components/toolbar.tsx",
     "./components/tooltip": "./src/components/tooltip.tsx",
     "./lib/utils": "./src/lib/utils.ts",
-    "./hooks/use-mobile": "./src/hooks/use-mobile.ts"
+    "./hooks/use-media-query": "./src/hooks/use-media-query.ts",
+    "./hooks/use-mobile": "./src/hooks/use-mobile.ts",
+    "./hooks/tiptap/use-floating-element": "./src/hooks/tiptap/use-floating-element.ts",
+    "./hooks/tiptap/use-menu-navigation": "./src/hooks/tiptap/use-menu-navigation.ts",
+    "./hooks/tiptap/use-tiptap-editor": "./src/hooks/tiptap/use-tiptap-editor.ts"
   },
   "dependencies": {
-    "@base-ui/react": "^1.2.0",
+    "@base-ui/react": "^1.4.0",
+    "@floating-ui/react": "^0.27.16",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "react-day-picker": "^9.14.0",
@@ -73,13 +88,35 @@
     "tailwindcss": "^4.2.1"
   },
   "devDependencies": {
+    "@tiptap/pm": "^3.20.0",
+    "@tiptap/react": "^3.20.0",
+    "@tiptap/suggestion": "^3.20.0",
     "@types/react": "^19.2.7",
-    "@types/react-dom": "^19.2.3"
+    "@types/react-dom": "^19.2.3",
+    "recharts": "^3.8.1"
   },
   "peerDependencies": {
+    "@tiptap/pm": "^3.20.0",
+    "@tiptap/react": "^3.20.0",
+    "@tiptap/suggestion": "^3.20.0",
     "@types/react": "^19.2.7",
     "lucide-react": "^0.577.0",
     "react": "^19.2.1",
-    "react-dom": "^19.2.1"
+    "react-dom": "^19.2.1",
+    "recharts": "^3.8.1"
+  },
+  "peerDependenciesMeta": {
+    "@tiptap/pm": {
+      "optional": true
+    },
+    "@tiptap/react": {
+      "optional": true
+    },
+    "@tiptap/suggestion": {
+      "optional": true
+    },
+    "recharts": {
+      "optional": true
+    }
   }
 }

@@ -1,0 +1,20 @@
+/* react-medium-image-zoom ships a hardcoded white fullscreen overlay and a
+   black-on-white button, which ignore the desktop theme. Re-point them at the
+   app's theme tokens so the zoom modal follows light/dark like the rest of the
+   UI. Loaded after the library's stylesheet so these win the cascade. */
+[data-rmiz-modal-overlay="hidden"] {
+  background-color: transparent;
+}
+[data-rmiz-modal-overlay="visible"] {
+  background-color: var(--background);
+}
+[data-rmiz-btn-zoom],
+[data-rmiz-btn-unzoom] {
+  background-color: color-mix(in srgb, var(--foreground) 10%, transparent);
+  box-shadow: none;
+  color: var(--foreground);
+}
+[data-rmiz-btn-zoom]:hover,
+[data-rmiz-btn-unzoom]:hover {
+  background-color: color-mix(in srgb, var(--foreground) 18%, transparent);
+}
