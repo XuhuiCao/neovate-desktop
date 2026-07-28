@@ -853,10 +853,21 @@ export class SessionManager {
       return;
     }
     this.closingSessions.add(sessionId);
+    // SDK 0.3.x: query.close() can throw synchronously AND return a promise
+    // that rejects later (transport drain on a closing subprocess). The sync
+    // throw escapes before Promise.resolve can wrap it, so guard both paths —
+    // otherwise an uncaught rejection hits the global handler → process.exit.
     try {
-      session.query.close();
+      const closeResult: unknown = session.query.close();
+      void Promise.resolve(closeResult).catch((err: unknown) => {
+        log(
+          "closeSession: query.close async rejection (ignored) sessionId=%s err=%o",
+          sessionId,
+          err,
+        );
+      });
     } catch (err) {
-      log("closeSession: query.close error sessionId=%s err=%o", sessionId, err);
+      log("closeSession: query.close sync throw (ignored) sessionId=%s err=%o", sessionId, err);
     }
     el("query.close");
     for (const [requestId, pending] of session.pendingRequests) {
@@ -1394,7 +1405,11 @@ export class SessionManager {
 
         // On result, publish context_usage event with computed remaining %
         if (value.type === "result") {
-          const modelEntries = Object.values(value.modelUsage ?? {});
+          // value is the SDK stream union here; narrow to the result variant so
+          // modelUsage's Record<string, ModelUsage> value type is preserved
+          // (TS otherwise widens Object.values(...) to {} under the union).
+          const result = value as import("@anthropic-ai/claude-agent-sdk").SDKResultMessage;
+          const modelEntries = Object.values(result.modelUsage ?? {});
           const contextWindowSize = modelEntries[0]?.contextWindow ?? 0;
           const remainingPct =
             contextWindowSize > 0
@@ -1482,7 +1497,13 @@ export class SessionManager {
 
     if (dispatch.kind === "interrupt") {
       log("handleDispatch: interrupt sessionId=%s", sessionId);
-      session.query.interrupt();
+      // Fire-and-forget, but capture rejection at origin — interrupt can reject
+      // when the SDK transport is closing or the subprocess is unresponsive
+      // (races with rewind/fork/archive cleanup), which would otherwise surface
+      // as an uncaught rejection on the global handler.
+      session.query.interrupt().catch((err: unknown) => {
+        log("handleDispatch: interrupt failed (ignored) sessionId=%s err=%o", sessionId, err);
+      });
       return { kind: "interrupt", ok: true };
     }
 
