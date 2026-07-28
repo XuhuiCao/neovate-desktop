@@ -41,6 +41,7 @@ const execFileAsync = promisify(execFile);
 import type { Provider } from "../../../shared/features/provider/types";
 import type { ConfigStore } from "../config/config-store";
 import type { ProjectStore } from "../project/project-store";
+import type { TokenReporter } from "../token-usage/reporter";
 import type { RequestTracker } from "./request-tracker";
 
 import { APP_DATA_DIR } from "../../core/app-paths";
@@ -141,6 +142,7 @@ export class SessionManager {
     private requestTracker: RequestTracker,
     private powerBlocker: PowerBlockerService,
     private getAgentContributions: () => Contributions["agents"] = () => [],
+    private tokenReporter?: TokenReporter,
   ) {}
 
   onLifecycle(listener: (event: SessionLifecycleEvent) => void): () => void {
@@ -1330,6 +1332,29 @@ export class SessionManager {
               remainingPct,
             },
           });
+
+          // Per-turn token usage delta (local-only accumulation, no external reporting)
+          const turnUsage = value.usage;
+          const turnInput =
+            (turnUsage.input_tokens ?? 0) +
+            (turnUsage.cache_creation_input_tokens ?? 0) +
+            (turnUsage.cache_read_input_tokens ?? 0);
+          const delta = {
+            inputTokens: turnInput,
+            outputTokens: turnUsage.output_tokens ?? 0,
+            costUsd: value.total_cost_usd,
+            durationMs: value.duration_ms,
+          };
+          this.tokenReporter?.recordTurn(sessionId, delta);
+          this.eventPublisher.publish(sessionId, {
+            kind: "event",
+            event: {
+              id: randomUUID(),
+              type: "token_usage",
+              ...delta,
+            },
+          });
+
           this.powerBlocker.onTurnEnd(sessionId);
         }
 

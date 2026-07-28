@@ -18,6 +18,7 @@ import { AgentChat, SessionList } from "./features/agent";
 import { CommandPalette } from "./features/command-palette/command-palette";
 import { useConfigStore } from "./features/config/store";
 import { ContentPanelRenderer } from "./features/content-panel/components/content-panel";
+import { NotificationListener } from "./features/notification/notification-listener";
 import { ProviderOnboarding } from "./features/provider/onboarding";
 import { useSettingsStore } from "./features/settings";
 import { SettingsPage } from "./features/settings/components/settings-page";
@@ -99,6 +100,7 @@ export default function App() {
       {showSettings && <SettingsPage />}
       <CommandPalette />
       <ProviderOnboarding />
+      <NotificationListener />
     </>
   );
 }

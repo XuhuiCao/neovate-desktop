@@ -9,11 +9,14 @@ import type { RequestTracker } from "./features/agent/request-tracker";
 import type { SessionManager } from "./features/agent/session-manager";
 import type { PluginsService } from "./features/claude-code-plugins/plugins-service";
 import type { ConfigStore } from "./features/config/config-store";
+import type { FsService } from "./features/fs/fs-service";
 import type { LlmService } from "./features/llm/llm-service";
+import type { NotificationService } from "./features/notification/notification-service";
 import type { ProjectStore } from "./features/project/project-store";
 import type { RemoteControlService } from "./features/remote-control/remote-control-service";
 import type { SkillsService } from "./features/skills/skills-service";
 import type { StateStore } from "./features/state/state-store";
+import type { TokenReporter } from "./features/token-usage/reporter";
 import type { UpdaterService } from "./features/updater/service";
 
 import { contract } from "../shared/contract";
@@ -22,13 +25,16 @@ import { pluginsRouter } from "./features/claude-code-plugins/router";
 import { configRouter } from "./features/config/router";
 import { deeplinkRouter } from "./features/deeplink/router";
 import { electronRouter } from "./features/electron/router";
+import { fsRouter } from "./features/fs/router";
 import { llmRouter } from "./features/llm/router";
+import { notificationRouter } from "./features/notification/router";
 import { projectRouter } from "./features/project/router";
 import { providerRouter } from "./features/provider/router";
 import { remoteControlRouter } from "./features/remote-control/router";
 import { rulesRouter } from "./features/rules/router";
 import { skillsRouter } from "./features/skills/router";
 import { storageRouter } from "./features/storage/router";
+import { tokenUsageRouter } from "./features/token-usage/router";
 import { updaterRouter } from "./features/updater/router";
 import { utilsRouter } from "./features/utils/router";
 
@@ -36,11 +42,14 @@ export type AppContext = {
   sessionManager: SessionManager;
   requestTracker: RequestTracker;
   configStore: ConfigStore;
+  fsService: FsService;
   llmService: LlmService;
+  notificationService: NotificationService;
   projectStore: ProjectStore;
   pluginsService: PluginsService;
   skillsService: SkillsService;
   stateStore: StateStore;
+  tokenReporter: TokenReporter;
   remoteControlService: RemoteControlService;
   updaterService: UpdaterService;
   mainApp: IMainApp;
@@ -58,7 +67,9 @@ export function buildRouter(pluginRouters: Contribution<AnyRouter>[]) {
     config: configRouter,
     deeplink: deeplinkRouter,
     electron: electronRouter,
+    fs: fsRouter,
     llm: llmRouter,
+    notification: notificationRouter,
     remoteControl: remoteControlRouter,
     project: projectRouter,
     provider: providerRouter,
@@ -66,6 +77,7 @@ export function buildRouter(pluginRouters: Contribution<AnyRouter>[]) {
     plugins: pluginsRouter,
     skills: skillsRouter,
     storage: storageRouter,
+    tokenUsage: tokenUsageRouter,
     updater: updaterRouter,
     utils: utilsRouter,
     window: {

@@ -110,6 +110,11 @@ type AgentState = {
     sessionId: string,
     usage: { contextWindowSize: number; usedTokens: number; remainingPct: number },
   ) => void;
+  /** 累加单轮 token 用量增量到 session.usage 的累计字段（本机统计）。 */
+  addSessionTokenUsage: (
+    sessionId: string,
+    delta: { inputTokens: number; outputTokens: number; costUsd: number; durationMs: number },
+  ) => void;
   renameSession: (sessionId: string, title: string) => Promise<void>;
   sessionInitError: string | null;
   setSessionInitError: (error: string | null) => void;
@@ -374,6 +379,32 @@ export const useAgentStore = create<AgentState>()(
           contextUsedTokens: usage.usedTokens,
           remainingPct: usage.remainingPct,
         };
+      });
+    },
+
+    addSessionTokenUsage: (sessionId, delta) => {
+      set((state) => {
+        const session = state.sessions.get(sessionId);
+        if (!session) return;
+        const prev = session.usage;
+        session.usage = {
+          ...(prev ?? {
+            contextWindowSize: 0,
+            contextUsedTokens: 0,
+            remainingPct: 0,
+          }),
+          totalInputTokens: (prev?.totalInputTokens ?? 0) + delta.inputTokens,
+          totalOutputTokens: (prev?.totalOutputTokens ?? 0) + delta.outputTokens,
+          totalCostUsd: (prev?.totalCostUsd ?? 0) + delta.costUsd,
+          totalDurationMs: (prev?.totalDurationMs ?? 0) + delta.durationMs,
+        };
+        storeLog(
+          "addSessionTokenUsage: sid=%s totals in=%d out=%d cost=%.4f",
+          sessionId,
+          session.usage.totalInputTokens,
+          session.usage.totalOutputTokens,
+          session.usage.totalCostUsd,
+        );
       });
     },
 

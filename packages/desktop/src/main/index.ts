@@ -8,6 +8,7 @@ import type { AppContext } from "./router";
 
 import { isMac } from "../shared/platform";
 import { MainApp } from "./app";
+import { eventBus } from "./core/event-bus";
 import { ApplicationMenu } from "./core/menu";
 import { PowerBlockerService } from "./core/power-blocker-service";
 import { shellEnvService } from "./core/shell-service";
@@ -15,7 +16,10 @@ import { RequestTracker } from "./features/agent/request-tracker";
 import { SessionManager } from "./features/agent/session-manager";
 import { PluginsService } from "./features/claude-code-plugins/plugins-service";
 import { ConfigStore } from "./features/config/config-store";
+import { handleNeovateFileProtocol, registerNeovateFileScheme } from "./features/file/protocol";
+import { FsService } from "./features/fs/fs-service";
 import { LlmService } from "./features/llm/llm-service";
+import { NotificationService } from "./features/notification/notification-service";
 import { PopupWindowShortcut } from "./features/popup-window/global-shortcut";
 import { ProjectStore } from "./features/project/project-store";
 import { DingTalkAdapter } from "./features/remote-control/platforms/dingtalk";
@@ -24,6 +28,7 @@ import { WeChatAdapter } from "./features/remote-control/platforms/wechat";
 import { RemoteControlService } from "./features/remote-control/remote-control-service";
 import { SkillsService } from "./features/skills/skills-service";
 import { StateStore } from "./features/state/state-store";
+import { TokenReporter } from "./features/token-usage/reporter";
 import { UpdaterService } from "./features/updater/service";
 import browserPlugin from "./plugins/browser";
 import changesPlugin from "./plugins/changes";
@@ -42,6 +47,10 @@ startupLog("main process module loaded %s", elapsed());
 if (is.dev && process.env.ELECTRON_CDP_PORT) {
   app.commandLine.appendSwitch("remote-debugging-port", process.env.ELECTRON_CDP_PORT);
 }
+
+// Register neovate-file:// scheme before app ready (privileged registration
+// is only honored pre-ready). Handler is installed after whenReady below.
+registerNeovateFileScheme();
 
 // Each SDK session adds a process.on("exit") listener to kill its child process.
 // Raise the limit so normal multi-session usage doesn't trigger a warning.
@@ -82,14 +91,17 @@ process.on("unhandledRejection", (reason) => {
 });
 const requestTracker = new RequestTracker();
 const powerBlocker = new PowerBlockerService(configStore);
+const tokenReporter = new TokenReporter();
 const sessionManager = new SessionManager(
   configStore,
   projectStore,
   requestTracker,
   powerBlocker,
   () => mainApp.pluginManager.contributions.agents,
+  tokenReporter,
 );
 const stateStore = new StateStore();
+const fsService = new FsService();
 const llmService = new LlmService(configStore, shellEnvService);
 const mainApp = new MainApp({
   appName: app.getName(),
@@ -108,6 +120,7 @@ const updaterService = new UpdaterService({
   onBeforeQuitForUpdate: () => mainApp.windowManager.prepareForQuit(),
 });
 const pluginsService = new PluginsService();
+const notificationService = new NotificationService();
 const skillsService = new SkillsService(projectStore, configStore, process.resourcesPath);
 const remoteControlService = new RemoteControlService(
   sessionManager,
@@ -124,11 +137,14 @@ const appContext: AppContext = {
   sessionManager,
   requestTracker,
   configStore,
+  fsService,
   llmService,
+  notificationService,
   projectStore,
   pluginsService,
   skillsService,
   stateStore,
+  tokenReporter,
   remoteControlService,
   updaterService,
   mainApp,
@@ -174,6 +190,15 @@ app.whenReady().then(async () => {
 
   await mainApp.start();
   startupLog("mainApp.start done %s", elapsed());
+
+  // Bind main→renderer event bus to the main window
+  if (mainApp.windowManager.mainWindow) {
+    eventBus.bind(mainApp.windowManager.mainWindow);
+  }
+
+  // Install neovate-file:// protocol handler (scheme registered pre-ready)
+  handleNeovateFileProtocol();
+
   void updaterService.init();
 
   // Start remote control platform adapters (fire-and-forget — must not block window)

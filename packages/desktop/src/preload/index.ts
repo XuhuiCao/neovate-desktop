@@ -32,6 +32,17 @@ const api = {
     ipcRenderer.on("window:fullscreen-change", handler);
     return () => ipcRenderer.removeListener("window:fullscreen-change", handler);
   },
+  /**
+   * 通用 main→renderer 事件订阅（由 `main/core/event-bus.ts` 广播）。
+   * 返回取消订阅函数。
+   */
+  onEvent: (channel: string, callback: (payload: unknown) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, payload: unknown) => {
+      callback(payload);
+    };
+    ipcRenderer.on(channel, handler);
+    return () => ipcRenderer.removeListener(channel, handler);
+  },
 };
 
 if (process.contextIsolated) {

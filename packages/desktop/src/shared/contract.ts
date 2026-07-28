@@ -6,13 +6,16 @@ import { pluginsContract } from "./features/claude-code-plugins/contract";
 import { configContract } from "./features/config/contract";
 import { deeplinkContract } from "./features/deeplink/contract";
 import { electronContract } from "./features/electron/contract";
+import { fsContract } from "./features/fs/contract";
 import { llmContract } from "./features/llm/contract";
+import { notificationContract } from "./features/notification/contract";
 import { projectContract } from "./features/project/contract";
 import { providerContract } from "./features/provider/contract";
 import { remoteControlContract } from "./features/remote-control/contract";
 import { rulesContract } from "./features/rules/contract";
 import { skillsContract } from "./features/skills/contract";
 import { storageContract } from "./features/storage/contract";
+import { tokenUsageContract } from "./features/token-usage/contract";
 import { updaterContract } from "./features/updater/contract";
 import { utilsContract } from "./features/utils/contract";
 import { changesContract } from "./plugins/changes/contract";
@@ -24,7 +27,9 @@ export const contract = {
   deeplink: deeplinkContract,
   config: configContract,
   electron: electronContract,
+  fs: fsContract,
   llm: llmContract,
+  notification: notificationContract,
   remoteControl: remoteControlContract,
   project: projectContract,
   provider: providerContract,
@@ -32,6 +37,7 @@ export const contract = {
   plugins: pluginsContract,
   skills: skillsContract,
   storage: storageContract,
+  tokenUsage: tokenUsageContract,
   updater: updaterContract,
   utils: utilsContract,
   git: gitContract,

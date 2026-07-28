@@ -71,6 +71,19 @@ export type ContextUsageEvent = {
   remainingPct: number;
 };
 
+/**
+ * 单轮 token 用量增量（本机统计，不外传）。
+ * 由 main 侧 SessionManager 在 SDK `result` 事件时计算并下发，
+ * 携带该轮的 input/output tokens、cost 与 duration 增量。
+ */
+export type TokenUsageEvent = {
+  type: "token_usage";
+  inputTokens: number;
+  outputTokens: number;
+  costUsd: number;
+  durationMs: number;
+};
+
 export type ClaudeCodeUIEventPart =
   | SDKResultMessage
   | SDKSystemMessage
@@ -91,7 +104,8 @@ export type ClaudeCodeUIEventPart =
   | SDKPromptSuggestionMessage
   | SDKAPIRetryMessage
   | SDKSessionStateChangedMessage
-  | ContextUsageEvent;
+  | ContextUsageEvent
+  | TokenUsageEvent;
 
 export type ClaudeCodeUIEventMessage = { id: string } & ClaudeCodeUIEventPart;
 

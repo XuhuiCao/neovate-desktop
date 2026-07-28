@@ -15,6 +15,7 @@ import type {
   ClaudeCodeUIEventMessage,
   ClaudeCodeUIMessage,
   ContextUsageEvent,
+  TokenUsageEvent,
 } from "../../../../shared/claude-code/types";
 import type { ClaudeCodeChatTransport } from "./chat-transport";
 
@@ -200,6 +201,16 @@ export class ClaudeCodeChat extends AbstractChat<ClaudeCodeUIMessage> {
         contextWindowSize,
         usedTokens,
         remainingPct,
+      });
+    } else if (event.type === "token_usage") {
+      const { inputTokens, outputTokens, costUsd, durationMs } = event as TokenUsageEvent & {
+        id: string;
+      };
+      useAgentStore.getState().addSessionTokenUsage(this.id, {
+        inputTokens,
+        outputTokens,
+        costUsd,
+        durationMs,
       });
     } else if (event.type === "prompt_suggestion") {
       const suggestion = (event as { suggestion: string }).suggestion;
