@@ -1,6 +1,13 @@
 import { FolderAddIcon, FilterIcon, FolderIcon, Clock01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Button } from "@neo/ui/components/button";
+import debug from "debug";
+import { CheckIcon, Plus } from "lucide-react";
+import { memo } from "react";
+import { useTranslation } from "react-i18next";
+
+import type { SidebarOrganize, SidebarSortBy } from "../../../../../shared/features/config/types";
+
+import { Button } from "../../../components/ui/button";
 import {
   Menu,
   MenuGroup,
@@ -9,14 +16,7 @@ import {
   MenuPopup,
   MenuSeparator,
   MenuTrigger,
-} from "@neo/ui/components/menu";
-import debug from "debug";
-import { CheckIcon, Plus } from "lucide-react";
-import { memo } from "react";
-import { useTranslation } from "react-i18next";
-
-import type { SidebarOrganize, SidebarSortBy } from "../../../../../shared/features/config/types";
-
+} from "../../../components/ui/menu";
 import { useConfigStore } from "../../config/store";
 import { DevWorkflowControl } from "../../dev-workflow/dev-workflow-control";
 import { useProject } from "../../project/hooks/use-project";
