@@ -149,3 +149,22 @@ SDK 0.3.x 升级是 session-manager/agent 域改造的前提，应与 agent 域�
 
 - dev-workflow marketplace（agent-plugins/claude-code/\* 10文件 + dev-workflow 12端 contract/router，作独立 feature 不替换开源 mode/draftPrefix；新增 deps: proper-lockfile/async-mutex/tiny-invariant；readme-fetcher registry 改 npmjs）
 - 既有域对齐：worktree 完整子树/settings 多panel/project clone/command-palette/skills builtin/deeplink handle/llm 双provider fallback/analytics 对齐
+
+### 已完成（追加 3）
+
+- ✅ summary 面板（15文件+26测试）+ agent-chat 挂载（SummaryPanelProvider/Trigger/PinnedPanel）
+- ✅ dev-workflow plugin marketplace（agent-plugins/claude-code 9文件 + dev-workflow 15端 contract/router + core/claude-binary + deps: proper-lockfile/async-mutex/tiny-invariant）
+
+### 进行中
+
+- 🔄 worktree 完整子树（branch-switching/components/hooks/types）
+
+### 下一批（P3 既有域对齐）
+
+- settings: archived-sessions panel（开源 project contract 已支持 archive）+ notifications panel（需 agent/notification 类型）
+  - feedback panel 不可迁移（DIMA/AFTS）
+- project: clone-project-dialog/use-active-project（use-active-project 已有）
+- command-palette/claude-code-plugins/content-panel/notification/analytics 文件级对齐
+- skills builtin tab/skill-initials
+- deeplink handle endpoint + SessionNew/ResumeDeeplinkData
+- llm 双 provider fallback
