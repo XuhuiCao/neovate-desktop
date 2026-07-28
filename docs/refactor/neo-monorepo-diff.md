@@ -134,3 +134,18 @@ SDK 0.3.x 升级是 session-manager/agent 域改造的前提，应与 agent 域�
 5. dev-workflow marketplace（12端）+ agent-plugins/claude-code/\* —— 替换开源 dev-workflow 语义
 6. git-service（665行）+ process-scheduler/fd-diagnostics —— EBADF防御（可选，SDK 升级后非阻塞）
 7. 既有域对齐：worktree完整子树/settings多panel/project clone/command-palette/skills builtin/deeplink handle/llm双provider/analytics
+
+### 已完成（追加 2）
+
+- ✅ react-query 引入（lib/query-client 纯前端版 + orpc.ts orpcQueryUtils + core/app QueryClientProvider）
+- ✅ changes feature 化（8文件+4测试）+ git contract 扩展（pull/workingDiff/watchBranch/watchWorkingTree + conflicted/noVerify/compareRef/operationState）+ use-active-project hook
+- ✅ agent 域 turn-artifacts/turn-file-changes-from-parts/use-existing-turn-artifacts + shared TurnFileChangeStat 类型（chat-manager 保留开源领先版）
+
+### 进行中
+
+- 🔄 summary 面板（代理迁移中，需适配 statusSummary/currentBranch 改用 branches+files）
+
+### 下一批
+
+- dev-workflow marketplace（agent-plugins/claude-code/\* 10文件 + dev-workflow 12端 contract/router，作独立 feature 不替换开源 mode/draftPrefix；新增 deps: proper-lockfile/async-mutex/tiny-invariant；readme-fetcher registry 改 npmjs）
+- 既有域对齐：worktree 完整子树/settings 多panel/project clone/command-palette/skills builtin/deeplink handle/llm 双provider fallback/analytics 对齐
