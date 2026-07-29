@@ -5,7 +5,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@neo/ui/components/collapsible";
-import { isReasoningUIPart, isToolUIPart, type ToolUIPart } from "ai";
+import { isToolUIPart, type ToolUIPart } from "ai";
 import { CheckIcon, CopyIcon, ChevronDownIcon, SendIcon } from "lucide-react";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
@@ -23,11 +23,6 @@ import {
   MessageContent,
   MessageResponse,
 } from "../../../components/ai-elements/message";
-import {
-  Reasoning,
-  ReasoningContent,
-  ReasoningTrigger,
-} from "../../../components/ai-elements/reasoning";
 import { Shimmer } from "../../../components/ai-elements/shimmer";
 import { cn } from "../../../lib/utils";
 import { useMarkdownComponents } from "../hooks/use-markdown-components";
@@ -282,20 +277,9 @@ export const MessagePartRenderer = memo(
               );
             }
             case "reasoning":
-              if (!isReasoningUIPart(part)) {
-                return null;
-              }
-              return (
-                <Reasoning
-                  key={`${message.id}-${index}`}
-                  data-key={`${message.id}-${index}`}
-                  className="w-full mb-0"
-                  isStreaming={part.state === "streaming"}
-                >
-                  <ReasoningTrigger className="italic" />
-                  <ReasoningContent className="pl-6">{part.text}</ReasoningContent>
-                </Reasoning>
-              );
+              // Reasoning is never rendered inline in the chat transcript — the
+              // trailing shimmer + message-level reasoning summary cover it.
+              return null;
             case "file":
               // Render all images together at first image position
               if (isImageFilePart(part)) {

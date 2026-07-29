@@ -23,7 +23,9 @@ export function GrepTool({ invocation }: { invocation: GrepUIToolInvocation }) {
         </span>
       </ToolHeader>
       <ToolContent>
-        {typeof output === "string" ? <pre className="text-xs">{output}</pre> : null}
+        {typeof output === "string" ? (
+          <pre className="text-xs whitespace-pre-wrap">{output}</pre>
+        ) : null}
       </ToolContent>
     </Tool>
   );

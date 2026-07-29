@@ -148,23 +148,4 @@ describe("MessageParts", () => {
 
     expect(container.querySelector(".bg-primary")).toBeNull();
   });
-
-  it("renders reasoning trigger labels as inline content inside the button", () => {
-    const message = {
-      id: "reasoning-message",
-      role: "assistant",
-      metadata: { sessionId: "sess-3", parentToolUseId: null },
-      parts: [{ type: "reasoning", text: "Need to think", state: "done" }],
-    } as any;
-
-    const { container } = render(
-      <MessageParts
-        message={message}
-        renderToolPart={(_partMessage, part) => <ClaudeCodeToolUIPart part={part} />}
-      />,
-    );
-
-    expect(screen.getByText("Thought for a few seconds")).toBeTruthy();
-    expect(container.querySelector("button p")).toBeNull();
-  });
 });

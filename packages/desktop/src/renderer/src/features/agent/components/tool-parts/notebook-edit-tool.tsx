@@ -8,6 +8,7 @@ import {
   ToolContent,
   ToolHeader,
   ToolHeaderIcon,
+  ToolHeaderTitle,
 } from "../../../../components/ai-elements/tool";
 
 export function NotebookEditTool({ invocation }: { invocation: NotebookEditUIToolInvocation }) {
@@ -20,11 +21,11 @@ export function NotebookEditTool({ invocation }: { invocation: NotebookEditUIToo
     <Tool invocation={invocation}>
       <ToolHeader>
         <ToolHeaderIcon icon={BookOpen} />
-        NotebookEdit {fileName}
+        <ToolHeaderTitle>NotebookEdit {fileName}</ToolHeaderTitle>
       </ToolHeader>
       <ToolContent className="p-0">
         {input?.new_source ? (
-          <CodeBlock code={input.new_source} language="python" className="text-xs" />
+          <CodeBlock code={input.new_source} language="python" className="text-sm" />
         ) : null}
       </ToolContent>
     </Tool>
