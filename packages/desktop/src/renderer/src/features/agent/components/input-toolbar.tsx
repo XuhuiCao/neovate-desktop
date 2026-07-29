@@ -86,7 +86,7 @@ export function InputToolbar({
 
   return (
     <div
-      className="flex items-center gap-1 border-border/50 px-2 py-2 bg-card"
+      className={cn("flex items-center gap-1 border-border/50 bg-card px-2 py-2")}
       role="toolbar"
       aria-label={t("chat.messageActions")}
     >
@@ -106,14 +106,14 @@ export function InputToolbar({
       <PermissionModeSelect activeSessionId={activeSessionId} disabled={disabled || streaming} />
       {showProjectSelector && <ProjectSelector variant="select" />}
       {sessionInitError ? (
-        <span className="text-xs text-destructive">
+        <span className="text-sm text-destructive truncate min-w-0" title={sessionInitError}>
           {t("chat.sessionInitFailed")}
           {networkInspector && (
             <span className="text-muted-foreground ml-1">— {t("chat.sessionInitNetworkHint")}</span>
           )}
         </span>
       ) : sessionInitializing ? (
-        <span className="text-xs text-muted-foreground animate-pulse">
+        <span className="text-sm text-muted-foreground animate-pulse">
           {t("chat.sessionInitializing")}
         </span>
       ) : null}
@@ -220,23 +220,25 @@ function ConnectedPermissionModeSelect({
     <Menu>
       <MenuTrigger
         disabled={disabled}
-        className="inline-flex h-7 min-w-0 items-center gap-1 rounded-md bg-card px-2 text-xs text-muted-foreground outline-none disabled:opacity-50 hover:!bg-background/80 cursor-pointer"
+        className="inline-flex h-7 min-w-0 items-center gap-1 rounded-md bg-card px-2 text-xs text-foreground/70 outline-none disabled:opacity-50 hover:bg-accent cursor-pointer"
       >
-        <Shield className="h-3 w-3 shrink-0" />
+        <Shield className="size-3.5 shrink-0" />
         <span className="min-w-0 truncate">{t(PERMISSION_MODE_I18N_KEYS[permissionMode])}</span>
-        <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
+        <ChevronDown className="size-3.5 shrink-0 opacity-50 transition-transform in-data-[popup-open]:rotate-180" />
       </MenuTrigger>
-      <MenuPopup side="top" align="start" className="min-w-52">
+      <MenuPopup side="top" align="start" className="min-w-60">
         <MenuRadioGroup value={permissionMode} onValueChange={handleSelect}>
           <MenuRadioItem
             value="default"
-            className="items-start py-1 grid-cols-[1fr_auto] pe-2 [&>:first-child]:col-start-2 [&>:first-child]:row-start-1 [&>:last-child]:col-start-1"
+            className="items-start py-1.5 grid-cols-[1fr_auto] pe-2 [&>:first-child]:col-start-2 [&>:first-child]:row-start-1 [&>:last-child]:col-start-1"
           >
-            <div className="flex items-start gap-2">
-              <Hand className="size-3.5 mt-px shrink-0 opacity-60" />
-              <div className="flex flex-col">
-                <span className="text-xs">{t("settings.agents.permissionMode.default")}</span>
-                <span className="text-[10px] leading-tight text-muted-foreground/80 font-normal">
+            <div className="flex items-start gap-2.5">
+              <Hand className="size-4 mt-0.5 shrink-0 text-muted-foreground" />
+              <div className="flex flex-col gap-0.5">
+                <span className="text-sm leading-snug">
+                  {t("settings.agents.permissionMode.default")}
+                </span>
+                <span className="text-xs leading-snug text-muted-foreground font-normal">
                   {t("settings.agents.permissionMode.default.desc")}
                 </span>
               </div>
@@ -244,13 +246,15 @@ function ConnectedPermissionModeSelect({
           </MenuRadioItem>
           <MenuRadioItem
             value="acceptEdits"
-            className="items-start py-1 grid-cols-[1fr_auto] pe-2 [&>:first-child]:col-start-2 [&>:first-child]:row-start-1 [&>:last-child]:col-start-1"
+            className="items-start py-1.5 grid-cols-[1fr_auto] pe-2 [&>:first-child]:col-start-2 [&>:first-child]:row-start-1 [&>:last-child]:col-start-1"
           >
-            <div className="flex items-start gap-2">
-              <Code className="size-3.5 mt-px shrink-0 opacity-60" />
-              <div className="flex flex-col">
-                <span className="text-xs">{t("settings.agents.permissionMode.acceptEdits")}</span>
-                <span className="text-[10px] leading-tight text-muted-foreground/80 font-normal">
+            <div className="flex items-start gap-2.5">
+              <Code className="size-4 mt-0.5 shrink-0 text-muted-foreground" />
+              <div className="flex flex-col gap-0.5">
+                <span className="text-sm leading-snug">
+                  {t("settings.agents.permissionMode.acceptEdits")}
+                </span>
+                <span className="text-xs leading-snug text-muted-foreground font-normal">
                   {t("settings.agents.permissionMode.acceptEdits.desc")}
                 </span>
               </div>
@@ -258,13 +262,15 @@ function ConnectedPermissionModeSelect({
           </MenuRadioItem>
           <MenuRadioItem
             value="plan"
-            className="items-start py-1 grid-cols-[1fr_auto] pe-2 [&>:first-child]:col-start-2 [&>:first-child]:row-start-1 [&>:last-child]:col-start-1"
+            className="items-start py-1.5 grid-cols-[1fr_auto] pe-2 [&>:first-child]:col-start-2 [&>:first-child]:row-start-1 [&>:last-child]:col-start-1"
           >
-            <div className="flex items-start gap-2">
-              <ClipboardList className="size-3.5 mt-px shrink-0 opacity-60" />
-              <div className="flex flex-col">
-                <span className="text-xs">{t("settings.agents.permissionMode.plan")}</span>
-                <span className="text-[10px] leading-tight text-muted-foreground/80 font-normal">
+            <div className="flex items-start gap-2.5">
+              <ClipboardList className="size-4 mt-0.5 shrink-0 text-muted-foreground" />
+              <div className="flex flex-col gap-0.5">
+                <span className="text-sm leading-snug">
+                  {t("settings.agents.permissionMode.plan")}
+                </span>
+                <span className="text-xs leading-snug text-muted-foreground font-normal">
                   {t("settings.agents.permissionMode.plan.desc")}
                 </span>
               </div>
@@ -272,15 +278,15 @@ function ConnectedPermissionModeSelect({
           </MenuRadioItem>
           <MenuRadioItem
             value="bypassPermissions"
-            className="items-start py-1 grid-cols-[1fr_auto] pe-2 [&>:first-child]:col-start-2 [&>:first-child]:row-start-1 [&>:last-child]:col-start-1"
+            className="items-start py-1.5 grid-cols-[1fr_auto] pe-2 [&>:first-child]:col-start-2 [&>:first-child]:row-start-1 [&>:last-child]:col-start-1"
           >
-            <div className="flex items-start gap-2">
-              <TriangleAlert className="size-3.5 mt-px shrink-0 opacity-60" />
-              <div className="flex flex-col">
-                <span className="text-xs">
+            <div className="flex items-start gap-2.5">
+              <TriangleAlert className="size-4 mt-0.5 shrink-0 text-muted-foreground" />
+              <div className="flex flex-col gap-0.5">
+                <span className="text-sm leading-snug">
                   {t("settings.agents.permissionMode.bypassPermissions")}
                 </span>
-                <span className="text-[10px] leading-tight text-muted-foreground/80 font-normal">
+                <span className="text-xs leading-snug text-muted-foreground font-normal">
                   {t("settings.agents.permissionMode.bypassPermissions.desc")}
                 </span>
               </div>
@@ -293,8 +299,8 @@ function ConnectedPermissionModeSelect({
 }
 
 function ScopeBadge({ scope }: { scope?: ModelScope }) {
-  if (scope === "project") return <FolderOpen className="h-3 w-3 text-muted-foreground" />;
-  if (scope === "global") return <Globe className="h-3 w-3 text-muted-foreground" />;
+  if (scope === "project") return <FolderOpen className="size-3.5 text-muted-foreground" />;
+  if (scope === "global") return <Globe className="size-3.5 text-muted-foreground" />;
   return null;
 }
 
@@ -500,11 +506,11 @@ function ConnectedModelSelect({
         <Menu open={menuOpen} onOpenChange={setMenuOpen}>
           <MenuTrigger
             disabled={disabled}
-            className="inline-flex h-7 min-w-0 items-center gap-1 rounded-md bg-card px-2 text-xs text-muted-foreground outline-none disabled:opacity-50 hover:!bg-background/80 cursor-pointer"
+            className="inline-flex h-7 min-w-0 items-center gap-1 rounded-md bg-card px-2 text-xs text-foreground/70 outline-none disabled:opacity-50 hover:bg-accent cursor-pointer"
           >
             <ScopeBadge scope={modelScope} />
             <span className="min-w-0 truncate">{buttonLabel}</span>
-            <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
+            <ChevronDown className="size-3.5 shrink-0 opacity-50 transition-transform in-data-[popup-open]:rotate-180" />
           </MenuTrigger>
           <MenuPopup side="top" align="start" className="max-h-80 min-w-48 overflow-y-auto">
             {/* Provider groups — only show when providers exist */}
@@ -624,7 +630,7 @@ function ConnectedModelSelect({
               }}
               data-track-id="settings.providers.opened"
             >
-              <Settings className="h-3 w-3" />
+              <Settings className="size-3.5" />
               {t("chat.manageProviders")}
             </button>
           </MenuPopup>

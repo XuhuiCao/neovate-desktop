@@ -66,7 +66,7 @@ export function AppLayoutRoot({ children }: { children: ReactNode }) {
     <div
       data-slot="app-layout-root"
       data-testid="app-root"
-      className="relative grid h-screen w-screen overflow-hidden pb-2 bg-background"
+      className="relative grid h-screen w-screen overflow-hidden bg-background pb-2 pr-2"
       style={APP_LAYOUT_GRID}
     >
       <div className="[-webkit-app-region:drag] absolute inset-x-0 top-0 h-10" />
@@ -299,7 +299,7 @@ export function AppLayoutStatusBar() {
   const { t } = useTranslation();
   return (
     <div data-slot="status-bar" className="flex h-6 shrink-0 items-center px-3">
-      <span className="text-[11px] text-muted-foreground">{t("status.ready")}</span>
+      <span className="text-sm text-muted-foreground">{t("status.ready")}</span>
     </div>
   );
 }
@@ -319,7 +319,7 @@ function ContentPanelToggle() {
     >
       <HugeiconsIcon
         icon={collapsed ? SidebarRightIcon : SidebarRight01Icon}
-        size={16}
+        className="size-4"
         strokeWidth={1.8}
       />
     </Button>

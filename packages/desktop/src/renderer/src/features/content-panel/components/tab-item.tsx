@@ -3,6 +3,7 @@ import type React from "react";
 import { Button } from "@neo/ui/components/button";
 import { Tooltip, TooltipTrigger, TooltipPopup } from "@neo/ui/components/tooltip";
 import { X, TriangleAlert } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { Tab } from "../types";
@@ -28,9 +29,18 @@ function TabButton({
   const locale = normalizeLocale(i18n.language);
   const views = app.pluginManager.viewContributions.contentPanelViews.map((c) => c.value);
   const view = views.find((view) => view.viewType === tab.viewType);
+  const elRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isActive && elRef.current) {
+      elRef.current.scrollIntoView({ inline: "nearest", block: "nearest" });
+    }
+  }, [isActive]);
+
   return (
     <div
       {...rest}
+      ref={elRef}
       role="tab"
       aria-selected={isActive}
       className={cn(
