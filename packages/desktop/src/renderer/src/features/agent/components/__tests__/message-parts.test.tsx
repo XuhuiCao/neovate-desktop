@@ -30,6 +30,24 @@ vi.mock("react-i18next", () => ({
       if (key === "chat.messages.summarySeparator") {
         return ", ";
       }
+      // ToolBatch trigger-phrase keys — return readable strings so tests can
+      // interact with the batch trigger by visible text instead of by raw
+      // i18n key. Only the keys actually emitted by compute-batch-trigger are
+      // handled here.
+      if (key === "chat.messages.toolBatch.fallback") {
+        return "Working";
+      }
+      if (key === "chat.messages.toolBatch.bucket.separator") {
+        return ", ";
+      }
+      if (key === "chat.messages.toolBatch.bucket.files.done") {
+        const n = params?.count as number;
+        return `Read ${n} file${n > 1 ? "s" : ""}`;
+      }
+      if (key === "chat.messages.toolBatch.bucket.files.active") {
+        const n = params?.count as number;
+        return `Reading ${n} file${n > 1 ? "s" : ""}`;
+      }
       return key;
     },
   }),
@@ -90,6 +108,11 @@ describe("MessageParts", () => {
     fireEvent.click(screen.getByText("Explore repo"));
 
     expect(screen.getByText("Inspection in progress")).toBeTruthy();
+    // The nested agent message's tool-Read is now collapsed inside a ToolBatch
+    // trigger (consecutive-tool batching). Expand it to surface the read's
+    // FileTag — the batch is sealed (not trailing) because a text part
+    // follows, so it does not shimmer.
+    fireEvent.click(screen.getByText("Read 1 file"));
     expect(screen.getByText(/subagent-example\.ts/)).toBeTruthy();
     expect(screen.getByText("Inspection complete")).toBeTruthy();
   });
