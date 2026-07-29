@@ -282,3 +282,19 @@ usage-dashboard(语燕API) / token-usage 内部上报版 / 内置 @antskill 技�
 - skills builtin tab（listBuiltin RPC 未就绪）
 
 本轮视觉/交互细节级对齐共 13 commit 完成。
+
+### 追加完成
+
+- ✅ A9 ToolBatch 接入 message-parts（连续 tool 合并 trigger + trailing shimmer）
+- ✅ hydration error 修复（project-accordion-list li>li 嵌套 → div[role=list]>div[role=listitem]）
+
+### SIGKILL 诊断结论（本机环境，非代码）
+
+SDK 0.3.199 平台 claude 二进制（bun-compiled 232MB hardened runtime）：
+
+- direct exec（zsh execve）成功
+- node/bun execFile/spawn/shell spawn 均 SIGKILL（无 stderr，移除 xattr 无效）
+- echo/bun 自身 spawn 正常 → 仅该二进制 spawn 被杀
+- 代码层面 spawn 正确（不 override + pathToClaudeCodeExecutable 对齐内部）
+- macOS（Darwin 25.5）对 bun standalone hardened binary 的 posix_spawn 限制
+- 内部版同 binary/同 SDK，差异疑在本机 macOS 配置（AMFI/SIP）或未迁移的 env 通道
