@@ -621,13 +621,11 @@ export class SessionManager {
       | undefined;
 
     if (resolved.standalone) {
-      spawnOverride = (spawnOpts) =>
-        spawn(resolved.executable, spawnOpts.args, {
-          cwd: spawnOpts.cwd,
-          env: spawnOpts.env,
-          signal: spawnOpts.signal,
-          stdio: ["pipe", "pipe", "pipe"],
-        }) as unknown as SpawnedProcess;
+      // Let the SDK spawn the platform binary itself — overriding spawn in
+      // standalone mode desyncs the SDK's child lifecycle/signal protocol
+      // (stdin/IPC) and the child gets SIGKILLed on init. The SDK already
+      // knows the binary path (pathToClaudeCodeExecutable below).
+      spawnOverride = undefined;
     } else if (networkInspector) {
       spawnOverride = (spawnOpts) => {
         const interceptorPath = resolveInterceptorPath();
