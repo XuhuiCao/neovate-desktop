@@ -338,3 +338,12 @@ allow-jit entitlement）被 SIGKILL：
 实测确认：PATH claude 2.1.66（homebrew signed）spawn 成功 exit 0；SDK 0.3.199
 bundled binary（hardened unsigned-parent spawn）SIGKILL；direct exec（zsh signed
 parent）成功。证明 parent signature 是关键。
+
+### 追加完成（composer @ref 序列化）
+
+- ✅ chat.attachments composer 完整链路：base64 inline → 存盘 @ref（message-input 存盘+attachmentMention chip / image-paste-extension File / extract-text @ref / agent-chat onSend 收窄 text-only / i18n）
+
+### 剩余后端依赖阻碍（仅 2 项，非代码可解）
+
+- Local/Cloud mode switch（内部 cloud feature，开源无 cloud 后端，stub 无意义）
+- skills builtin tab（main skills.listBuiltin RPC 未实现，builtin skills 数据全内部 @antskill）
