@@ -333,6 +333,8 @@
   "settings.skills.noMatchingSkills": "没有匹配 \"{{query}}\" 的技能",
   "settings.skills.noInstalledSkills": "未安装技能。浏览「发现」标签页来查找技能。",
   "settings.skills.discover": "发现",
+  "settings.skills.builtin": "内置",
+  "settings.skills.builtin.empty": "暂无内置技能",
   "settings.skills.installedTab": "已安装",
   "settings.skills.recommended": "推荐",
   "settings.skills.recommendedCount": "推荐（{{count}}）",

@@ -4,7 +4,16 @@ import { Input } from "@neo/ui/components/input";
 import { Spinner } from "@neo/ui/components/spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@neo/ui/components/tabs";
 import debug from "debug";
-import { CheckCircle, Download, Plus, RefreshCw, Search, Settings2, Wand2 } from "lucide-react";
+import {
+  BookOpen,
+  CheckCircle,
+  Download,
+  Plus,
+  RefreshCw,
+  Search,
+  Settings2,
+  Wand2,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -21,6 +30,7 @@ import { claudeCodeChatManager } from "../../agent/chat-manager";
 import { useConfigStore } from "../../config/store";
 import { useProjectStore } from "../../project/store";
 import { SkillAddModal } from "./skill-add-modal";
+import { SkillBuiltinTab } from "./skill-builtin-tab";
 import { SkillDiscoverTab } from "./skill-discover-tab";
 import { SkillInstalledTab } from "./skill-installed-tab";
 import { SkillRegistryModal } from "./skill-registry-modal";
@@ -212,6 +222,10 @@ export const SkillsPanel = () => {
             <Download className="size-3.5 mr-1.5" />
             {t("settings.skills.discover")}
           </TabsTrigger>
+          <TabsTrigger value="builtin">
+            <BookOpen className="size-3.5 mr-1.5" />
+            {t("settings.skills.builtin")}
+          </TabsTrigger>
           <TabsTrigger value="installed">
             <CheckCircle className="size-3.5 mr-1.5" />
             {t("settings.skills.installedTab")}
@@ -238,6 +252,10 @@ export const SkillsPanel = () => {
             onInstall={handleInstallRecommended}
             onAddRegistry={() => setShowRegistryModal(true)}
           />
+        </TabsContent>
+
+        <TabsContent value="builtin">
+          <SkillBuiltinTab />
         </TabsContent>
 
         <TabsContent value="installed">
