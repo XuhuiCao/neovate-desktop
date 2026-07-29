@@ -2,6 +2,7 @@ import { type ReactNode, useCallback, useLayoutEffect, useRef, useState } from "
 import { useTranslation } from "react-i18next";
 
 import { cn } from "../../../lib/utils";
+import { AttachmentChip } from "./attachment-chip";
 
 // Markers for neodebug react-grab annotation blocks the model may echo back.
 // The open-source build has no neodebug bridge, so these never appear in
@@ -27,12 +28,33 @@ function stripReactGrabCommentsFromText(text: string): string {
   );
 }
 
-// NOTE: internal build splits `@<path>/.neo/.context/attachments/*.png` refs
-// into AttachmentChip tags here. The open-source build sends images inline as
-// base64 (no attachment refs), so renderUserText returns the text unchanged.
-// When the chat.attachments disk-save flow is migrated, reintroduce AttachmentChip.
+// Matches an attachment reference the composer serialized into the prompt:
+// `@<absolutePath>` where the path runs through .neo/.context/attachments/ and
+// ends at an image extension. Filenames may contain spaces and `@`, so the
+// image extension is the only reliable right boundary (renderer-only heuristic).
+const ATTACHMENT_REF =
+  /@(\/[^\n]*?\/\.neo\/\.context\/attachments\/[^\n]*?\.(?:png|jpe?g|gif|webp|svg|bmp))/gi;
+
+// Split the message text into plain-text runs and inline attachment chips. Text
+// with no attachment reference returns a single string (unchanged behavior).
+// The open-source composer still sends images inline as base64, so in practice
+// no refs reach here yet — once composer serialization switches to disk-save +
+// `@<absolutePath>` refs, chips render automatically. No base64 path is touched.
 function renderUserText(text: string): ReactNode {
-  return text;
+  const parts: ReactNode[] = [];
+  let lastIndex = 0;
+  let key = 0;
+  ATTACHMENT_REF.lastIndex = 0;
+  for (let m = ATTACHMENT_REF.exec(text); m !== null; m = ATTACHMENT_REF.exec(text)) {
+    const absolutePath = m[1];
+    if (m.index > lastIndex) parts.push(text.slice(lastIndex, m.index));
+    const name = absolutePath.slice(absolutePath.lastIndexOf("/") + 1);
+    parts.push(<AttachmentChip key={`att-${key++}`} absolutePath={absolutePath} name={name} />);
+    lastIndex = m.index + m[0].length;
+  }
+  if (parts.length === 0) return text;
+  if (lastIndex < text.length) parts.push(text.slice(lastIndex));
+  return parts;
 }
 
 export function CollapsibleUserText({ text }: { text: string }) {
