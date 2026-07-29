@@ -87,17 +87,18 @@ const ProjectSessions = memo(function ProjectSessions({ project }: { project: Pr
   }
 
   return (
-    <ul className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1" role="list">
       <AnimatePresence initial={false}>
         {visibleItems.map((item) => {
           const id = item.kind === "memory" ? item.session.sessionId : item.info.sessionId;
           return (
-            <motion.li
+            <motion.div
               key={id}
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0, transition: { duration: 0 } }}
               transition={{ duration: 0.15 }}
+              role="listitem"
             >
               <UnifiedSessionItem
                 item={item}
@@ -107,7 +108,7 @@ const ProjectSessions = memo(function ProjectSessions({ project }: { project: Pr
                 onActivate={handleActivate}
                 onLoad={handleLoad}
               />
-            </motion.li>
+            </motion.div>
           );
         })}
       </AnimatePresence>
@@ -131,7 +132,7 @@ const ProjectSessions = memo(function ProjectSessions({ project }: { project: Pr
           {t("session.showLess")}
         </button>
       ) : null}
-    </ul>
+    </div>
   );
 });
 
