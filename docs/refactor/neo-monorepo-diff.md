@@ -255,3 +255,17 @@ usage-dashboard(语燕API) / token-usage 内部上报版 / 内置 @antskill 技�
 - content-panel keep-alive/NewTabMenu grid 卡片/useAvailableViews
 - Local/Cloud mode switch（内部 cloud 依赖）
 - skills builtin tab/store 化（需 listBuiltin RPC）
+
+### 追加完成（content-panel + SDK 二进制）
+
+- ✅ content-panel 完整对齐：keep-alive（view 状态保留）+ tab-item iconColor/reload ContextMenu + empty-state-with-grid + view-context projectPath/HMR + ContentPanelView 类型补全 + use-available-views
+- ✅ SDK 0.3.199 平台 claude 二进制定位（修 cli.js Module not found）
+
+### 实测验证（dev 截图）
+
+- 主窗口渲染正常：欢迎页/logo/sidebar/输入框/content-panel 空状态布局正确
+- session 用平台二进制创建（standalone=true），dev 环境 SIGKILL 是 OAuth/签名运行时问题（非视觉/构建问题，typecheck/lint/test 全绿）
+
+### 本轮视觉对齐总计 11 commit（b37aafe..f8872e0 + content-panel）
+
+3 审查代理驱动逐 class 对齐：主对话/message/tool/拓展面板/设置/app-layout/InputToolbar/content-panel/主题字体/SDK二进制。
