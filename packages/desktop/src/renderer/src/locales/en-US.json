@@ -705,5 +705,9 @@
   "chat.messages.toolBatch.bucket.separator": ", ",
   "chat.messages.toolBatch.fallback": "Tool calls",
   "chat.userMessage.showMore": "Show more",
-  "chat.userMessage.showLess": "Show less"
+  "chat.userMessage.showLess": "Show less",
+  "settings.menuGroup.app": "App",
+  "settings.menuGroup.config": "Configuration",
+  "settings.menuGroup.data": "Data",
+  "settings.menuGroup.support": "Support"
 }

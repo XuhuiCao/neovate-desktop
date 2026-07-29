@@ -704,5 +704,9 @@
   "chat.messages.toolBatch.bucket.separator": "、",
   "chat.messages.toolBatch.fallback": "工具调用",
   "chat.userMessage.showMore": "展开",
-  "chat.userMessage.showLess": "收起"
+  "chat.userMessage.showLess": "收起",
+  "settings.menuGroup.app": "应用",
+  "settings.menuGroup.config": "配置",
+  "settings.menuGroup.data": "数据",
+  "settings.menuGroup.support": "支持"
 }
