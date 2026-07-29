@@ -58,7 +58,7 @@ export const SettingsMenu = ({
 
   return (
     <div
-      className="w-56 h-full flex flex-col pt-10 px-3 border-r border-border bg-background"
+      className="w-56 h-full flex flex-col pt-10 px-3 border-r border-sidebar-border bg-sidebar"
       style={{
         // @ts-expect-error - Electron specific CSS property
         WebkitAppRegion: "drag",
@@ -94,7 +94,7 @@ export const SettingsMenu = ({
                 "w-full flex items-center gap-3 px-2.5 py-2 text-sm rounded-lg transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 isActive
                   ? "bg-primary/10 text-primary font-medium"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent",
+                  : "text-foreground hover:bg-accent/50",
               )}
               style={{
                 // @ts-expect-error - Electron specific CSS property
@@ -103,7 +103,12 @@ export const SettingsMenu = ({
               onClick={() => onMenuSelect(item.id)}
               data-track-id="settings.tab.navigated"
             >
-              <Icon className={cn("size-[18px]", isActive && "text-primary")} />
+              <Icon
+                className={cn(
+                  "size-4 shrink-0 transition-colors",
+                  isActive ? "text-primary" : "text-muted-foreground group-hover:text-primary",
+                )}
+              />
               <span>{t(MENU_LABEL_KEYS[item.id])}</span>
             </button>
           );

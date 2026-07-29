@@ -116,7 +116,7 @@ export const PluginsPanel = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
+      <div className="flex items-center justify-center py-16">
         <Spinner className="h-6 w-6" />
       </div>
     );
@@ -162,7 +162,11 @@ export const PluginsPanel = () => {
             <CheckCircle className="size-3.5 mr-1.5" />
             {t("settings.plugins.installed")}
             {installed.length > 0 && (
-              <Badge variant="secondary" size="sm" className="ml-1.5">
+              <Badge
+                variant="outline"
+                size="sm"
+                className="ml-1.5 border-primary/30 bg-primary/8 text-primary dark:bg-primary/16"
+              >
                 {installed.length}
               </Badge>
             )}

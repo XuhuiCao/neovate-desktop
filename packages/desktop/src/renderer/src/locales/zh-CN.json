@@ -672,5 +672,6 @@
   "summary.fileCount": "{{count}} 个文件",
   "ai.tool.input": "输入",
   "ai.tool.output": "输出",
-  "ai.tool.error": "错误"
+  "ai.tool.error": "错误",
+  "chat.anchorScrollbar.goToMessage": "跳转到消息"
 }

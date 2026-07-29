@@ -153,8 +153,8 @@ export const AgentsPanel = () => {
                   <div className="flex items-start gap-2">
                     <Hand className="size-3.5 mt-px shrink-0 opacity-60" />
                     <div className="flex flex-col">
-                      <span className="text-xs">{t("settings.agents.permissionMode.default")}</span>
-                      <span className="text-[10px] leading-tight text-muted-foreground/80 font-normal">
+                      <span className="text-sm">{t("settings.agents.permissionMode.default")}</span>
+                      <span className="text-xs leading-tight text-muted-foreground/80 font-normal">
                         {t("settings.agents.permissionMode.default.desc")}
                       </span>
                     </div>
@@ -167,10 +167,10 @@ export const AgentsPanel = () => {
                   <div className="flex items-start gap-2">
                     <Code className="size-3.5 mt-px shrink-0 opacity-60" />
                     <div className="flex flex-col">
-                      <span className="text-xs">
+                      <span className="text-sm">
                         {t("settings.agents.permissionMode.acceptEdits")}
                       </span>
-                      <span className="text-[10px] leading-tight text-muted-foreground/80 font-normal">
+                      <span className="text-xs leading-tight text-muted-foreground/80 font-normal">
                         {t("settings.agents.permissionMode.acceptEdits.desc")}
                       </span>
                     </div>
@@ -183,10 +183,10 @@ export const AgentsPanel = () => {
                   <div className="flex items-start gap-2">
                     <TriangleAlert className="size-3.5 mt-px shrink-0 opacity-60" />
                     <div className="flex flex-col">
-                      <span className="text-xs">
+                      <span className="text-sm">
                         {t("settings.agents.permissionMode.bypassPermissions")}
                       </span>
-                      <span className="text-[10px] leading-tight text-muted-foreground/80 font-normal">
+                      <span className="text-xs leading-tight text-muted-foreground/80 font-normal">
                         {t("settings.agents.permissionMode.bypassPermissions.desc")}
                       </span>
                     </div>

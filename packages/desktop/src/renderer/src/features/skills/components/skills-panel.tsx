@@ -216,7 +216,11 @@ export const SkillsPanel = () => {
             <CheckCircle className="size-3.5 mr-1.5" />
             {t("settings.skills.installedTab")}
             {installed.length > 0 && (
-              <Badge variant="secondary" size="sm" className="ml-1.5">
+              <Badge
+                variant="outline"
+                size="sm"
+                className="ml-1.5 border-primary/30 bg-primary/8 text-primary dark:bg-primary/16"
+              >
                 {installed.length}
               </Badge>
             )}

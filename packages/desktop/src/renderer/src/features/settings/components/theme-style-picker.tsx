@@ -22,16 +22,39 @@ export function ThemeStylePicker({ value, onChange }: ThemeStylePickerProps) {
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
 
+  const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
+    let nextIndex: number | null = null;
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+      nextIndex = (index + 1) % THEME_STYLES.length;
+    } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+      nextIndex = (index - 1 + THEME_STYLES.length) % THEME_STYLES.length;
+    }
+    if (nextIndex !== null) {
+      e.preventDefault();
+      onChange(THEME_STYLES[nextIndex].value);
+      const next = e.currentTarget.parentElement?.querySelector<HTMLElement>(
+        `[data-index="${nextIndex}"]`,
+      );
+      next?.focus();
+    }
+  };
+
   return (
-    <div className="flex gap-3">
-      {THEME_STYLES.map((style) => {
+    <div className="flex gap-3" role="radiogroup" aria-label={t("settings.themeStyle.label")}>
+      {THEME_STYLES.map((style, index) => {
         const isSelected = value === style.value;
 
         return (
           <button
             key={style.value}
             type="button"
+            role="radio"
+            aria-checked={isSelected}
+            aria-label={t(style.labelKey)}
+            data-index={index}
+            tabIndex={isSelected ? 0 : -1}
             onClick={() => onChange(style.value)}
+            onKeyDown={(e) => handleKeyDown(e, index)}
             className={cn(
               "group relative flex flex-col overflow-hidden rounded-lg border-2 transition-all",
               "w-[72px] hover:scale-105 hover:shadow-md",
@@ -62,7 +85,7 @@ export function ThemeStylePicker({ value, onChange }: ThemeStylePickerProps) {
             <div
               className={cn(
                 "flex items-center justify-center gap-1 px-1 py-1.5",
-                "text-xs font-medium",
+                "text-sm font-medium",
                 isSelected ? "bg-primary/10 text-primary" : "bg-muted/50 text-muted-foreground",
               )}
             >

@@ -11,6 +11,7 @@
   "settings.theme.dark": "Dark",
   "settings.theme.system": "System",
   "settings.themeStyle": "Color Theme",
+  "settings.themeStyle.label": "Color theme style",
   "settings.themeStyle.description": "Choose a color palette that fits your style",
   "settings.themeStyle.default": "Default",
   "settings.themeStyle.claude": "Claude",
@@ -672,5 +673,6 @@
   "summary.fileCount": "{{count}} files",
   "ai.tool.input": "Input",
   "ai.tool.output": "Output",
-  "ai.tool.error": "Error"
+  "ai.tool.error": "Error",
+  "chat.anchorScrollbar.goToMessage": "Go to message"
 }
