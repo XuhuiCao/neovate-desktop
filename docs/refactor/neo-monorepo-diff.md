@@ -214,3 +214,44 @@ usage-dashboard(语燕API) / token-usage 内部上报版 / 内置 @antskill 技�
 - network interceptor spawn signal 0.3 grace-period 回归需实测
 - worktree branch-switching/session-target-combobox 待 draft-store 体系（开源无）才有意义
 - macOS packaged binary 实测（claude-binary.ts 已就绪）
+
+## 六、视觉/交互细节级对齐（2026-07-29，8 commit）
+
+3 个并行审查代理深挖主对话/message、拓展面板/设置、主题/全局样式逐 class 差异。
+
+### 主对话框/Message（P0 全部完成）
+
+- tool.tsx 内部版覆盖：ToolHeaderTitle/collapsible/spring 动画/bg-muted/50/错误分支/i18n
+- message.tsx：MessageContent overflow 角色分流 + MessageActions focus-within + Tooltip delay=0
+- markdown：内联 code bg-code text-sm break-all + pre my-3 尾换行 strip + 链接 break-words
+- conversation：ConversationContent gap-5 + overflow-x-clip + ScrollButton ghost/border
+- image-overlay + file-tag 迁入并接入 read/edit/multi-edit/write-tool
+- agent-chat flex-row 重构 + ConversationAnchorScrollbar + message wrapper div data-\*
+- ChatError destructive token + TaskProgress 字号 + reasoning 不展示
+- A8 CollapsibleUserText（user 长文折叠）+ A9 ToolBatch 三件套就位（待接入）
+- grep/notebook tool 细节
+
+### 拓展面板/设置
+
+- settings-row min-w-0 + rules/agents 字号 + plugins loading py-16
+- skills/plugins Tab Badge 半透明主色 + settings-menu sidebar token/group hover
+- theme-style-picker a11y（radiogroup + 箭头导航）+ InputToolbar 全面对齐
+- content-panel tab scrollIntoView + tab-bar 条件 border + error i18n
+
+### 主题/字体
+
+- JetBrainsMono 完整字符集（box-drawing 修复）
+- 4 套主题风格 + 品牌层 token + tiptap 确认 byte-identical
+
+### 关键运行时修复
+
+- SDK 0.3.199 cli.js→平台 claude 二进制（修复 session 创建 Module not found）
+
+### 待后续 milestone（依赖未就绪/阻碍）
+
+- A9 ToolBatch 接入 assistant 管线（需 turn-file-changes-summary main 端 part + useMarkdownComponents）
+- A8 AttachmentChip（需 chat.attachments inline 兼容 + attachment-mention）
+- project-accordion-list ul/li/accordion hydration error（预存结构问题）
+- content-panel keep-alive/NewTabMenu grid 卡片/useAvailableViews
+- Local/Cloud mode switch（内部 cloud 依赖）
+- skills builtin tab/store 化（需 listBuiltin RPC）
