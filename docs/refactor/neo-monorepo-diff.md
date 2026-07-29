@@ -269,3 +269,16 @@ usage-dashboard(语燕API) / token-usage 内部上报版 / 内置 @antskill 技�
 ### 本轮视觉对齐总计 11 commit（b37aafe..f8872e0 + content-panel）
 
 3 审查代理驱动逐 class 对齐：主对话/message/tool/拓展面板/设置/app-layout/InputToolbar/content-panel/主题字体/SDK二进制。
+
+### 追加（settings menu 分组）
+
+- ✅ settings-menu 分组结构（App/Config/Data/Support 标头 + group hover）
+
+### 跳过（依赖阻碍）
+
+- skills/plugins banner（mdn.alipayobjects 内部 CDN，去 CDN 化原则不可迁）
+- A9 ToolBatch 接入 assistant 管线（需 turn-file-changes main 端 part + useMarkdownComponents 拆分）
+- Local/Cloud mode switch（cloud feature 依赖）
+- skills builtin tab（listBuiltin RPC 未就绪）
+
+本轮视觉/交互细节级对齐共 13 commit 完成。
