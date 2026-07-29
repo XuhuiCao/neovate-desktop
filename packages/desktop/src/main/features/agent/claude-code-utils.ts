@@ -1,5 +1,6 @@
 import { is } from "@electron-toolkit/utils";
-import { readFileSync } from "node:fs";
+import { app } from "electron";
+import { readFileSync, statSync } from "node:fs";
 import { createRequire } from "node:module";
 import { homedir } from "node:os";
 import path from "node:path";
@@ -9,16 +10,61 @@ import { EXE_EXT } from "../../../shared/platform";
 const require = createRequire(import.meta.url);
 
 /**
- * Resolve the real filesystem path to the SDK's cli.js.
+ * Resolve the SDK-bundled `claude` binary (claude-agent-sdk 0.3.x ships a
+ * platform peer package `@anthropic-ai/claude-agent-sdk-darwin-<arch>/claude`
+ * instead of the 0.2.x `cli.js`). Returns undefined when not found.
+ *
+ * Packaged: `process.resourcesPath/app.asar.unpacked/node_modules/.../claude`.
+ * Dev: anchor at the SDK package (resolvable here) and resolve the sibling
+ * peer package, since Bun's isolated linker only links the peer under the SDK's
+ * own store dir.
+ */
+export function resolveBundledClaudeBinary(): string | undefined {
+  if (process.platform !== "darwin") return undefined;
+
+  // `app` is undefined under vitest (electron not fully mocked) — treat as dev.
+  if (app?.isPackaged) {
+    const candidate = path.join(
+      process.resourcesPath,
+      "app.asar.unpacked",
+      "node_modules",
+      "@anthropic-ai",
+      `claude-agent-sdk-darwin-${process.arch}`,
+      "claude",
+    );
+    return existsAsFile(candidate) ? candidate : undefined;
+  }
+
+  try {
+    const sdkReq = createRequire(require.resolve("@anthropic-ai/claude-agent-sdk"));
+    const peerPkg = sdkReq.resolve(
+      `@anthropic-ai/claude-agent-sdk-darwin-${process.arch}/package.json`,
+    );
+    const candidate = path.join(path.dirname(peerPkg), "claude");
+    return existsAsFile(candidate) ? candidate : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Resolve the real filesystem path to the SDK's cli.js (claude-agent-sdk 0.2.x
+ * entry; 0.3.x removed it in favor of the platform `claude` binary).
  * Inside an ASAR archive, require.resolve returns a virtual path that
  * child_process.spawn cannot use. Replace "app.asar" with "app.asar.unpacked".
  */
-export function resolveSDKCliPath(): string {
-  const cliPath = path.join(
-    path.dirname(require.resolve("@anthropic-ai/claude-agent-sdk")),
-    "cli.js",
-  );
-  return is.dev ? cliPath : cliPath.replace(/\.asar([\\/])/, ".asar.unpacked$1");
+export function resolveSDKCliPath(): string | undefined {
+  try {
+    const cliPath = path.join(
+      path.dirname(require.resolve("@anthropic-ai/claude-agent-sdk")),
+      "cli.js",
+    );
+    if (!existsAsFile(is.dev ? cliPath : cliPath.replace(/\.asar([\\/])/, ".asar.unpacked$1")))
+      return undefined;
+    return is.dev ? cliPath : cliPath.replace(/\.asar([\\/])/, ".asar.unpacked$1");
+  } catch {
+    return undefined;
+  }
 }
 
 /**
@@ -73,7 +119,13 @@ export function resolveClaudeCodeExecutable(customPath?: string): ClaudeCodeExec
   const normalized = customPath?.trim().replace(/^~(?=\/|$)/, homedir()) || undefined;
 
   if (!normalized) {
-    return { executable: resolveBunPath(), cliPath: resolveSDKCliPath(), standalone: false };
+    // SDK 0.3.x: prefer the bundled platform `claude` binary (standalone).
+    // Fall back to 0.2.x `bun + cli.js`, then PATH `claude`.
+    const bundled = resolveBundledClaudeBinary();
+    if (bundled) return { executable: bundled, cliPath: undefined, standalone: true };
+    const cliPath = resolveSDKCliPath();
+    if (cliPath) return { executable: resolveBunPath(), cliPath, standalone: false };
+    return { executable: `claude${EXE_EXT}`, cliPath: undefined, standalone: true };
   }
   if (normalized.endsWith(".js")) {
     return { executable: resolveBunPath(), cliPath: normalized, standalone: false };
@@ -92,6 +144,14 @@ export function detectRtkHookInSettings(): boolean {
         Array.isArray(matcher?.hooks) &&
         matcher.hooks.some((h: any) => typeof h?.command === "string" && h.command.includes("rtk")),
     );
+  } catch {
+    return false;
+  }
+}
+
+function existsAsFile(p: string): boolean {
+  try {
+    return statSync(p).isFile();
   } catch {
     return false;
   }
