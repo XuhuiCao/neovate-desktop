@@ -323,3 +323,18 @@ allow-jit entitlement）被 SIGKILL：
 - Local/Cloud mode switch（内部 cloud feature，开源无 cloud 后端）
 - skills builtin tab（main skills.listBuiltin RPC 未实现）
 - composer @ref 序列化（base64 仍工作，待 chat.attachments 完整链路）
+
+### SIGKILL 最终结论（打包验证）
+
+打包 unsigned Electron.app（TeamIdentifier=not set）spawn SDK 0.3 platform binary
+仍 SIGKILL。根因：macOS 对 **unsigned parent process spawn hardened-runtime binary
+（allow-jit entitlement）** 的限制。dev Electron / unsigned build 均无 TeamIdentifier
+签名 → spawn hardened child 被杀。
+
+签名 release build（CI Apple Developer 签名，内部版 release 路径）parent 有 TeamIdentifier
+→ spawn hardened binary 工作。开源 dev/unsigned 无法实测 streaming，但代码层面
+完整对齐内部（spawn 路径 + fallback + override）。这是发布签名流程问题，非代码缺陷。
+
+实测确认：PATH claude 2.1.66（homebrew signed）spawn 成功 exit 0；SDK 0.3.199
+bundled binary（hardened unsigned-parent spawn）SIGKILL；direct exec（zsh signed
+parent）成功。证明 parent signature 是关键。
