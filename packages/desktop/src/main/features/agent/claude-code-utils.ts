@@ -48,23 +48,28 @@ export function resolveBundledClaudeBinary(): string | undefined {
 }
 
 /**
- * Resolve the real filesystem path to the SDK's cli.js (claude-agent-sdk 0.2.x
- * entry; 0.3.x removed it in favor of the platform `claude` binary).
+ * Resolve the SDK's CLI entry script. claude-agent-sdk 0.3.x removed the 0.2.x
+ * `cli.js` but ships `sdk.mjs` with a `#!/usr/bin/env node` shebang — runnable
+ * via `bun sdk.mjs`/`node sdk.mjs`. We prefer the script over the platform
+ * `claude` binary because the binary (a 232MB bun-compiled hardened-runtime
+ * Mach-O) gets SIGKILLed by macOS when spawned via posix_spawn under some
+ * configs, while spawning the node script is reliable.
+ *
  * Inside an ASAR archive, require.resolve returns a virtual path that
  * child_process.spawn cannot use. Replace "app.asar" with "app.asar.unpacked".
  */
 export function resolveSDKCliPath(): string | undefined {
-  try {
-    const cliPath = path.join(
-      path.dirname(require.resolve("@anthropic-ai/claude-agent-sdk")),
-      "cli.js",
-    );
-    if (!existsAsFile(is.dev ? cliPath : cliPath.replace(/\.asar([\\/])/, ".asar.unpacked$1")))
-      return undefined;
-    return is.dev ? cliPath : cliPath.replace(/\.asar([\\/])/, ".asar.unpacked$1");
-  } catch {
-    return undefined;
+  const sdkDir = path.dirname(require.resolve("@anthropic-ai/claude-agent-sdk"));
+  for (const entry of ["sdk.mjs", "cli.js"]) {
+    try {
+      const entryPath = path.join(sdkDir, entry);
+      const resolved = is.dev ? entryPath : entryPath.replace(/\.asar([\\/])/, ".asar.unpacked$1");
+      if (existsAsFile(resolved)) return resolved;
+    } catch {
+      // ignore
+    }
   }
+  return undefined;
 }
 
 /**
@@ -119,8 +124,9 @@ export function resolveClaudeCodeExecutable(customPath?: string): ClaudeCodeExec
   const normalized = customPath?.trim().replace(/^~(?=\/|$)/, homedir()) || undefined;
 
   if (!normalized) {
-    // SDK 0.3.x: prefer the bundled platform `claude` binary (standalone).
-    // Fall back to 0.2.x `bun + cli.js`, then PATH `claude`.
+    // SDK 0.3.x: prefer the bundled platform `claude` binary (standalone) — it
+    // is the only entry that supports the SDK streaming protocol. Fall back to
+    // `bun + sdk.mjs` (script, but does not support streaming query) then PATH.
     const bundled = resolveBundledClaudeBinary();
     if (bundled) return { executable: bundled, cliPath: undefined, standalone: true };
     const cliPath = resolveSDKCliPath();
