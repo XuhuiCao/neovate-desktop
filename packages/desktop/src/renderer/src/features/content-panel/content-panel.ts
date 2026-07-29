@@ -173,6 +173,16 @@ export class ContentPanel {
     this.#store.getState().removeTab(this.projectPath, viewId);
   }
 
+  reloadView(viewId: string): void {
+    const tab = this.#store.getState().getTab(this.projectPath, viewId);
+    if (!tab) return;
+    const view = this.views.find((v) => v.viewType === tab.viewType);
+    if (!view?.reloadable) return;
+    const prev = (tab.state._reloadKey as number) || 0;
+    log("reload view", { viewId, reloadKey: prev + 1 });
+    this.#store.getState().updateTabState(this.projectPath, viewId, { _reloadKey: prev + 1 });
+  }
+
   activateView(viewId: string): void {
     log("activate view", { viewId });
     this.#store.getState().setActiveTab(this.projectPath, viewId);

@@ -9,6 +9,13 @@ import { useTranslation } from "react-i18next";
 import type { Tab } from "../types";
 
 import { resolveLocalizedString } from "../../../../../shared/i18n";
+import {
+  ContextMenu,
+  ContextMenuTrigger,
+  ContextMenuPopup,
+  ContextMenuItem,
+  ContextMenuSeparator,
+} from "../../../components/ui/context-menu";
 import { useRendererApp } from "../../../core";
 import { normalizeLocale } from "../../../core/i18n/locales";
 import { cn } from "../../../lib/utils";
@@ -29,6 +36,7 @@ function TabButton({
   const locale = normalizeLocale(i18n.language);
   const views = app.pluginManager.viewContributions.contentPanelViews.map((c) => c.value);
   const view = views.find((view) => view.viewType === tab.viewType);
+  const iconColor = view?.iconColor;
   const elRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -54,7 +62,11 @@ function TabButton({
     >
       {isOrphan && <TriangleAlert className="size-3 text-yellow-500" />}
       <div className="flex items-center">
-        <span className="mr-1">{view?.icon && <view.icon className="size-3.5" />}</span>
+        <span className="mr-1">
+          {view?.icon && (
+            <view.icon className="size-3.5" style={iconColor ? { color: iconColor } : undefined} />
+          )}
+        </span>
         <span className="truncate font-medium">
           {view ? resolveLocalizedString(view.name, locale) : tab.viewType}
         </span>
@@ -88,19 +100,43 @@ export function TabItem({
   isActive: boolean;
   isOrphan: boolean;
 }) {
-  if (isOrphan) {
-    return (
-      <Tooltip>
-        <TooltipTrigger
-          delay={0}
-          render={(props) => <TabButton {...props} tab={tab} isActive={isActive} isOrphan />}
-        />
-        <TooltipPopup side="bottom">
-          &quot;{tab.viewType}&quot; is unavailable. You can close this tab.
-        </TooltipPopup>
-      </Tooltip>
-    );
-  }
+  const { t } = useTranslation();
+  const app = useRendererApp();
+  const contentPanel = app.workbench.contentPanel;
+  const views = app.pluginManager.viewContributions.contentPanelViews.map((c) => c.value);
+  const view = views.find((v) => v.viewType === tab.viewType);
+  const reloadable = !isOrphan && view?.reloadable === true;
 
-  return <TabButton tab={tab} isActive={isActive} isOrphan={false} />;
+  const tabButton = isOrphan ? (
+    <Tooltip>
+      <TooltipTrigger
+        delay={0}
+        render={(props) => <TabButton {...props} tab={tab} isActive={isActive} isOrphan />}
+      />
+      <TooltipPopup side="bottom">
+        {t("contentPanel.tab.orphanTooltip", { viewType: tab.viewType })}
+      </TooltipPopup>
+    </Tooltip>
+  ) : (
+    <TabButton tab={tab} isActive={isActive} isOrphan={false} />
+  );
+
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger>{tabButton}</ContextMenuTrigger>
+      <ContextMenuPopup>
+        {reloadable && (
+          <>
+            <ContextMenuItem onClick={() => contentPanel.reloadView(tab.id)}>
+              {t("contentPanel.tab.reload")}
+            </ContextMenuItem>
+            <ContextMenuSeparator />
+          </>
+        )}
+        <ContextMenuItem onClick={() => contentPanel.closeView(tab.id)}>
+          {t("contentPanel.tab.close")}
+        </ContextMenuItem>
+      </ContextMenuPopup>
+    </ContextMenu>
+  );
 }
