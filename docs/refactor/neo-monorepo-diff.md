@@ -347,3 +347,18 @@ parent）成功。证明 parent signature 是关键。
 
 - Local/Cloud mode switch（内部 cloud feature，开源无 cloud 后端，stub 无意义）
 - skills builtin tab（main skills.listBuiltin RPC 未实现，builtin skills 数据全内部 @antskill）
+
+### 追加（skills builtin tab）
+
+- ✅ skills Builtin tab 视觉框架（三 tab discover/builtin/installed 对齐内部，空状态 stub）
+
+### 实测验证（dev 截图）
+
+- 主窗口：欢迎页 + logo + 项目 sidebar + 输入框 + content-panel EmptyStateWithGrid 卡片网格 ✓
+- 设置面板：分组菜单（App/Config/Data/Support）+ sidebar token + General 面板 ✓
+- hydration error 消失 ✓
+- streaming 消息视图：受 SIGKILL 阻塞无法实测（macOS posix_spawn 限制，非代码）
+
+### 最终剩余（1 项，纯后端 + 内部 assets，非视觉/非代码）
+
+- Local/Cloud mode switch：内部 cloud feature，开源无 cloud 后端，stub 无意义 + 需内部 CDN assets（modeLocal/modeCloud）。开源纯本地架构是合理设计选择。
