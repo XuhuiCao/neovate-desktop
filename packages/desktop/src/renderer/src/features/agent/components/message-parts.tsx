@@ -26,6 +26,7 @@ import {
 import { Shimmer } from "../../../components/ai-elements/shimmer";
 import { cn } from "../../../lib/utils";
 import { useMarkdownComponents } from "../hooks/use-markdown-components";
+import { CollapsibleUserText } from "./collapsible-user-text";
 import { MessageRewindButton } from "./message-rewind-button";
 import { useAssistantMessageSummaryCollapse } from "./use-assistant-message-summary-collapse";
 
@@ -249,7 +250,7 @@ export const MessagePartRenderer = memo(
                     {message.role === "assistant" ? (
                       <MessageResponse components={markdownComponents}>{part.text}</MessageResponse>
                     ) : (
-                      <p className="m-0 whitespace-pre-wrap">{part.text}</p>
+                      <CollapsibleUserText text={part.text} />
                     )}
                   </MessageContent>
                   {remoteSource && (
