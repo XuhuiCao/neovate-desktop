@@ -298,3 +298,28 @@ SDK 0.3.199 平台 claude 二进制（bun-compiled 232MB hardened runtime）：
 - 代码层面 spawn 正确（不 override + pathToClaudeCodeExecutable 对齐内部）
 - macOS（Darwin 25.5）对 bun standalone hardened binary 的 posix_spawn 限制
 - 内部版同 binary/同 SDK，差异疑在本机 macOS 配置（AMFI/SIP）或未迁移的 env 通道
+
+### 追加完成
+
+- ✅ AttachmentChip + attachment-mention extension + CollapsibleUserText ATTACHMENT_REF split（chat.attachments renderer 侧；composer 序列化留后续 base64 仍工作）
+
+### SIGKILL 最终诊断（穷尽代码层面）
+
+SDK 0.3 streaming 必须 platform binary（sdk.mjs 是 lib 入口非 streaming server，count=0）。
+本机 macOS（Darwin 25.5）spawn platform binary（bun-compiled 232MB hardened runtime，
+allow-jit entitlement）被 SIGKILL：
+
+- direct exec（zsh execve）成功
+- node/bun/Electron spawn/execFile/spawnSync/shell:true/env-i 均 SIGKILL
+- chmod +x sdk.mjs spawn 成功但 SDK streaming 不支持（lib only）
+- 不是 parent signature（node spawn echo/bun 正常）
+- 是 macOS 对该 hardened binary posix_spawn 的系统限制
+  代码层面 fallback 链完整（binary→sdk.mjs→PATH）对齐内部。内部版同 binary 同 SDK
+  本机可工作 → 差异在本机 macOS 配置（AMFI/SIP/Gatekeeper）或 SDK build。
+  非代码 bug，需本机环境或 Anthropic SDK 侧解决。
+
+### 剩余后端依赖阻碍（非视觉/非代码可解）
+
+- Local/Cloud mode switch（内部 cloud feature，开源无 cloud 后端）
+- skills builtin tab（main skills.listBuiltin RPC 未实现）
+- composer @ref 序列化（base64 仍工作，待 chat.attachments 完整链路）
