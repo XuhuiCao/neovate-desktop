@@ -10,14 +10,12 @@
   "settings.theme.light": "Light",
   "settings.theme.dark": "Dark",
   "settings.theme.system": "System",
-
   "settings.themeStyle": "Color Theme",
   "settings.themeStyle.description": "Choose a color palette that fits your style",
   "settings.themeStyle.default": "Default",
   "settings.themeStyle.claude": "Claude",
   "settings.themeStyle.codex": "Codex",
   "settings.themeStyle.nord": "Nord",
-
   "settings.rules": "Rules",
   "settings.rules.globalRules": "Global Rules",
   "settings.rules.globalRules.description": "These rules apply to all projects and are loaded into every conversation.",
@@ -70,7 +68,6 @@
   "settings.general.npmRegistry": "NPM Registry",
   "settings.general.npmRegistry.description": "Default npm registry URL for installing npm skills (e.g. https://registry.npmmirror.com)",
   "settings.general.npmRegistry.invalidUrl": "Invalid URL. Enter a valid registry URL or leave empty for default.",
-
   "settings.agents": "Agents",
   "settings.agents.model": "Model",
   "settings.agents.model.description": "Select the primary AI model",
@@ -119,7 +116,6 @@
   "settings.agents.model.auto": "Default (auto)",
   "settings.agents.model.sdkDefault": "SDK Default",
   "settings.agents.selectPlaceholder": "Select...",
-
   "settings.about": "About",
   "settings.about.checkForUpdates": "Check for Updates",
   "settings.about.currentVersion": "Current version: {{version}} · {{status}}",
@@ -146,7 +142,6 @@
   "updater.installFailed": "Update install failed",
   "updater.checkTimedOut": "Update check timed out",
   "updater.genericError": "Update failed",
-
   "settings.keybindings": "Keybindings",
   "settings.keybindings.group.app": "App",
   "settings.keybindings.group.sessions": "Sessions",
@@ -171,7 +166,6 @@
   "settings.keybindings.toggleMultiProject": "Toggle Multi-Project Support",
   "settings.keybindings.togglePinSession": "Toggle Pin Session",
   "settings.keybindings.conflict": "Already used by: {{action}}",
-
   "settings.remoteControl": "Remote Control",
   "settings.remoteControl.telegram.description": "Control {{APP_NAME}} via Telegram. Create a bot with <docLink>@BotFather</docLink>, then paste the token below.",
   "settings.remoteControl.dingtalk.description": "Control {{APP_NAME}} via DingTalk. Create a robot in the <docLink>Developer Console</docLink>, then enter the credentials below.",
@@ -226,7 +220,6 @@
   "settings.remoteControl.wechat.allowFrom.description": "Comma-separated WeChat user IDs (empty = allow all)",
   "settings.remoteControl.wechat.allowFrom.placeholder": "user1,user2",
   "settings.remoteControl.status.expired": "Expired",
-
   "settings.notifications": "Notifications",
   "settings.notifications.group.events": "Notification triggers",
   "settings.notifications.events.agentTurnComplete": "Conversation completed",
@@ -240,7 +233,6 @@
   "settings.notifications.sound.description": "Sound alert when task completes",
   "settings.notifications.sound.off": "Off",
   "settings.notifications.sound.default": "Default",
-
   "settings.archivedSessions": "Archived Sessions",
   "settings.archivedSessions.empty": "No archived sessions",
   "settings.archivedSessions.unarchive": "Unarchive",
@@ -250,7 +242,6 @@
   "settings.archivedSessions.archivedCount": "{{count}} archived sessions",
   "settings.archivedSessions.archivedCount_one": "{{count}} archived session",
   "settings.archivedSessions.archivedCount_other": "{{count}} archived sessions",
-
   "settings.providers": "Providers",
   "settings.providers.empty": "No providers configured. Add one to use third-party API endpoints.",
   "settings.providers.add": "Add Provider",
@@ -307,10 +298,9 @@
   "settings.providers.sync.newModels": "{{count}} new models",
   "settings.providers.sync.syncAll": "Sync",
   "settings.providers.sync.dismiss": "Dismiss",
-  "settings.providers.sync.modelMapDrift": "Template recommends: {{slot}} \u2192 {{recommended}} (currently {{current}})",
-  "settings.providers.sync.modelMapDriftEmpty": "Template recommends: {{slot}} \u2192 {{recommended}} (currently unset)",
+  "settings.providers.sync.modelMapDrift": "Template recommends: {{slot}} → {{recommended}} (currently {{current}})",
+  "settings.providers.sync.modelMapDriftEmpty": "Template recommends: {{slot}} → {{recommended}} (currently unset)",
   "settings.providers.sync.apply": "Apply",
-
   "settings.skills": "Skills",
   "settings.skills.addSkill": "Add Skill",
   "settings.skills.addDescription": "Install skills from ClawHub, a Git repository, or npm package.",
@@ -385,7 +375,6 @@
   "settings.skills.registryUrlPlaceholder": "https://example.com/skills.json",
   "settings.skills.removeRegistry": "Remove",
   "settings.skills.manageRegistries": "Manage",
-
   "common.loading": "Loading...",
   "common.yes": "yes",
   "common.no": "no",
@@ -393,7 +382,6 @@
   "settings.skills.removeSkill": "Remove skill",
   "settings.skills.npmRegistryHint": "Tip: Set a default npm registry in Settings > General > Developer",
   "settings.skills.npmRegistryActive": "Using registry: {{registry}}",
-
   "permission.allow": "Allow",
   "permission.allowOnce": "Allow once",
   "permission.deny": "Deny",
@@ -401,7 +389,6 @@
   "permission.feedbackPlaceholder": "Tell Claude what to do differently...",
   "permission.pendingCount": "{{current}} of {{total}}",
   "permission.savesTo": "Saves to {{path}}",
-
   "plan.title": "Plan to implement",
   "plan.readyToImplement": "Ready to implement?",
   "plan.approve": "Approve",
@@ -418,7 +405,6 @@
   "plan.manualApproveDesc": "Prompt for all tool usage",
   "plan.clearContextBypass": "Yes, clear context & bypass",
   "plan.clearContextBypassDesc": "Start fresh session with the plan and bypass permissions",
-
   "question.other": "Other",
   "question.typeAnswer": "Type your answer...",
   "question.selectMultiple": "Select multiple",
@@ -428,7 +414,6 @@
   "question.submit": "Submit",
   "question.preview": "Preview",
   "question.goToQuestion": "Go to question {{index}}",
-
   "branch.loadFailed": "Failed to load branches",
   "branch.switchFailed": "Failed to switch branch",
   "branch.stashPopFailed": "Stash pop failed due to conflicts. Your changes are saved in `git stash`. Run `git stash pop` to recover.",
@@ -452,11 +437,9 @@
   "branch.create.noTrailingDot": "Branch name cannot end with .",
   "branch.create.noLeadingDashDot": "Branch name cannot start with \"-\" or \".\"",
   "branch.create.invalidChars": "Branch name contains invalid characters",
-
   "common.cancel": "Cancel",
   "common.done": "Done",
   "common.delete": "Delete",
-
   "sidebar.newChat": "New chat",
   "sidebar.settings": "Settings",
   "sidebar.addProject": "Add project",
@@ -477,7 +460,6 @@
   "sidebar.noProject": "No project",
   "sidebar.noProjects": "No projects",
   "sidebar.addFirstProject": "Click \"Open Project\" in the right panel to get started",
-
   "session.noConversations": "No conversations",
   "session.noConversationsYet": "No conversations yet",
   "session.startNewChat": "Start a new chat to get going",
@@ -496,7 +478,6 @@
   "session.copyDeeplink": "Copy deeplink",
   "session.showMore": "Show {{count}} more of {{total}}",
   "session.showLess": "Show less",
-
   "project.openProject": "Open Project",
   "project.searchPlaceholder": "Search projects...",
   "project.noResults": "No projects found",
@@ -519,37 +500,28 @@
   "project.cloning": "Cloning...",
   "project.cloneFailed": "Clone failed",
   "project.cloneSuccess": "Clone successful",
-
   "openIn.open": "Open",
   "openIn.noAppsDetected": "No apps detected",
   "openIn.copyPath": "Copy path",
-
   "status.ready": "Ready",
-
   "deeplink.projectNotFound": "Project not found",
   "deeplink.sessionNotFound": "Session not found",
   "deeplink.sessionLoadFailed": "Failed to load session",
-
   "debug.activeSessions": "Active Sessions",
   "debug.closeSession": "Close session",
   "debug.maximizePanel": "Maximize content panel",
   "debug.refresh": "Refresh",
   "debug.active": "Active",
   "debug.noActiveSessions": "No active sessions",
-
   "editor.title": "Code Editor",
   "editor.loading": "Loading...",
-
   "contentPanel.noProjectSelected": "No project selected",
   "contentPanel.noTabsOpen": "No tabs open",
-
   "terminal.search.noResults": "No results",
   "terminal.search.results": "{{current}} of {{total}}",
-
   "error.somethingWentWrong": "Something went wrong",
   "error.tryAgain": "Try again",
   "error.copyError": "Copy error",
-
   "chat.guideMessage": "Hi~  I'm {{APP_NAME}}, what shall we create today?",
   "chat.placeholder": "Type a message...",
   "chat.attachImage": "Attach image",
@@ -571,15 +543,12 @@
   "chat.sessionInitFailed": "Session failed to start",
   "chat.sessionInitRetry": "Retry",
   "chat.sessionInitNetworkHint": "Try disabling Network Inspector in Settings and retry",
-
   "chat.tools.bashOutput.polling": "Polling background shell output",
   "chat.tools.bashOutput.pollingFiltered": "Polling background shell output filtered by {{filter}}.",
   "chat.tools.slashCommand.running": "Running the slash command and waiting for a response.",
-
   "chat.context.title": "Context Window",
   "chat.context.used": "Used",
   "chat.context.total": "Total",
-
   "chat.rewind.tooltip": "Rewind to here",
   "chat.rewind.conversationOnly": "Restore conversation only",
   "chat.rewind.codeAndConversation": "Restore code and conversation",
@@ -589,7 +558,6 @@
   "chat.rewind.undo": "Undo",
   "chat.rewind.error": "Failed to rewind",
   "chat.rewind.undoError": "Failed to undo rewind",
-
   "settings.extensions.skillsTab": "Skills",
   "settings.extensions.pluginsTab": "Plugins",
   "settings.plugins": "Plugins",
@@ -701,5 +669,8 @@
   "summary.artifacts.empty.description": "Generated files will appear here",
   "summary.noChanges": "No changes",
   "summary.fileChanges": "{{count}} changed files",
-  "summary.fileCount": "{{count}} files"
+  "summary.fileCount": "{{count}} files",
+  "ai.tool.input": "Input",
+  "ai.tool.output": "Output",
+  "ai.tool.error": "Error"
 }

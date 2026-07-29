@@ -67,7 +67,7 @@ function ChatError({ message, onDismiss }: { message: string; onDismiss?: () => 
   }, [message]);
 
   return (
-    <div className="mx-4 mb-2 rounded-md border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-400">
+    <div className="mx-4 mb-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive-foreground">
       <div className="flex items-start gap-2">
         <span className="min-w-0 flex-1 break-words">{firstLine}</span>
         <div className="flex shrink-0 items-center gap-0.5">
