@@ -77,9 +77,10 @@ function ViewErrorFallback({
   onRetry: () => void;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">
-      <p className="text-sm font-medium text-destructive">Something went wrong</p>
+      <p className="text-sm font-medium text-destructive">{t("contentPanel.error.title")}</p>
       <pre className="max-w-md overflow-auto rounded-md bg-muted px-4 py-3 text-left text-xs text-muted-foreground">
         {error.message}
       </pre>
@@ -89,14 +90,14 @@ function ViewErrorFallback({
           onClick={onRetry}
           className="rounded-md border px-3 py-1.5 text-xs hover:bg-accent"
         >
-          Try Again
+          {t("contentPanel.error.tryAgain")}
         </button>
         <button
           type="button"
           onClick={onClose}
           className="rounded-md border px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent"
         >
-          Close Tab
+          {t("contentPanel.error.closeTab")}
         </button>
       </div>
     </div>

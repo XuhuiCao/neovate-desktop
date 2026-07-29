@@ -674,5 +674,8 @@
   "ai.tool.input": "Input",
   "ai.tool.output": "Output",
   "ai.tool.error": "Error",
-  "chat.anchorScrollbar.goToMessage": "Go to message"
+  "chat.anchorScrollbar.goToMessage": "Go to message",
+  "contentPanel.error.title": "Something went wrong",
+  "contentPanel.error.tryAgain": "Try Again",
+  "contentPanel.error.closeTab": "Close Tab"
 }

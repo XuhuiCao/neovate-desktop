@@ -673,5 +673,8 @@
   "ai.tool.input": "输入",
   "ai.tool.output": "输出",
   "ai.tool.error": "错误",
-  "chat.anchorScrollbar.goToMessage": "跳转到消息"
+  "chat.anchorScrollbar.goToMessage": "跳转到消息",
+  "contentPanel.error.title": "出错了",
+  "contentPanel.error.tryAgain": "重试",
+  "contentPanel.error.closeTab": "关闭标签页"
 }
