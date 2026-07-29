@@ -1,4 +1,3 @@
-import type { FileUIPart } from "ai";
 import type { StickToBottomContext } from "use-stick-to-bottom";
 
 import { ArrowDown01Icon, ArrowUp01Icon, Copy01Icon, Tick01Icon } from "@hugeicons/core-free-icons";
@@ -7,8 +6,6 @@ import debug from "debug";
 import { XIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-
-import type { ImageAttachment } from "../../../../../shared/features/agent/types";
 
 import { client } from "../../../orpc";
 import { useConfigStore } from "../../config/store";
@@ -22,15 +19,10 @@ import { useAgentStore } from "../store";
 
 const chatLog = debug("neovate:agent-chat");
 
-function attachmentsToFileParts(attachments?: ImageAttachment[]): FileUIPart[] {
-  if (!attachments || attachments.length === 0) return [];
-  return attachments.map((a) => ({
-    type: "file" as const,
-    mediaType: a.mediaType,
-    filename: a.filename,
-    url: `data:${a.mediaType};base64,${a.base64}`,
-  }));
-}
+// Attachments ride inside `message` as `@<absolutePath>` references (see
+// message-input.tsx + extract-text.ts). The composer persists each image to
+// disk via `client.chat.attachments.save` before sending, so handleSend no
+// longer takes an attachments argument nor inlines base64 file parts.
 import { Button } from "@neo/ui/components/button";
 
 import { ConversationAnchorScrollbar } from "../../../components/ai-elements/anchor-scrollbar";
@@ -208,19 +200,16 @@ export function AgentChat() {
       });
   }, [activeProjectPath, createNewSession, setSessionInitError]);
 
-  const handleSend = (message: string, attachments?: ImageAttachment[]) => {
+  const handleSend = (message: string) => {
     chatLog(
-      "handleSend: sessionId=%s msgLen=%d attachments=%d",
+      "handleSend: sessionId=%s msgLen=%d",
       activeSessionId?.slice(0, 8) ?? "new",
       message.length,
-      attachments?.length ?? 0,
     );
     if (!activeSessionId) return;
     useAgentStore.getState().addUserMessage(activeSessionId, message);
-    const files = attachmentsToFileParts(attachments);
     claudeCodeChatManager.getChat(activeSessionId)?.sendMessage({
       text: message,
-      files: files.length > 0 ? files : undefined,
       metadata: { sessionId: activeSessionId, parentToolUseId: null },
     });
 
@@ -289,17 +278,10 @@ function AgentChatSession({ sessionId, cwd }: { sessionId: string; cwd: string }
 
   const { initialScrollBehavior } = useScrollPosition(sessionId, conversationContextRef);
 
-  const handleSend = (text: string, attachments?: ImageAttachment[]) => {
-    chatLog(
-      "handleSend: sessionId=%s msgLen=%d attachments=%d",
-      sessionId.slice(0, 8),
-      text.length,
-      attachments?.length ?? 0,
-    );
-    const files = attachmentsToFileParts(attachments);
+  const handleSend = (text: string) => {
+    chatLog("handleSend: sessionId=%s msgLen=%d", sessionId.slice(0, 8), text.length);
     sendMessage({
       text,
-      files: files.length > 0 ? files : undefined,
       metadata: { sessionId, parentToolUseId: null },
     });
     // Smooth scroll to bottom when user sends a new message

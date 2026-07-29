@@ -8,11 +8,16 @@ import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import type { ImageAttachment, PermissionMode } from "../../../../../shared/features/agent/types";
+import type { PermissionMode } from "../../../../../shared/features/agent/types";
 
+import {
+  MAX_ATTACHMENT_BYTES,
+  MAX_ATTACHMENT_MB,
+} from "../../../../../shared/features/chat/attachments/contract";
 import { useEventCallback } from "../../../hooks/use-event-callback";
 import { useLatestRef } from "../../../hooks/use-latest-ref";
 import { cn } from "../../../lib/utils";
+import { client } from "../../../orpc";
 import { useConfigStore } from "../../config/store";
 import { useSettingsStore } from "../../settings";
 import { claudeCodeChatManager } from "../chat-manager";
@@ -21,8 +26,7 @@ import { useSessionMeta } from "../hooks/use-session-meta";
 import { useAgentStore } from "../store";
 import { extractText } from "../utils/extract-text";
 import { buildInsertChatContent, type InsertChatDetail } from "../utils/insert-chat";
-import { readFileAsAttachment } from "../utils/read-file-as-attachment";
-import { AttachmentPreview } from "./attachment-preview";
+import { createAttachmentMentionExtension } from "./attachment-mention-extension";
 import { GradientBorderWrapper } from "./gradient-border-wrapper";
 import { createImagePasteExtension } from "./image-paste-extension";
 import { InputToolbar } from "./input-toolbar";
@@ -33,7 +37,11 @@ import { createSlashCommandsExtension } from "./slash-commands-extension";
 const log = debug("neovate:message-input");
 
 type Props = {
-  onSend: (message: string, attachments?: ImageAttachment[]) => void;
+  // Attachments now ride inside `message` as `@<absolutePath>` references
+  // (attachmentMention tiptap node serialized by extract-text). The composer
+  // persists each pasted image to disk via `client.chat.attachments.save`
+  // before inserting the chip, so onSend no longer carries base64.
+  onSend: (message: string) => void;
   onCancel: () => void;
   streaming: boolean;
   disabled?: boolean;
@@ -50,7 +58,6 @@ const NEW_CHAT_EASTER_EGGS = new Set(["exit", "quit", ":q", ":q!", ":wq", ":wq!"
 
 type SessionDraft = {
   content: JSONContent;
-  attachments: ImageAttachment[];
 };
 
 const sessionDrafts = new Map<string, SessionDraft>();
@@ -117,27 +124,57 @@ export function MessageInput({
     });
   });
 
-  const [attachments, setAttachments] = useState<ImageAttachment[]>(() =>
-    activeSessionId ? (sessionDrafts.get(activeSessionId)?.attachments ?? []) : [],
-  );
-  const attachmentsRef = useLatestRef(attachments);
-
-  const addAttachments = useCallback((images: ImageAttachment[]) => {
-    log(
-      "addAttachments: adding %d images, ids=%o",
-      images.length,
-      images.map((i) => i.id),
-    );
-    setAttachments((prev) => {
-      const next = [...prev, ...images];
-      log("addAttachments: total attachments now=%d", next.length);
-      return next;
-    });
-  }, []);
-
-  const removeAttachment = useCallback((id: string) => {
-    setAttachments((prev) => prev.filter((a) => a.id !== id));
-  }, []);
+  // Attach-time save: persist each image to disk via the attachments service,
+  // then insert an inline attachmentMention chip (serializes to `@<absolutePath>`
+  // in extract-text). The composer therefore sends text only — no base64 rides
+  // through onSend; the chip previews it via the neovate-file:// protocol.
+  const handleAttachFiles = useEventCallback(async (files: File[]) => {
+    const cwd = cwdRef.current;
+    if (!cwd || !editor) return;
+    for (const file of files) {
+      if (file.size > MAX_ATTACHMENT_BYTES) {
+        toastManager.add({
+          type: "error",
+          title: t("attachments.tooLarge.error"),
+          description: t("attachments.tooLarge.errorDescription", {
+            name: file.name || "image",
+            limit: MAX_ATTACHMENT_MB,
+          }),
+          timeout: 4000,
+        });
+        continue;
+      }
+      try {
+        const mediaType = file.type || "image/png";
+        const result = await client.chat.attachments.save({
+          cwd,
+          type: "image",
+          name: file.name || undefined,
+          mediaType,
+          file,
+        });
+        editor
+          .chain()
+          .focus()
+          .insertContent([
+            {
+              type: "attachmentMention",
+              attrs: { absolutePath: result.absolutePath, name: result.name, mediaType },
+            },
+            { type: "text", text: " " },
+          ])
+          .run();
+      } catch (error) {
+        log("save image attachment failed: %O", error);
+        toastManager.add({
+          type: "error",
+          title: t("attachments.save.error"),
+          description: t("attachments.save.errorDescription"),
+          timeout: 4000,
+        });
+      }
+    }
+  });
 
   const sendMessageWith = useConfigStore((s) => s.sendMessageWith);
   const sendMessageWithRef = useLatestRef(sendMessageWith);
@@ -154,9 +191,11 @@ export function MessageInput({
     [],
   );
 
+  const attachmentMentionExtension = useMemo(() => createAttachmentMentionExtension(), []);
+
   const imagePasteExtension = useMemo(
-    () => createImagePasteExtension(addAttachments),
-    [addAttachments],
+    () => createImagePasteExtension(handleAttachFiles),
+    [handleAttachFiles],
   );
 
   const editor = useEditor({
@@ -182,6 +221,7 @@ export function MessageInput({
       }),
       mentionExtension,
       slashCommandsExtension,
+      attachmentMentionExtension,
       imagePasteExtension,
       Extension.create({
         name: "chatKeymap",
@@ -339,28 +379,13 @@ export function MessageInput({
   const send = useEventCallback(() => {
     if (!editor || streaming) return;
     const text = extractText(editor.getJSON());
-    const imgs = attachmentsRef.current;
-    log(
-      "send: text=%s attachmentsRef.current.length=%d ids=%o",
-      text.slice(0, 50),
-      imgs.length,
-      imgs.map((i) => i.id),
-    );
-    if (imgs.length > 0) {
-      log(
-        "send: attachment details: %o",
-        imgs.map((i) => ({
-          id: i.id,
-          filename: i.filename,
-          mediaType: i.mediaType,
-          base64Len: i.base64?.length ?? 0,
-        })),
-      );
-    }
-    if (!text && imgs.length === 0) return;
-    onSend(text, imgs.length > 0 ? imgs : undefined);
+    log("send: text=%s", text.slice(0, 50));
+    // Trim guard: whitespace-only content is a no-op. Attachment chips
+    // serialize into `text` (as `@<absolutePath>`), so a non-empty text
+    // already covers the case where the only content is an image chip.
+    if (!text) return;
+    onSend(text);
     editor.commands.clearContent();
-    setAttachments([]);
     if (activeSessionId) sessionDrafts.delete(activeSessionId);
   });
 
@@ -375,9 +400,8 @@ export function MessageInput({
       if (!activeSessionId) return;
       const json = editorJsonRef.current;
       if (!json) return;
-      const imgs = attachmentsRef.current;
-      if (extractText(json).trim() || imgs.length > 0) {
-        sessionDrafts.set(activeSessionId, { content: json, attachments: imgs });
+      if (extractText(json).trim()) {
+        sessionDrafts.set(activeSessionId, { content: json });
       } else {
         sessionDrafts.delete(activeSessionId);
       }
@@ -393,10 +417,8 @@ export function MessageInput({
     const draft = activeSessionId ? sessionDrafts.get(activeSessionId) : undefined;
     if (draft) {
       editor.commands.setContent(draft.content);
-      setAttachments(draft.attachments);
     } else {
       editor.commands.clearContent();
-      setAttachments([]);
     }
   }, [editor, activeSessionId]);
 
@@ -456,26 +478,15 @@ export function MessageInput({
       const files = e.target.files;
       log("handleFileSelect: files=%d", files?.length ?? 0);
       if (!files || files.length === 0) return;
-      // 接受图片 / PDF / 文本类附件（main 侧按 mediaType 构造 image/document/text block）。
-      const acceptable = Array.from(files).filter((f) => {
-        const mt = f.type;
-        return (
-          mt.startsWith("image/") ||
-          mt === "application/pdf" ||
-          mt.startsWith("text/") ||
-          mt === "application/json" ||
-          mt === "application/javascript" ||
-          mt === "application/xml" ||
-          mt === "application/yaml" ||
-          mt === "application/x-yaml"
-        );
-      });
-      log("handleFileSelect: acceptable=%d", acceptable.length);
-      if (acceptable.length === 0) return;
-      Promise.all(acceptable.map(readFileAsAttachment)).then(addAttachments);
+      // @ref attachments are image-only (aligns with internal composer and
+      // the `type: "image"` attachments service contract).
+      const imageFiles = Array.from(files).filter((f) => f.type.startsWith("image/"));
+      log("handleFileSelect: imageFiles=%d", imageFiles.length);
+      if (imageFiles.length === 0) return;
+      handleAttachFiles(imageFiles);
       e.target.value = "";
     },
-    [addAttachments],
+    [handleAttachFiles],
   );
   return (
     <div className={cn("px-4 pt-4 pb-1 max-w-3xl mx-auto w-full", dockAttached ? "pb-1 pt-0" : "")}>
@@ -483,7 +494,7 @@ export function MessageInput({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*,application/pdf,text/*,.json,.js,.ts,.tsx,.jsx,.yaml,.yml,.xml,.csv,.md"
+        accept="image/*"
         multiple
         className="hidden"
         aria-label={t("chat.attachImages")}
@@ -516,7 +527,6 @@ export function MessageInput({
             </motion.div>
           )}
         </AnimatePresence>
-        <AttachmentPreview attachments={attachments} onRemove={removeAttachment} />
         <div data-has-suggestion={promptSuggestion ? "" : undefined}>
           <EditorContent editor={editor} />
         </div>

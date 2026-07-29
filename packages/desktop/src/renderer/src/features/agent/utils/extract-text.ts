@@ -12,6 +12,13 @@ export function extractText(doc: JSONContent): string {
       parts.push(`@${node.attrs?.id ?? node.attrs?.label ?? ""}`);
       return;
     }
+    // attachmentMention is our own inline atom node (see attachment-mention-extension.tsx),
+    // not a Tiptap built-in. Serialize it back to the `@<absolutePath>` reference the
+    // model reads, so the saved file is the source of truth instead of inlined bytes.
+    if (node.type === "attachmentMention") {
+      parts.push(`@${node.attrs?.absolutePath ?? ""}`);
+      return;
+    }
     if (node.type === "slashCommand") {
       parts.push(node.attrs?.label ?? "");
       return;
