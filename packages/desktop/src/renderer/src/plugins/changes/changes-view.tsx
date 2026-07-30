@@ -670,7 +670,7 @@ export default memo(function ChangesView() {
           <PopoverTrigger className="p-1 hover:bg-accent rounded">
             <Ellipsis className="w-3.5 h-3.5 text-muted-foreground" />
           </PopoverTrigger>
-          <PopoverPopup side="bottom" align="end" viewportClassName="p-1">
+          <PopoverPopup side="bottom" align="end" className="p-1">
             <div className="min-w-32">
               <button
                 onClick={() => refresh()}

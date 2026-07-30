@@ -2,9 +2,8 @@
 
 import type React from "react";
 
+import { cn } from "#lib/utils";
 import { Collapsible as CollapsiblePrimitive } from "@base-ui/react/collapsible";
-
-import { cn } from "../lib/utils";
 
 export function Collapsible({ ...props }: CollapsiblePrimitive.Root.Props): React.ReactElement {
   return <CollapsiblePrimitive.Root data-slot="collapsible" {...props} />;
@@ -16,7 +15,7 @@ export function CollapsibleTrigger({
 }: CollapsiblePrimitive.Trigger.Props): React.ReactElement {
   return (
     <CollapsiblePrimitive.Trigger
-      className={cn("cursor-pointer", className)}
+      className={className}
       data-slot="collapsible-trigger"
       {...props}
     />

@@ -123,8 +123,7 @@ export function ProjectSelector({ children, variant = "menu" }: ProjectSelectorP
       <PopoverPopup
         side="bottom"
         align={variant === "select" ? "center" : "start"}
-        className="w-80"
-        viewportClassName="py-1 [--viewport-inline-padding:--spacing(1)]"
+        className="w-80 [--viewport-inline-padding:--spacing(1)]"
       >
         <div onKeyDown={handleKeyDown}>
           {projects.length > 0 && (

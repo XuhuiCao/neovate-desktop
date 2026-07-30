@@ -10,7 +10,7 @@ import {
   AlertDialogTitle,
 } from "@neo/ui/components/alert-dialog";
 import { Button, buttonVariants } from "@neo/ui/components/button";
-import { Group } from "@neo/ui/components/button-group";
+import { Group } from "@neo/ui/components/group";
 import { Input } from "@neo/ui/components/input";
 import { Menu, MenuTrigger, MenuPopup, MenuItem } from "@neo/ui/components/menu";
 import { toastManager } from "@neo/ui/components/toast";

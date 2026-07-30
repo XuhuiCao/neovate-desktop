@@ -2,9 +2,6 @@
   "name": "@neo/ui",
   "version": "0.0.0",
   "private": true,
-  "files": [
-    "src"
-  ],
   "type": "module",
   "imports": {
     "#components/*": "./src/components/*.tsx",
@@ -13,110 +10,36 @@
   },
   "exports": {
     "./globals.css": "./src/styles/globals.css",
-    ".": "./src/index.ts",
-    "./components/accordion": "./src/components/accordion.tsx",
-    "./components/alert-dialog": "./src/components/alert-dialog.tsx",
-    "./components/alert": "./src/components/alert.tsx",
-    "./components/autocomplete": "./src/components/autocomplete.tsx",
-    "./components/avatar": "./src/components/avatar.tsx",
-    "./components/badge": "./src/components/badge.tsx",
-    "./components/breadcrumb": "./src/components/breadcrumb.tsx",
-    "./components/button-group": "./src/components/button-group.tsx",
-    "./components/button": "./src/components/button.tsx",
-    "./components/calendar": "./src/components/calendar.tsx",
-    "./components/card": "./src/components/card.tsx",
-    "./components/checkbox-group": "./src/components/checkbox-group.tsx",
-    "./components/checkbox": "./src/components/checkbox.tsx",
-    "./components/chart": "./src/components/chart.tsx",
-    "./components/collapsible": "./src/components/collapsible.tsx",
-    "./components/combobox": "./src/components/combobox.tsx",
-    "./components/command": "./src/components/command.tsx",
-    "./components/dialog": "./src/components/dialog.tsx",
-    "./components/drawer": "./src/components/drawer.tsx",
-    "./components/empty": "./src/components/empty.tsx",
-    "./components/field": "./src/components/field.tsx",
-    "./components/fieldset": "./src/components/fieldset.tsx",
-    "./components/form": "./src/components/form.tsx",
-    "./components/frame": "./src/components/frame.tsx",
-    "./components/group": "./src/components/group.tsx",
-    "./components/input-group": "./src/components/input-group.tsx",
-    "./components/input": "./src/components/input.tsx",
-    "./components/kbd": "./src/components/kbd.tsx",
-    "./components/label": "./src/components/label.tsx",
-    "./components/menu": "./src/components/menu.tsx",
-    "./components/meter": "./src/components/meter.tsx",
-    "./components/number-field": "./src/components/number-field.tsx",
-    "./components/otp-field": "./src/components/otp-field.tsx",
-    "./components/pagination": "./src/components/pagination.tsx",
-    "./components/popover": "./src/components/popover.tsx",
-    "./components/preview-card": "./src/components/preview-card.tsx",
-    "./components/progress": "./src/components/progress.tsx",
-    "./components/radio-group": "./src/components/radio-group.tsx",
-    "./components/scroll-area": "./src/components/scroll-area.tsx",
-    "./components/select": "./src/components/select.tsx",
-    "./components/separator": "./src/components/separator.tsx",
-    "./components/sheet": "./src/components/sheet.tsx",
-    "./components/sidebar": "./src/components/sidebar.tsx",
-    "./components/skeleton": "./src/components/skeleton.tsx",
-    "./components/slider": "./src/components/slider.tsx",
-    "./components/spinner": "./src/components/spinner.tsx",
-    "./components/switch": "./src/components/switch.tsx",
-    "./components/table": "./src/components/table.tsx",
-    "./components/tabs": "./src/components/tabs.tsx",
-    "./components/textarea": "./src/components/textarea.tsx",
-    "./components/tiptap/suggestion-list": "./src/components/tiptap/suggestion-list.tsx",
-    "./components/tiptap/suggestion-menu": "./src/components/tiptap/suggestion-menu.tsx",
-    "./components/toast": "./src/components/toast.tsx",
-    "./components/toggle-group": "./src/components/toggle-group.tsx",
-    "./components/toggle": "./src/components/toggle.tsx",
-    "./components/toolbar": "./src/components/toolbar.tsx",
-    "./components/tooltip": "./src/components/tooltip.tsx",
-    "./lib/utils": "./src/lib/utils.ts",
-    "./hooks/use-media-query": "./src/hooks/use-media-query.ts",
-    "./hooks/use-mobile": "./src/hooks/use-mobile.ts",
-    "./hooks/tiptap/use-floating-element": "./src/hooks/tiptap/use-floating-element.ts",
-    "./hooks/tiptap/use-menu-navigation": "./src/hooks/tiptap/use-menu-navigation.ts",
-    "./hooks/tiptap/use-tiptap-editor": "./src/hooks/tiptap/use-tiptap-editor.ts"
+    "./components/*": "./src/components/*.tsx",
+    "./lib/*": "./src/lib/*.ts",
+    "./hooks/*": "./src/hooks/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.0",
     "@floating-ui/react": "^0.27.16",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "react-day-picker": "^9.14.0",
-    "tailwind-merge": "^3.5.0",
-    "tailwindcss": "^4.2.1"
+    "lucide-react": "^1.17.0",
+    "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
-    "@tiptap/pm": "^3.20.0",
-    "@tiptap/react": "^3.20.0",
-    "@tiptap/suggestion": "^3.20.0",
-    "@types/react": "^19.2.7",
+    "@tiptap/pm": "^3.22.4",
+    "@tiptap/react": "^3.22.4",
+    "@tiptap/suggestion": "^3.22.4",
+    "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "recharts": "^3.8.1"
+    "recharts": "^3.8.1",
+    "tailwindcss": "^4.2.2"
   },
   "peerDependencies": {
-    "@tiptap/pm": "^3.20.0",
-    "@tiptap/react": "^3.20.0",
-    "@tiptap/suggestion": "^3.20.0",
-    "@types/react": "^19.2.7",
-    "lucide-react": "^0.577.0",
-    "react": "^19.2.1",
-    "react-dom": "^19.2.1",
+    "@tiptap/pm": "^3.22.4",
+    "@tiptap/react": "^3.22.4",
+    "@tiptap/suggestion": "^3.22.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "recharts": "^3.8.1"
-  },
-  "peerDependenciesMeta": {
-    "@tiptap/pm": {
-      "optional": true
-    },
-    "@tiptap/react": {
-      "optional": true
-    },
-    "@tiptap/suggestion": {
-      "optional": true
-    },
-    "recharts": {
-      "optional": true
-    }
   }
 }

@@ -1,35 +1,39 @@
 "use client";
 
+import type React from "react";
+
+import { cn } from "#lib/utils";
 import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip";
 
-import { cn } from "../lib/utils";
+export const TooltipCreateHandle: typeof TooltipPrimitive.createHandle =
+  TooltipPrimitive.createHandle;
 
-const TooltipCreateHandle = TooltipPrimitive.createHandle;
+export const TooltipProvider: typeof TooltipPrimitive.Provider = TooltipPrimitive.Provider;
 
-const TooltipProvider = TooltipPrimitive.Provider;
+export const Tooltip: typeof TooltipPrimitive.Root = TooltipPrimitive.Root;
 
-const Tooltip = TooltipPrimitive.Root;
-
-function TooltipTrigger(props: TooltipPrimitive.Trigger.Props) {
+export function TooltipTrigger(props: TooltipPrimitive.Trigger.Props): React.ReactElement {
   return <TooltipPrimitive.Trigger data-slot="tooltip-trigger" {...props} />;
 }
 
-function TooltipPopup({
+export function TooltipPopup({
   className,
   align = "center",
   sideOffset = 4,
   side = "top",
   anchor,
   children,
+  portalProps,
   ...props
 }: TooltipPrimitive.Popup.Props & {
   align?: TooltipPrimitive.Positioner.Props["align"];
   side?: TooltipPrimitive.Positioner.Props["side"];
   sideOffset?: TooltipPrimitive.Positioner.Props["sideOffset"];
   anchor?: TooltipPrimitive.Positioner.Props["anchor"];
-}) {
+  portalProps?: TooltipPrimitive.Portal.Props;
+}): React.ReactElement {
   return (
-    <TooltipPrimitive.Portal>
+    <TooltipPrimitive.Portal {...portalProps}>
       <TooltipPrimitive.Positioner
         align={align}
         anchor={anchor}
@@ -58,11 +62,4 @@ function TooltipPopup({
   );
 }
 
-export {
-  TooltipCreateHandle,
-  TooltipProvider,
-  Tooltip,
-  TooltipTrigger,
-  TooltipPopup,
-  TooltipPopup as TooltipContent,
-};
+export { TooltipPrimitive, TooltipPopup as TooltipContent };

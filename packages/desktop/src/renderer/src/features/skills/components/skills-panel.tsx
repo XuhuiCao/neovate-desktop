@@ -217,7 +217,7 @@ export const SkillsPanel = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList variant="pill" className="mb-5">
+        <TabsList variant="default" className="mb-5">
           <TabsTrigger value="discover">
             <Download className="size-3.5 mr-1.5" />
             {t("settings.skills.discover")}

@@ -1,9 +1,10 @@
 @import "tailwindcss";
+
 @source "../components";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  /* 动画 */
   --animate-skeleton: skeleton 2s -1s infinite linear;
   --animate-caret-blink: 1s ease-out infinite caret-blink;
   --animate-toast-success-odd: toast-success-odd 0.32s cubic-bezier(0.5, 1, 0.89, 1);
@@ -11,19 +12,10 @@
   --animate-toast-error-odd: toast-error-odd 0.28s cubic-bezier(0.5, 1, 0.89, 1);
   --animate-toast-error-even: toast-error-even 0.28s cubic-bezier(0.5, 1, 0.89, 1);
 
-  /* 字体（具名变量由品牌层注入） */
   --font-sans: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
   --font-heading: var(--font-heading, ui-sans-serif, system-ui, sans-serif);
   --font-mono: var(--font-mono, ui-monospace, monospace);
 
-  /* 图表色板 → CSS 变量映射（让 bg-chart-1 等可用） */
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-
-  /* 语义色 → CSS 变量映射（让 bg-card / text-muted-foreground 等可用） */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -49,6 +41,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -57,6 +50,13 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
   --color-code: var(--code);
   --color-code-foreground: var(--code-foreground);
   --color-code-highlight: var(--code-highlight);
@@ -141,16 +141,6 @@
   }
 }
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
-
-/* 基础 token（neutral 基底，无品牌色）。品牌层（desktop globals.css）覆盖 --primary/--ring 等。 */
 :root {
   --radius: 0.625rem;
   --accent: --alpha(var(--color-black) / 4%);
@@ -194,19 +184,6 @@
   --sidebar-accent-foreground: var(--color-neutral-800);
   --sidebar-border: --alpha(var(--color-black) / 6%);
   --sidebar-ring: var(--color-neutral-400);
-
-  /* Glass 系统（中性玻璃变量；规范 §2.11：保留变量，无 .glass-* 工具类）。 */
-  --glass-tint: var(--color-white);
-  --glass-border: --alpha(var(--color-black) / 6%);
-  --glass-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.08);
-  --glass-1: --alpha(var(--glass-tint) / 72%);
-  --glass-2: --alpha(var(--glass-tint) / 80%);
-  --glass-3: --alpha(var(--glass-tint) / 88%);
-  --glass-4: --alpha(var(--glass-tint) / 92%);
-  --glass-blur-1: 24px;
-  --glass-blur-2: 16px;
-  --glass-blur-3: 12px;
-  --glass-blur-4: 8px;
 }
 
 .dark {
@@ -251,13 +228,13 @@
   --sidebar-accent-foreground: var(--color-neutral-100);
   --sidebar-border: --alpha(var(--color-white) / 5%);
   --sidebar-ring: var(--color-neutral-400);
+}
 
-  /* Glass 系统（暗）。 */
-  --glass-tint: #1e1e1e;
-  --glass-border: --alpha(var(--color-white) / 10%);
-  --glass-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.4);
-  --glass-1: --alpha(var(--glass-tint) / 72%);
-  --glass-2: --alpha(var(--glass-tint) / 80%);
-  --glass-3: --alpha(var(--glass-tint) / 88%);
-  --glass-4: --alpha(var(--glass-tint) / 92%);
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }

@@ -1,6 +1,8 @@
-import { cn } from "../lib/utils";
+import type React from "react";
 
-function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
+import { cn } from "#lib/utils";
+
+export function Skeleton({ className, ...props }: React.ComponentProps<"div">): React.ReactElement {
   return (
     <div
       className={cn(
@@ -12,5 +14,3 @@ function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
     />
   );
 }
-
-export { Skeleton };
