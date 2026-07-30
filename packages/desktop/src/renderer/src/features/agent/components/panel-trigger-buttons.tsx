@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 
-import { Puzzle, Search, SquarePen } from "lucide-react";
+import { FolderGit2, Puzzle, Search, SquarePen } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { layoutStore, useLayoutStore } from "../../../components/app-layout/store";
@@ -69,6 +69,16 @@ export function PanelTriggerGroup({ projectPath }: { projectPath?: string }) {
             : openFullRightPanel("extensions")
         }
         active={fullRightPanelId === "extensions"}
+      />
+      <SidebarActionButton
+        icon={FolderGit2}
+        label={t("sidebar.projectInfo")}
+        onClick={() =>
+          fullRightPanelId === "projectInfo"
+            ? layoutStore.getState().closeFullRightPanel()
+            : openFullRightPanel("projectInfo")
+        }
+        active={fullRightPanelId === "projectInfo"}
       />
       <div className="mt-2 mx-3 h-px bg-gradient-to-r from-transparent via-border/50 to-transparent" />
     </div>
