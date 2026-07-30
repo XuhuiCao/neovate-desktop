@@ -1,5 +1,5 @@
 import { MultiFileDiff } from "@pierre/diffs/react";
-import { Files } from "lucide-react";
+import { FilesIcon } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useMemo } from "react";
 
@@ -36,7 +36,7 @@ export function MultiEditTool({ invocation }: { invocation: MultiEditUIToolInvoc
   return (
     <Tool invocation={invocation}>
       <ToolHeader>
-        <ToolHeaderIcon icon={Files} />
+        <ToolHeaderIcon icon={FilesIcon} />
         <ToolHeaderTitle>MultiEdit</ToolHeaderTitle>
         {filePath && <FileTag filePath={filePath} />}
         <span className="shrink-0 text-xs text-muted-foreground">

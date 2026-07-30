@@ -1,4 +1,4 @@
-import { BookOpen } from "lucide-react";
+import { BookOpenIcon } from "lucide-react";
 
 import type { NotebookEditUIToolInvocation } from "../../../../../../shared/claude-code/types";
 
@@ -20,7 +20,7 @@ export function NotebookEditTool({ invocation }: { invocation: NotebookEditUIToo
   return (
     <Tool invocation={invocation}>
       <ToolHeader>
-        <ToolHeaderIcon icon={BookOpen} />
+        <ToolHeaderIcon icon={BookOpenIcon} />
         <ToolHeaderTitle>NotebookEdit {fileName}</ToolHeaderTitle>
       </ToolHeader>
       <ToolContent className="p-0">

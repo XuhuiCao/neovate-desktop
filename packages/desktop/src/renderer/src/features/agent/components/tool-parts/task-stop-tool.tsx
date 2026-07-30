@@ -1,8 +1,13 @@
-import { Square } from "lucide-react";
+import { SquareIcon } from "lucide-react";
 
 import type { TaskStopUIToolInvocation } from "../../../../../../shared/claude-code/types";
 
-import { Tool, ToolHeader, ToolHeaderIcon } from "../../../../components/ai-elements/tool";
+import {
+  Tool,
+  ToolHeader,
+  ToolHeaderIcon,
+  ToolHeaderTitle,
+} from "../../../../components/ai-elements/tool";
 
 export function TaskStopTool({ invocation }: { invocation: TaskStopUIToolInvocation }) {
   if (!invocation || invocation.state === "input-streaming") return null;
@@ -11,8 +16,8 @@ export function TaskStopTool({ invocation }: { invocation: TaskStopUIToolInvocat
   return (
     <Tool invocation={invocation}>
       <ToolHeader>
-        <ToolHeaderIcon icon={Square} />
-        TaskStop {input?.task_id && `(${input.task_id})`}
+        <ToolHeaderIcon icon={SquareIcon} />
+        <ToolHeaderTitle>TaskStop {input?.task_id && `(${input.task_id})`}</ToolHeaderTitle>
       </ToolHeader>
     </Tool>
   );

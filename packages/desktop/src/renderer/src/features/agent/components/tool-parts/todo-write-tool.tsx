@@ -1,4 +1,4 @@
-import { CheckSquare, SquareCheckIcon, SquareDotIcon, SquareIcon } from "lucide-react";
+import { CheckSquareIcon, SquareCheckIcon, SquareDotIcon, SquareIcon } from "lucide-react";
 
 import type { TodoWriteUIToolInvocation } from "../../../../../../shared/claude-code/types";
 
@@ -7,6 +7,7 @@ import {
   ToolContent,
   ToolHeader,
   ToolHeaderIcon,
+  ToolHeaderTitle,
 } from "../../../../components/ai-elements/tool";
 import { cn } from "../../../../lib/utils";
 
@@ -19,8 +20,8 @@ export function TodoWriteTool({ invocation }: { invocation: TodoWriteUIToolInvoc
   return (
     <Tool invocation={invocation}>
       <ToolHeader>
-        <ToolHeaderIcon icon={CheckSquare} />
-        Todo ({count} tasks)
+        <ToolHeaderIcon icon={CheckSquareIcon} />
+        <ToolHeaderTitle>Todo ({count} tasks)</ToolHeaderTitle>
       </ToolHeader>
       <ToolContent>
         {input?.todos && input.todos.length > 0 ? (

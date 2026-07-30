@@ -734,5 +734,6 @@
   "projectInfo.recentCommitsCount": "{{count}} 条提交",
   "projectInfo.activeBranches": "活跃分支",
   "projectInfo.branchesCount": "{{count}} 个分支",
-  "sidebar.projectInfo": "项目信息"
+  "sidebar.projectInfo": "项目信息",
+  "git.worktree.enterTitle": "进入工作树"
 }

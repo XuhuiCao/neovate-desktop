@@ -1,4 +1,4 @@
-import { Terminal } from "lucide-react";
+import { TerminalIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import type { BashOutputUIToolInvocation } from "../../../../../../shared/claude-code/types";
@@ -9,6 +9,7 @@ import {
   ToolContent,
   ToolHeader,
   ToolHeaderIcon,
+  ToolHeaderTitle,
 } from "../../../../components/ai-elements/tool";
 
 export function BashOutputTool({ invocation }: { invocation: BashOutputUIToolInvocation }) {
@@ -19,8 +20,8 @@ export function BashOutputTool({ invocation }: { invocation: BashOutputUIToolInv
   return (
     <Tool invocation={invocation}>
       <ToolHeader>
-        <ToolHeaderIcon icon={Terminal} />
-        BashOutput {input?.bash_id && `(${input.bash_id})`}
+        <ToolHeaderIcon icon={TerminalIcon} />
+        <ToolHeaderTitle>BashOutput {input?.bash_id && `(${input.bash_id})`}</ToolHeaderTitle>
       </ToolHeader>
       <ToolContent className="p-0">
         {typeof output === "string" && output ? (

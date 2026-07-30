@@ -1,4 +1,4 @@
-import { ClipboardList } from "lucide-react";
+import { ClipboardListIcon } from "lucide-react";
 
 import type { TaskOutputUIToolInvocation } from "../../../../../../shared/claude-code/types";
 
@@ -8,6 +8,7 @@ import {
   ToolContent,
   ToolHeader,
   ToolHeaderIcon,
+  ToolHeaderTitle,
 } from "../../../../components/ai-elements/tool";
 
 export function TaskOutputTool({ invocation }: { invocation: TaskOutputUIToolInvocation }) {
@@ -17,8 +18,8 @@ export function TaskOutputTool({ invocation }: { invocation: TaskOutputUIToolInv
   return (
     <Tool invocation={invocation}>
       <ToolHeader>
-        <ToolHeaderIcon icon={ClipboardList} />
-        TaskOutput {input?.task_id && `(${input.task_id})`}
+        <ToolHeaderIcon icon={ClipboardListIcon} />
+        <ToolHeaderTitle>TaskOutput {input?.task_id && `(${input.task_id})`}</ToolHeaderTitle>
       </ToolHeader>
       <ToolContent className="p-0">
         {typeof output === "string" && output ? (

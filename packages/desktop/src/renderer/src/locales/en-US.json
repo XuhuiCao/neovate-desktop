@@ -735,5 +735,6 @@
   "projectInfo.recentCommitsCount": "{{count}} commits",
   "projectInfo.activeBranches": "Active Branches",
   "projectInfo.branchesCount": "{{count}} branches",
-  "sidebar.projectInfo": "Project Info"
+  "sidebar.projectInfo": "Project Info",
+  "git.worktree.enterTitle": "Enter Worktree"
 }

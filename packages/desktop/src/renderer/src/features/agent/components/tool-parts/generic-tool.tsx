@@ -1,12 +1,13 @@
 import type { UITool, UIToolInvocation } from "ai";
 
-import { Wrench } from "lucide-react";
+import { WrenchIcon } from "lucide-react";
 
 import {
   Tool,
   ToolContent,
   ToolHeader,
   ToolHeaderIcon,
+  ToolHeaderTitle,
 } from "../../../../components/ai-elements/tool";
 
 type GenericToolProps = {
@@ -45,8 +46,8 @@ export function GenericTool({ toolName, invocation }: GenericToolProps) {
   return (
     <Tool invocation={invocation}>
       <ToolHeader>
-        <ToolHeaderIcon icon={Wrench} />
-        <span>{display}</span>
+        <ToolHeaderIcon icon={WrenchIcon} />
+        <ToolHeaderTitle>{display}</ToolHeaderTitle>
       </ToolHeader>
       <ToolContent>
         {input != null && (

@@ -1,4 +1,4 @@
-import { Wand2 } from "lucide-react";
+import { Wand2Icon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import type { SlashCommandUIToolInvocation } from "../../../../../../shared/claude-code/types";
@@ -9,6 +9,7 @@ import {
   ToolContent,
   ToolHeader,
   ToolHeaderIcon,
+  ToolHeaderTitle,
 } from "../../../../components/ai-elements/tool";
 
 export function SlashCommandTool({ invocation }: { invocation: SlashCommandUIToolInvocation }) {
@@ -19,9 +20,8 @@ export function SlashCommandTool({ invocation }: { invocation: SlashCommandUIToo
   return (
     <Tool invocation={invocation}>
       <ToolHeader>
-        <ToolHeaderIcon icon={Wand2} />
-        <span className="shrink-0">SlashCommand</span>
-        {input?.command && <span className="min-w-0 truncate">{input.command}</span>}
+        <ToolHeaderIcon icon={Wand2Icon} />
+        <ToolHeaderTitle>SlashCommand{input?.command && <> {input.command}</>}</ToolHeaderTitle>
       </ToolHeader>
       <ToolContent>
         {typeof output === "string" && output ? (

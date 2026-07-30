@@ -1,4 +1,4 @@
-import { ExternalLink } from "lucide-react";
+import { ExternalLinkIcon } from "lucide-react";
 import { useCallback } from "react";
 
 import { useRendererApp } from "../../../../core/app";
@@ -21,7 +21,7 @@ export function OpenInEditorButton({ filePath }: { filePath: string }) {
       onClick={handleClick}
       title="Open in editor"
     >
-      <ExternalLink className="size-3" />
+      <ExternalLinkIcon className="size-3" />
     </button>
   );
 }

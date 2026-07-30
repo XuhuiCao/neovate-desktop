@@ -1,5 +1,5 @@
 import { MultiFileDiff } from "@pierre/diffs/react";
-import { FileEdit } from "lucide-react";
+import { FileEditIcon } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useMemo } from "react";
 
@@ -54,7 +54,7 @@ export function EditTool({ invocation }: { invocation: EditUIToolInvocation }) {
   return (
     <Tool invocation={invocation}>
       <ToolHeader>
-        <ToolHeaderIcon icon={FileEdit} />
+        <ToolHeaderIcon icon={FileEditIcon} />
         <ToolHeaderTitle>Edit</ToolHeaderTitle>
         {filePath && <FileTag filePath={filePath} />}
         {diffStats && (

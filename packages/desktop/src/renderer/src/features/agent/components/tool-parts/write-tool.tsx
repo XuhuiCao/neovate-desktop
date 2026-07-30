@@ -1,5 +1,5 @@
 import { File as PierreFile } from "@pierre/diffs/react";
-import { FilePlus } from "lucide-react";
+import { FilePlusIcon } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useMemo } from "react";
 
@@ -27,7 +27,7 @@ export function WriteTool({ invocation }: { invocation: WriteUIToolInvocation })
   return (
     <Tool invocation={invocation}>
       <ToolHeader>
-        <ToolHeaderIcon icon={FilePlus} />
+        <ToolHeaderIcon icon={FilePlusIcon} />
         <ToolHeaderTitle>Write {lineCount} lines</ToolHeaderTitle>
         {filePath && <FileTag filePath={filePath} />}
       </ToolHeader>
