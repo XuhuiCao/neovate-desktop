@@ -18,8 +18,12 @@ import { NotebookEditTool } from "./notebook-edit-tool";
 import { ReadTool } from "./read-tool";
 import { SkillTool } from "./skill-tool";
 import { SlashCommandTool } from "./slash-command-tool";
+import { TaskCreateTool } from "./task-create-tool";
+import { TaskGetTool } from "./task-get-tool";
+import { TaskListTool } from "./task-list-tool";
 import { TaskOutputTool } from "./task-output-tool";
 import { TaskStopTool } from "./task-stop-tool";
+import { TaskUpdateTool } from "./task-update-tool";
 import { TodoWriteTool } from "./todo-write-tool";
 import { WebFetchTool } from "./web-fetch-tool";
 import { WebSearchTool } from "./web-search-tool";
@@ -75,6 +79,14 @@ function ClaudeCodeToolUIPartComponent({ part }: { part: ToolUIPart<ClaudeCodeUI
       return <TaskOutputTool invocation={part} />;
     case "tool-TaskStop":
       return <TaskStopTool invocation={part} />;
+    case "tool-TaskCreate":
+      return <TaskCreateTool invocation={part} />;
+    case "tool-TaskUpdate":
+      return <TaskUpdateTool invocation={part} />;
+    case "tool-TaskGet":
+      return <TaskGetTool invocation={part} />;
+    case "tool-TaskList":
+      return <TaskListTool invocation={part} />;
     case "tool-Skill":
       return <SkillTool invocation={part} />;
     case "tool-SlashCommand":
