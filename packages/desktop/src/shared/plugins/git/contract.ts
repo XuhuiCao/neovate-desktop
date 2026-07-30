@@ -1,5 +1,16 @@
 import { eventIterator, oc, type } from "@orpc/contract";
 
+import type {
+  ActivityData,
+  BranchSummary,
+  CommitStats,
+  Contributor,
+  GitRepoCheckResult,
+  GitStatusSummary,
+  ProjectGitInfo,
+  RecentActivity,
+} from "../../features/git/types";
+
 export type GitOperationType = "merge" | "rebase" | "cherry-pick" | "revert";
 
 export interface GitCloneResponse {
@@ -161,4 +172,21 @@ export const gitContract = {
     .output(eventIterator(type<{ timestamp: number; kind: "fs" | "index" }>())),
   clone: oc.input(type<{ url: string; targetDir: string }>()).output(type<GitCloneResponse>()),
   subscribeCloneProgress: oc.output(eventIterator(type<CloneProgress>())),
+  // --- 项目 Git 概览（对齐内部 neo-monorepo git project-info 能力）---
+  isGitRepo: oc.input(type<{ projectPath: string }>()).output(type<GitRepoCheckResult>()),
+  getDefaultBranch: oc.input(type<{ projectPath: string }>()).output(type<string | null>()),
+  getProjectGitInfo: oc.input(type<{ cwd: string }>()).output(type<ProjectGitInfo>()),
+  branch: oc.input(type<{ cwd: string; options?: string[] }>()).output(type<BranchSummary>()),
+  currentBranch: oc.input(type<{ cwd: string }>()).output(type<string | null>()),
+  statusSummary: oc.input(type<{ cwd: string }>()).output(type<GitStatusSummary>()),
+  isGitWorktree: oc.input(type<{ cwd: string }>()).output(type<boolean>()),
+  getContributors: oc.input(type<{ cwd: string; limit?: number }>()).output(type<Contributor[]>()),
+  getCommitStats: oc.input(type<{ cwd: string; userEmail?: string }>()).output(type<CommitStats>()),
+  getActivityData: oc
+    .input(type<{ cwd: string; userEmail?: string; days?: number }>())
+    .output(type<ActivityData>()),
+  getConfig: oc.input(type<{ cwd: string; key: string }>()).output(type<string | null>()),
+  getRecentActivity: oc
+    .input(type<{ cwd: string; limit?: number }>())
+    .output(type<RecentActivity>()),
 };

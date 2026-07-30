@@ -9,6 +9,7 @@ import { z } from "zod";
 import type { GitBranch, GitBranchFile } from "../../../shared/plugins/git/contract";
 import type { PluginContext } from "../../core/plugin/types";
 
+import { GitService } from "../../features/git/git-service";
 import { cloneService } from "./clone-service";
 import { gitAdd } from "./utils/add";
 import { gitCommit } from "./utils/commit";
@@ -18,6 +19,9 @@ import { gitPush } from "./utils/push";
 const log = debug("neovate:git");
 
 const GIT_TIMEOUT_MS = 10_000;
+
+// 项目 Git 概览服务（contributors / activity / status summary 等，对齐内部 neo-monorepo）
+const projectGitService = new GitService();
 
 function parseNumstat(output: string): Map<string, { insertions: number; deletions: number }> {
   const stats = new Map<string, { insertions: number; deletions: number }>();
@@ -415,6 +419,59 @@ export function createGitRouter(orpcServer: PluginContext["orpcServer"]) {
         signal?.removeEventListener("abort", abortHandler);
         cloneService.signal.removeEventListener("abort", abortHandler);
       }
+    }),
+    // --- 项目 Git 概览（对齐内部 neo-monorepo git project-info 能力）---
+    isGitRepo: orpcServer.handler(async ({ input }) => {
+      const { projectPath } = input as { projectPath: string };
+      return projectGitService.isGitRepo(projectPath);
+    }),
+    getDefaultBranch: orpcServer.handler(async ({ input }) => {
+      const { projectPath } = input as { projectPath: string };
+      return projectGitService.getDefaultBranch(projectPath);
+    }),
+    getProjectGitInfo: orpcServer.handler(async ({ input }) => {
+      const { cwd } = input as { cwd: string };
+      return projectGitService.getProjectGitInfo(cwd);
+    }),
+    branch: orpcServer.handler(async ({ input }) => {
+      const { cwd, options } = input as { cwd: string; options?: string[] };
+      return projectGitService.branch(cwd, options);
+    }),
+    currentBranch: orpcServer.handler(async ({ input }) => {
+      const { cwd } = input as { cwd: string };
+      return projectGitService.currentBranch(cwd);
+    }),
+    statusSummary: orpcServer.handler(async ({ input }) => {
+      const { cwd } = input as { cwd: string };
+      return projectGitService.statusSummary(cwd);
+    }),
+    isGitWorktree: orpcServer.handler(async ({ input }) => {
+      const { cwd } = input as { cwd: string };
+      return projectGitService.isGitWorktree(cwd);
+    }),
+    getContributors: orpcServer.handler(async ({ input }) => {
+      const { cwd, limit } = input as { cwd: string; limit?: number };
+      return projectGitService.getContributors(cwd, limit);
+    }),
+    getCommitStats: orpcServer.handler(async ({ input }) => {
+      const { cwd, userEmail } = input as { cwd: string; userEmail?: string };
+      return projectGitService.getCommitStats(cwd, userEmail);
+    }),
+    getActivityData: orpcServer.handler(async ({ input }) => {
+      const { cwd, userEmail, days } = input as {
+        cwd: string;
+        userEmail?: string;
+        days?: number;
+      };
+      return projectGitService.getActivityData(cwd, userEmail, days);
+    }),
+    getConfig: orpcServer.handler(async ({ input }) => {
+      const { cwd, key } = input as { cwd: string; key: string };
+      return projectGitService.getConfig(cwd, key);
+    }),
+    getRecentActivity: orpcServer.handler(async ({ input }) => {
+      const { cwd, limit } = input as { cwd: string; limit?: number };
+      return projectGitService.getRecentActivity(cwd, limit);
     }),
   });
 }
