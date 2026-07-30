@@ -2,31 +2,8 @@ import { type ReactNode, useCallback, useLayoutEffect, useRef, useState } from "
 import { useTranslation } from "react-i18next";
 
 import { cn } from "../../../lib/utils";
+import { stripReactGrabCommentsFromText } from "../utils/react-grab-comments";
 import { AttachmentChip } from "./attachment-chip";
-
-// Markers for neodebug react-grab annotation blocks the model may echo back.
-// The open-source build has no neodebug bridge, so these never appear in
-// practice — stripping is a no-op safety net matching the internal behavior.
-const REACT_GRAB_COMMENTS_START = "<neodebug-react-grab-comments>";
-const REACT_GRAB_COMMENTS_END = "</neodebug-react-grab-comments>";
-const USER_PAGE_ANNOTATIONS_START = "<user-page-annotations>";
-const USER_PAGE_ANNOTATIONS_END = "</user-page-annotations>";
-
-function stripBetween(text: string, startMarker: string, endMarker: string): string | null {
-  const startIndex = text.indexOf(startMarker);
-  if (startIndex < 0) return null;
-  const endIndex = text.indexOf(endMarker, startIndex);
-  if (endIndex < 0) return text.slice(0, startIndex).trimEnd();
-  return `${text.slice(0, startIndex)}${text.slice(endIndex + endMarker.length)}`.trimEnd();
-}
-
-function stripReactGrabCommentsFromText(text: string): string {
-  return (
-    stripBetween(text, USER_PAGE_ANNOTATIONS_START, USER_PAGE_ANNOTATIONS_END) ??
-    stripBetween(text, REACT_GRAB_COMMENTS_START, REACT_GRAB_COMMENTS_END) ??
-    text
-  );
-}
 
 // Matches an attachment reference the composer serialized into the prompt:
 // `@<absolutePath>` where the path runs through .neo/.context/attachments/ and
@@ -35,11 +12,8 @@ function stripReactGrabCommentsFromText(text: string): string {
 const ATTACHMENT_REF =
   /@(\/[^\n]*?\/\.neo\/\.context\/attachments\/[^\n]*?\.(?:png|jpe?g|gif|webp|svg|bmp))/gi;
 
-// Split the message text into plain-text runs and inline attachment chips. Text
+// Split the message text into plain-text runs and inline attachment Tags. Text
 // with no attachment reference returns a single string (unchanged behavior).
-// The open-source composer still sends images inline as base64, so in practice
-// no refs reach here yet — once composer serialization switches to disk-save +
-// `@<absolutePath>` refs, chips render automatically. No base64 path is touched.
 function renderUserText(text: string): ReactNode {
   const parts: ReactNode[] = [];
   let lastIndex = 0;

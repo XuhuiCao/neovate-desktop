@@ -2,21 +2,19 @@ import { Tooltip, TooltipPopup, TooltipProvider, TooltipTrigger } from "@neo/ui/
 import { useState } from "react";
 import { Controlled as ControlledZoom } from "react-medium-image-zoom";
 
-import { buildNeovateFileSchemeUrl } from "../../../../../shared/features/file/scheme";
-
-// Hover delay matching the rest of the app's tooltip intent (see summary-view).
-const TOOLTIP_HOVER_INTENT_DELAY = 400;
+import { buildNeoFileSchemeUrl } from "../../../../../shared/features/file/protocol";
+import { TOOLTIP_HOVER_INTENT_DELAY } from "../../../lib/tooltip";
 
 // Shared inline tag for a saved image attachment, used by the composer node view
 // and the sent user message. Shows a thumbnail + filename: hovering reveals a
 // larger preview (Tooltip), clicking anywhere on the tag opens a fullscreen zoom
 // (react-medium-image-zoom). The zoom is driven in controlled mode so the whole
 // tag — not just the thumbnail — is the click target; the thumbnail is the
-// animation origin the library zooms from. Images load over the neovate-file://
+// animation origin the library zooms from. Images load over the neo-file://
 // protocol, which the browser fetches and caches natively, so the visible
 // thumbnail also warms the cache for the hover preview and the zoom.
 export function AttachmentChip({ absolutePath, name }: { absolutePath: string; name: string }) {
-  const url = buildNeovateFileSchemeUrl(absolutePath);
+  const url = buildNeoFileSchemeUrl(absolutePath);
   const [isZoomed, setIsZoomed] = useState(false);
 
   return (

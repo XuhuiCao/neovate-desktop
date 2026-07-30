@@ -37,6 +37,27 @@ type Metadata = {
   parentToolUseId: string | null;
   /** Present when the message was sent from a remote control platform (e.g. Telegram). */
   source?: { platform: string };
+  /**
+   * Working directory of the query that produced this message, captured from the
+   * SDK `system/init`. Lets the markdown surface resolve relative file paths
+   * against the turn's own cwd instead of a single session-wide cwd. Absent on
+   * messages produced before this was recorded — consumers fall back to the
+   * surrounding session cwd.
+   */
+  cwd?: string;
+  reactGrabComments?: ReactGrabCommentPayload;
+};
+
+export type ReactGrabCommentPayload = {
+  payloadId: string;
+  summary: string;
+  count: number;
+  comments: Array<{
+    id: string;
+    commentText: string;
+    content?: string;
+    screenshotPath?: string;
+  }>;
 };
 
 export type TurnFileChangeStat = {
