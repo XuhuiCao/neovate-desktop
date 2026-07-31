@@ -114,6 +114,20 @@ export class ProjectStore {
     }
   }
 
+  unarchiveSession(projectPath: string, sessionId: string): void {
+    log("unarchive session", { projectPath, sessionId });
+    const archived = this.store.get("archivedSessions");
+    const list = archived[projectPath];
+    if (!list) return;
+    const next = list.filter((id) => id !== sessionId);
+    if (next.length === 0) {
+      delete archived[projectPath];
+    } else {
+      archived[projectPath] = next;
+    }
+    this.store.set("archivedSessions", archived);
+  }
+
   getPinnedSessions(): Record<string, string[]> {
     return this.store.get("pinnedSessions");
   }

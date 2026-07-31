@@ -28,12 +28,11 @@ function getPlatformString() {
 }
 
 const ASSET_RESOURCE_URL: Record<string, string> = {
-  // https://github.com/coder/code-server/releases/download/v4.108.1/code-server-4.108.1-macos-arm64.tar.gz
+  // 官方 code-server release（开源版去内部 CDN，直接从 GitHub 下载）
   "darwin-arm64":
-    "https://mdn.alipayobjects.com/portal_metor2/afts/file/A*2noESpILUHEAAAAAh-AAAAgAegAAAQ",
-  // https://github.com/coder/code-server/releases/download/v4.108.2/code-server-4.108.2-macos-amd64.tar.gz
+    "https://github.com/coder/code-server/releases/download/v4.108.1/code-server-4.108.1-macos-arm64.tar.gz",
   "darwin-x64":
-    "https://mdn.alipayobjects.com/portal_metor2/afts/file/A*PCbjQ4l9vFIAAAAAh-AAAAgAegAAAQ",
+    "https://github.com/coder/code-server/releases/download/v4.108.2/code-server-4.108.2-macos-amd64.tar.gz",
 };
 
 // Download URL

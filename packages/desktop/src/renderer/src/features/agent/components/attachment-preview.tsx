@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { XIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useTranslation } from "react-i18next";
 
@@ -37,7 +37,7 @@ export function AttachmentPreview({ attachments, onRemove }: Props) {
               className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               onClick={() => onRemove(att.id)}
             >
-              <X className="h-3 w-3" />
+              <XIcon className="h-3 w-3" />
             </button>
           </motion.div>
         ))}

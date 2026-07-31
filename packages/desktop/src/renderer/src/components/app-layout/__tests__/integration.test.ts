@@ -15,10 +15,10 @@ describe("resize flow integration", () => {
       primarySidebar: { width: 400, collapsed: false },
       chatPanel: { width: 500, collapsed: false },
       contentPanel: { width: 500, collapsed: false },
-      secondarySidebar: { width: 400, collapsed: false },
     };
     const result = shrinkPanelsToFit(panels, 1200);
-    // chatPanel (priority 3) shrinks first, then contentPanel (2), secondary (1), primary (0)
+    // contentPanel (priority 2, also acts as buffer) shrinks before chatPanel (priority 3)
+    // — but here spec ordering protects chat: contentPanel absorbs first.
     expect(result.chatPanel.width).toBeLessThanOrEqual(500);
   });
 
@@ -27,11 +27,10 @@ describe("resize flow integration", () => {
       primarySidebar: { width: 300, collapsed: false },
       chatPanel: { width: 500, collapsed: false },
       contentPanel: { width: 300, collapsed: true },
-      secondarySidebar: { width: 240, collapsed: true },
     };
     const minWidth = computeMinWindowWidth(panels);
-    // fixed(48) + primary(250) + chat(340) + 1 handle(5) = 643
-    expect(minWidth).toBe(643);
+    // fixed(8) + primary(250) + chat(340) + 1 handle(5) = 603
+    expect(minWidth).toBe(603);
   });
 
   it("computeMinWindowWidth grows when more panels are expanded", () => {
@@ -39,13 +38,11 @@ describe("resize flow integration", () => {
       primarySidebar: { width: 300, collapsed: false },
       chatPanel: { width: 500, collapsed: false },
       contentPanel: { width: 300, collapsed: true },
-      secondarySidebar: { width: 240, collapsed: true },
     };
     const expanded: PanelMap = {
       primarySidebar: { width: 300, collapsed: false },
       chatPanel: { width: 500, collapsed: false },
       contentPanel: { width: 300, collapsed: false },
-      secondarySidebar: { width: 240, collapsed: false },
     };
     expect(computeMinWindowWidth(expanded)).toBeGreaterThan(computeMinWindowWidth(collapsed));
   });
@@ -55,25 +52,18 @@ describe("resize flow integration", () => {
       primarySidebar: { width: 300, collapsed: false },
       chatPanel: { width: 640, collapsed: false },
       contentPanel: { width: 400, collapsed: false },
-      secondarySidebar: { width: 300, collapsed: false },
     };
     // Drag separator 0 all the way right — capped by primarySidebar max (600)
     const result = applyDelta(panels, 0, 1000);
     // growRoom = 600 - 300 = 300
-    // shrinkable: chat(180) + content(100) + secondary(60) = 340 > 300, so cap at 300
-    // Shrink order: contentPanel first (buffer to protect chat), then secondary, then chat
-    // content gives 100, secondary gives 60, chat gives 140 (300-100-60=140)
+    // shrink targets to the right of primarySidebar: contentPanel (buffer first), then chatPanel
+    // contentPanel gives 100 (to min 300), chatPanel gives 200 → total 300
     expect(result.contentPanel.width).toBe(300); // at min
-    expect(result.secondarySidebar.width).toBe(240); // at min
-    expect(result.chatPanel.width).toBe(500); // partially shrunk
+    expect(result.chatPanel.width).toBe(440); // 640 - 200
     expect(result.primarySidebar.width).toBe(600); // at max
     // Verify conservation: total before == total after
-    const before = 300 + 640 + 400 + 300;
-    const after =
-      result.primarySidebar.width +
-      result.chatPanel.width +
-      result.contentPanel.width +
-      result.secondarySidebar.width;
+    const before = 300 + 640 + 400;
+    const after = result.primarySidebar.width + result.chatPanel.width + result.contentPanel.width;
     expect(after).toBe(before);
   });
 
@@ -82,24 +72,22 @@ describe("resize flow integration", () => {
       primarySidebar: { width: 300, collapsed: false },
       chatPanel: { width: 500, collapsed: false },
       contentPanel: { width: 350, collapsed: true },
-      secondarySidebar: { width: 300, collapsed: false },
     };
 
-    // sep 2 should be visible (bridges chat↔secondary)
-    expect(isSeparatorVisible(panels, 2)).toBe(true);
-    // sep 1 should be hidden (content collapsed)
+    // Only 2 separators now; sep 1 (chatPanel:contentPanel) hidden when content collapsed.
+    // sep 0 (primarySidebar:chatPanel) remains visible.
+    expect(isSeparatorVisible(panels, 0)).toBe(true);
     expect(isSeparatorVisible(panels, 1)).toBe(false);
 
-    // Drag right on sep 2 should grow chat, shrink secondary
-    const right = applyDelta(panels, 2, 30);
-    expect(right.chatPanel.width).toBe(530);
-    expect(right.secondarySidebar.width).toBe(270);
-
-    // Drag left on sep 2 should grow secondary, shrink chat
-    const left = applyDelta(panels, 2, -30);
+    // Drag right on sep 0 grows primary, shrinks chat (content collapsed, skipped)
+    const right = applyDelta(panels, 0, 30);
+    expect(right.primarySidebar.width).toBe(330);
+    expect(right.chatPanel.width).toBe(470);
     expect(right.contentPanel.width).toBe(350); // unchanged
-    expect(left.secondarySidebar.width).toBe(330);
-    expect(left.chatPanel.width).toBe(470);
-    expect(left.contentPanel.width).toBe(350); // unchanged
+
+    // Drag left on sep 0 grows chat, shrinks primary
+    const left = applyDelta(panels, 0, -30);
+    expect(left.primarySidebar.width).toBe(270);
+    expect(left.chatPanel.width).toBe(530);
   });
 });

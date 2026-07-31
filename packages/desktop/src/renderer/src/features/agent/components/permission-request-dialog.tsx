@@ -1,5 +1,6 @@
 import type { PermissionResult, PermissionUpdate } from "@anthropic-ai/claude-agent-sdk";
 
+import { Kbd } from "@neo/ui/components/kbd";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -7,7 +8,6 @@ import type { ClaudeCodeUIEventRequest } from "../../../../../shared/claude-code
 import type { PermissionMode } from "../../../../../shared/features/agent/types";
 
 import { CodeBlock } from "../../../components/ai-elements/code-block";
-import { Kbd } from "../../../components/ui/kbd";
 import { cn } from "../../../lib/utils";
 import {
   formatSuggestionLabel,
@@ -195,7 +195,7 @@ export function PermissionRequestDialog({
     <div
       ref={containerRef}
       tabIndex={-1}
-      className="relative min-w-0 max-w-full bg-background-secondary px-4 py-3 outline-none"
+      className="relative min-w-0 max-w-full bg-card px-4 py-3 outline-none"
     >
       {/* Header: Tool name + pending count */}
       <div className="mb-2 flex min-w-0 items-center gap-2">

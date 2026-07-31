@@ -1,5 +1,11 @@
 import type { ChatStatus } from "ai";
 
+import { Button } from "@neo/ui/components/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@neo/ui/components/collapsible";
 import {
   ChevronDown,
   ChevronRight,
@@ -15,12 +21,6 @@ import { useTranslation } from "react-i18next";
 
 import type { ActiveSessionInfo } from "../../../../shared/features/agent/types";
 
-import { Button } from "../../components/ui/button";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "../../components/ui/collapsible";
 import { usePluginContext, useRendererApp } from "../../core/app";
 import { claudeCodeChatManager } from "../../features/agent/chat-manager";
 import { useAgentStore } from "../../features/agent/store";

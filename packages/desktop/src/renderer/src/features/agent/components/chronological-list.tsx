@@ -1,10 +1,13 @@
 import debug from "debug";
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import type { SessionItem } from "../hooks/use-session-items";
 
 import { useProjectStore } from "../../project/store";
 import { useLoadSession } from "../hooks/use-load-session";
-import { useFilteredSessions } from "../hooks/use-unified-sessions";
+import { useFilteredSessionItems } from "../hooks/use-unified-sessions";
+import { navigateToSession } from "../navigation";
 import { useAgentStore } from "../store";
 import { EmptySessionState } from "./empty-session-state";
 import { UnifiedSessionItem } from "./unified-session-item";
@@ -14,47 +17,61 @@ const log = debug("neovate:chronological-list");
 const CHRONOLOGICAL_SESSION_LIMIT = 50;
 
 export const ChronologicalList = memo(function ChronologicalList({
+  sessionItems,
   optionHeld,
 }: {
+  sessionItems?: SessionItem[];
   optionHeld?: boolean;
 }) {
   const { t } = useTranslation();
   const activeSessionId = useAgentStore((s) => s.activeSessionId);
-  const setActiveSession = useAgentStore((s) => s.setActiveSession);
   const loadSession = useLoadSession();
   const [restoring, setRestoring] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
 
   const sessionsLoaded = useAgentStore((s) => s.sessionsLoaded);
 
-  const items = useFilteredSessions({ filter: "unpinned" });
+  const items = useFilteredSessionItems({ sessionItems: sessionItems ?? [], filter: "unpinned" });
+
+  const itemsRef = useRef(items);
+  itemsRef.current = items;
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { sessionId } = (e as CustomEvent<{ sessionId: string }>).detail;
+      const idx = itemsRef.current.findIndex((s) => s.sessionId === sessionId);
+      if (idx >= CHRONOLOGICAL_SESSION_LIMIT) setShowAll(true);
+    };
+    window.addEventListener("reveal-session", handler);
+    return () => window.removeEventListener("reveal-session", handler);
+  }, []);
 
   log("render: totalItems=%d", items.length);
 
   const visibleItems = showAll ? items : items.slice(0, CHRONOLOGICAL_SESSION_LIMIT);
   const hiddenCount = items.length - CHRONOLOGICAL_SESSION_LIMIT;
 
-  const switchToProjectByPath = useProjectStore((s) => s.switchToProjectByPath);
+  const switchToProject = useProjectStore((s) => s.switchToProject);
 
   const handleActivate = useCallback(
-    (sessionId: string, projectPath?: string) => {
-      if (projectPath) switchToProjectByPath(projectPath);
-      setActiveSession(sessionId);
+    (sessionId: string, projectId: string) => {
+      switchToProject(projectId);
+      navigateToSession(sessionId);
     },
-    [switchToProjectByPath, setActiveSession],
+    [switchToProject],
   );
 
   const handleLoad = useCallback(
-    async (sessionId: string, projectPath?: string) => {
+    async (sessionId: string, projectId: string) => {
       setRestoring(sessionId);
       try {
-        if (projectPath) switchToProjectByPath(projectPath);
+        switchToProject(projectId);
         await loadSession(sessionId);
       } finally {
         setRestoring((prev) => (prev === sessionId ? null : prev));
       }
     },
-    [switchToProjectByPath, loadSession],
+    [switchToProject, loadSession],
   );
 
   if (items.length === 0) {
@@ -63,21 +80,18 @@ export const ChronologicalList = memo(function ChronologicalList({
 
   return (
     <ul className="flex flex-col gap-1">
-      {visibleItems.map((item) => {
-        const id = item.kind === "memory" ? item.session.sessionId : item.info.sessionId;
-        return (
-          <UnifiedSessionItem
-            key={id}
-            item={item}
-            activeSessionId={activeSessionId}
-            isPinned={false}
-            restoring={restoring}
-            optionHeld={optionHeld}
-            onActivate={handleActivate}
-            onLoad={handleLoad}
-          />
-        );
-      })}
+      {visibleItems.map((item) => (
+        <UnifiedSessionItem
+          key={item.sessionId}
+          item={item}
+          activeSessionId={activeSessionId}
+          isPinned={false}
+          restoring={restoring}
+          optionHeld={optionHeld}
+          onActivate={handleActivate}
+          onLoad={handleLoad}
+        />
+      ))}
       {hiddenCount > 0 && (
         <button
           className="cursor-pointer pl-10 pr-3 py-1.5 text-xs text-muted-foreground/70 transition-colors hover:text-foreground text-left"

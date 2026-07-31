@@ -1,4 +1,4 @@
-import { Search } from "lucide-react";
+import { SearchIcon } from "lucide-react";
 
 import type { GlobUIToolInvocation } from "../../../../../../shared/claude-code/types";
 
@@ -7,6 +7,7 @@ import {
   ToolContent,
   ToolHeader,
   ToolHeaderIcon,
+  ToolHeaderTitle,
 } from "../../../../components/ai-elements/tool";
 
 export function GlobTool({ invocation }: { invocation: GlobUIToolInvocation }) {
@@ -16,11 +17,11 @@ export function GlobTool({ invocation }: { invocation: GlobUIToolInvocation }) {
   return (
     <Tool invocation={invocation}>
       <ToolHeader>
-        <ToolHeaderIcon icon={Search} />
-        <span className="shrink-0">Glob</span>
-        <span className="min-w-0 truncate">
-          {input?.pattern && <>for "{input.pattern}"</>} {input?.path && <>in {input.path}</>}
-        </span>
+        <ToolHeaderIcon icon={SearchIcon} />
+        <ToolHeaderTitle>
+          Glob{input?.pattern && <> for "{input.pattern}"</>}
+          {input?.path && <> in {input.path}</>}
+        </ToolHeaderTitle>
       </ToolHeader>
       <ToolContent>
         {typeof output === "string" ? <pre className="text-xs">{output}</pre> : null}

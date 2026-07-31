@@ -1,4 +1,4 @@
-import { Globe } from "lucide-react";
+import { GlobeIcon } from "lucide-react";
 
 import type { WebSearchUIToolInvocation } from "../../../../../../shared/claude-code/types";
 
@@ -8,6 +8,7 @@ import {
   ToolContent,
   ToolHeader,
   ToolHeaderIcon,
+  ToolHeaderTitle,
 } from "../../../../components/ai-elements/tool";
 
 export function WebSearchTool({ invocation }: { invocation: WebSearchUIToolInvocation }) {
@@ -17,9 +18,8 @@ export function WebSearchTool({ invocation }: { invocation: WebSearchUIToolInvoc
   return (
     <Tool invocation={invocation}>
       <ToolHeader>
-        <ToolHeaderIcon icon={Globe} />
-        <span className="shrink-0">WebSearch</span>
-        {input?.query && <span className="min-w-0 truncate">"{input.query}"</span>}
+        <ToolHeaderIcon icon={GlobeIcon} />
+        <ToolHeaderTitle>WebSearch{input?.query && <> "{input.query}"</>}</ToolHeaderTitle>
       </ToolHeader>
       <ToolContent>{output ? <MessageResponse>{output}</MessageResponse> : null}</ToolContent>
     </Tool>

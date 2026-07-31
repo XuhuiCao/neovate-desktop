@@ -1,46 +1,61 @@
-import type { FileUIPart } from "ai";
 import type { StickToBottomContext } from "use-stick-to-bottom";
 
 import { ArrowDown01Icon, ArrowUp01Icon, Copy01Icon, Tick01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import debug from "debug";
 import { XIcon } from "lucide-react";
+import { useTheme } from "next-themes";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import type { ReactGrabCommentPayload } from "../../../../../shared/claude-code/types";
 import type { ImageAttachment } from "../../../../../shared/features/agent/types";
+import type { RateLimitNotice } from "../chat-state";
+import type { QueuedMessage } from "../store";
 
-import { client } from "../../../orpc";
-import { useConfigStore } from "../../config/store";
-import { useProjectStore } from "../../project/store";
+import { PLAYGROUND_PROJECT_ID } from "../../../../../shared/features/project/constants";
+import { getChatPanelBgUrl } from "../../../assets/images";
+import { layoutStore } from "../../../components/app-layout/store";
+import { FilePathStatusProvider } from "../../../core/file-path-status/provider";
+import { DevModeSelector } from "../../dev-workflow";
+import { useActiveProject } from "../../project";
+import { ProjectSelector } from "../../project/components/project-selector";
+import { DraftToolbar } from "../../worktree/components/draft-toolbar";
+import { draftAgentStore, useDraftAgentStore } from "../draft-store";
+import { handleSessionInitError } from "../lib/session-init-error";
+import { navigateToDraft } from "../navigation";
 import { useAgentStore } from "../store";
+import { attachmentsToFileParts } from "../utils/attachments-to-file-parts";
+import { DeeplinkProjectDialogHost } from "./deeplink-project-dialog";
+import { QueuedMessagesPreview } from "./queued-messages-preview";
 
 const chatLog = debug("neovate:agent-chat");
 
-function attachmentsToFileParts(attachments?: ImageAttachment[]): FileUIPart[] {
-  if (!attachments || attachments.length === 0) return [];
-  return attachments.map((a) => ({
-    type: "file" as const,
-    mediaType: a.mediaType,
-    filename: a.filename,
-    url: `data:${a.mediaType};base64,${a.base64}`,
-  }));
-}
+import { Button } from "@neo/ui/components/button";
+
+import { ConversationAnchorScrollbar } from "../../../components/ai-elements/anchor-scrollbar";
 import {
   Conversation,
   ConversationContent,
   ConversationScrollButton,
 } from "../../../components/ai-elements/conversation";
-import { Button } from "../../../components/ui/button";
+import { ErrorBoundary } from "../../../components/ui/error-boundary";
 import { cn } from "../../../lib/utils";
+// cloud-gated: CloudSyncButton import disabled in OSS
+// cloud-gated: RemoteSessionWebview import disabled in OSS
+import {
+  SummaryPanelProvider,
+  SummaryTriggerButton,
+  SummaryPinnedPanel,
+} from "../../summary/summary-floating-trigger";
 import { claudeCodeChatManager } from "../chat-manager";
 import { useClaudeCodeChat } from "../hooks/use-claude-code-chat";
 import { useNewSession } from "../hooks/use-new-session";
 import { useScrollPosition } from "../hooks/use-scroll-position";
 import { useSessionLifecycleSubscription } from "../hooks/use-session-lifecycle-subscription";
-import { BranchSwitcher } from "./branch-switcher";
 import { ContextLeft } from "./context-left";
-import { MessageInput } from "./message-input";
+import { ConversationBranchSwitcher } from "./conversation-branch-switcher";
+import { MessageInput, type MessageInputHandle } from "./message-input";
 import { MessageParts } from "./message-parts";
 import { PermissionDialog } from "./permission-dialog";
 import { TaskProgress } from "./task-progress";
@@ -61,7 +76,7 @@ function ChatError({ message, onDismiss }: { message: string; onDismiss?: () => 
   }, [message]);
 
   return (
-    <div className="mx-4 mb-2 rounded-md border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-400">
+    <div className="mx-4 mb-2 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive-foreground">
       <div className="flex items-start gap-2">
         <span className="min-w-0 flex-1 break-words">{firstLine}</span>
         <div className="flex shrink-0 items-center gap-0.5">
@@ -97,192 +112,284 @@ function ChatError({ message, onDismiss }: { message: string; onDismiss?: () => 
   );
 }
 
-export function AgentChat() {
-  const multiProjectSupport = useConfigStore((s) => s.multiProjectSupport);
-  const activeProject = useProjectStore((s) => s.activeProject);
-  const activeProjectPath = activeProject?.path ?? "";
-  const [cwd, setCwd] = useState("");
+function RateLimitNoticeBanner({ notice }: { notice: RateLimitNotice | null }) {
+  const { t } = useTranslation();
+  if (!notice) return null;
 
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      data-testid="chat-rate-limit-notice"
+      className="mx-4 mb-2 rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-sm text-warning-foreground"
+    >
+      <div className="font-medium">{t("chat.rateLimit.title")}</div>
+      <div className="mt-0.5 text-xs opacity-85">{t("chat.rateLimit.description")}</div>
+    </div>
+  );
+}
+
+export function AgentChat() {
+  const { t } = useTranslation();
+  const { project, cwd: projectCwd } = useActiveProject();
+  const projectPath = project?.path ?? "";
+
+  const remoteMode = useAgentStore((s) => s.remoteMode);
   const activeSessionId = useAgentStore((s) => s.activeSessionId);
-  const setActiveSession = useAgentStore((s) => s.setActiveSession);
-  const setAgentSessions = useAgentStore((s) => s.setAgentSessions);
-  const hasActiveChat = useAgentStore((s) => {
-    if (!s.activeSessionId) return false;
-    const session = s.sessions.get(s.activeSessionId);
-    return session != null && !session.isNew;
-  });
   const sessionInitError = useAgentStore((s) => s.sessionInitError);
   const setSessionInitError = useAgentStore((s) => s.setSessionInitError);
 
+  const activeDraftProjectPath = useDraftAgentStore((s) => s.activeDraftProjectPath);
+
   const { createNewSession } = useNewSession();
+
+  // Derive cwd from active state
+  const sessionCwd = useAgentStore((s) =>
+    s.activeSessionId ? s.sessions.get(s.activeSessionId)?.cwd : undefined,
+  );
+  const cwd = sessionCwd ?? activeDraftProjectPath ?? projectCwd ?? "";
 
   useSessionLifecycleSubscription(cwd);
 
-  // Track the project path we last initialized for
-  const initializedPathRef = useRef<string | null>(null);
+  // Keep webview mounted once it has been shown, to avoid reload on mode switch
+  const webviewMountedRef = useRef(false);
+  if (remoteMode) webviewMountedRef.current = true;
 
-  // On project switch: list sessions and create a new empty session
+  // Enter draft if no active session on project switch (skip if full right panel is open)
   useEffect(() => {
-    chatLog(
-      "effect[project-switch]: projectPath=%s multiProject=%s",
-      activeProjectPath,
-      multiProjectSupport,
-    );
-    if (activeProjectPath) setCwd(activeProjectPath);
-    if (!multiProjectSupport) setActiveSession(null);
-
-    if (!activeProjectPath && !multiProjectSupport) {
-      chatLog("effect[project-switch]: no project, clearing sessions");
-      setAgentSessions([]);
-      return;
-    }
-
-    // In multi-project mode, fetch ALL sessions (no cwd filter)
-    // In single-project mode, fetch only for the active project
-    const listArgs = multiProjectSupport ? {} : { cwd: activeProjectPath };
-    chatLog("effect[project-switch]: listing sessions args=%o", listArgs);
-    client.agent
-      .listSessions(listArgs)
-      .then((sessions) => {
-        chatLog("effect[project-switch]: listSessions returned total=%d", sessions.length);
-        setAgentSessions(sessions);
-      })
-      .catch((error) => {
-        chatLog(
-          "effect[project-switch]: listSessions FAILED error=%s",
-          error instanceof Error ? error.message : String(error),
-        );
-        setAgentSessions([]);
-      });
-  }, [activeProjectPath, multiProjectSupport, setActiveSession, setAgentSessions]);
-
-  // Auto-create a new session when project is active and no session exists
-  useEffect(() => {
-    if (!activeProjectPath) return;
-    if (initializedPathRef.current === activeProjectPath) {
-      chatLog("effect[auto-create]: skipping, already initialized for %s", activeProjectPath);
-      return;
-    }
-
-    // If the user explicitly clicked a session belonging to this project,
-    // don't overwrite their selection with a new empty session.
-    // In multi-project mode, switching via project selector keeps activeSessionId
-    // pointing to the old project's session (cwd won't match), so auto-create
-    // correctly proceeds for that case.
-    const { activeSessionId: currentId, sessions: currentSessions } = useAgentStore.getState();
-    if (currentId) {
-      const session = currentSessions.get(currentId);
-      if (session && session.cwd === activeProjectPath && !session.isNew) {
-        chatLog(
-          "effect[auto-create]: skipping, active session %s already in project %s",
-          currentId,
-          activeProjectPath,
-        );
-        initializedPathRef.current = activeProjectPath;
+    const draftCwd = projectCwd ?? projectPath;
+    if (draftCwd && !useAgentStore.getState().activeSessionId) {
+      // Skip navigation if a full right panel (e.g., project info) is open
+      if (layoutStore.getState().fullRightPanelId) {
+        chatLog("effect[project-switch]: skipping navigateToDraft, fullRightPanel is open");
         return;
       }
+      chatLog("effect[project-switch]: entering draft for %s", draftCwd);
+      navigateToDraft(draftCwd);
+    }
+  }, [projectPath, projectCwd]);
+
+  // Concurrency guard for handleSend
+  const sendingRef = useRef(false);
+
+  const handleSend = async (
+    message: string,
+    attachments?: ImageAttachment[],
+    reactGrabComments?: ReactGrabCommentPayload | null,
+  ) => {
+    const draftPath = draftAgentStore.getState().activeDraftProjectPath;
+    const targetCwd = draftPath ?? cwd;
+    if (!targetCwd) return;
+    if (sendingRef.current) return;
+
+    let sessionId = useAgentStore.getState().activeSessionId;
+
+    // Draft state: create session on first message send
+    if (!sessionId) {
+      chatLog("handleSend: draft — creating session cwd=%s", targetCwd);
+      // Read draft overrides before creating session (exitDraft clears them)
+      const currentDraft = draftPath ? draftAgentStore.getState().drafts[draftPath] : undefined;
+      const draftPermission = currentDraft?.permissionMode;
+      console.log(
+        `[DEBUG] handleSend draft draftPath=${draftPath} selectedModelId=${currentDraft?.selectedModelId} selectedProviderId=${currentDraft?.selectedProviderId}`,
+      );
+
+      sendingRef.current = true;
+      try {
+        if (!project) {
+          setSessionInitError("No active project");
+          return;
+        }
+        sessionId =
+          (await createNewSession(targetCwd, project.id, {
+            model: currentDraft?.selectedModelId ?? undefined,
+            providerId: currentDraft?.selectedProviderId,
+          })) ?? null;
+        if (!sessionId) return;
+      } catch (error) {
+        setSessionInitError(handleSessionInitError(error, t).message);
+        return;
+      } finally {
+        sendingRef.current = false;
+      }
+
+      // Apply permission override (model/provider already passed to createSession)
+      if (draftPermission && sessionId) {
+        useAgentStore.getState().setPermissionMode(sessionId, draftPermission);
+        claudeCodeChatManager.getChat(sessionId)?.dispatch({
+          kind: "configure",
+          configure: { type: "set_permission_mode", mode: draftPermission },
+        });
+      }
+
+      draftAgentStore.getState().exitDraft();
     }
 
-    initializedPathRef.current = activeProjectPath;
-    chatLog("effect[auto-create]: creating new session for %s", activeProjectPath);
-    createNewSession(activeProjectPath)
-      .then((sessionId) => {
-        chatLog("effect[auto-create]: session created sessionId=%s", sessionId);
-        // Don't pre-warm here — this session is itself unused. Pre-warm triggers on first message send.
-      })
-      .catch((error) => {
-        chatLog(
-          "effect[auto-create]: FAILED error=%s",
-          error instanceof Error ? error.message : String(error),
-        );
-        if (initializedPathRef.current === activeProjectPath) {
-          setSessionInitError(error instanceof Error ? error.message : String(error));
-        }
-      });
-  }, [activeProjectPath, createNewSession, setSessionInitError]);
-
-  const handleSend = (message: string, attachments?: ImageAttachment[]) => {
     chatLog(
       "handleSend: sessionId=%s msgLen=%d attachments=%d",
-      activeSessionId?.slice(0, 8) ?? "new",
+      sessionId.slice(0, 8),
       message.length,
       attachments?.length ?? 0,
     );
-    if (!activeSessionId) return;
-    useAgentStore.getState().addUserMessage(activeSessionId, message);
+    useAgentStore
+      .getState()
+      .addUserMessage(sessionId, message, { reactGrabComments: reactGrabComments ?? undefined });
     const files = attachmentsToFileParts(attachments);
-    claudeCodeChatManager.getChat(activeSessionId)?.sendMessage({
+    claudeCodeChatManager.getChat(sessionId)?.sendMessage({
       text: message,
       files: files.length > 0 ? files : undefined,
-      metadata: { sessionId: activeSessionId, parentToolUseId: null },
+      metadata: {
+        sessionId,
+        parentToolUseId: null,
+        reactGrabComments: reactGrabComments ?? undefined,
+      },
     });
-
-    // This handleSend is only reachable from the welcome panel (isNew state).
-    // Pre-warm a replacement session in the background for the next "New Chat".
-    if (activeProjectPath) {
-      claudeCodeChatManager.preWarmForProject(activeProjectPath);
-    }
   };
 
-  const sessionInitializing = !!activeProjectPath && !activeSessionId;
-
   const handleRetry = useCallback(() => {
-    if (!activeProjectPath) return;
+    const retryCwd = draftAgentStore.getState().activeDraftProjectPath ?? cwd;
+    if (!retryCwd || !project) return;
     setSessionInitError(null);
-    createNewSession(activeProjectPath).catch((error) => {
-      setSessionInitError(error instanceof Error ? error.message : String(error));
+    createNewSession(retryCwd, project.id).catch((error) => {
+      setSessionInitError(handleSessionInitError(error, t).message);
     });
-  }, [activeProjectPath, createNewSession, setSessionInitError]);
+  }, [cwd, project, createNewSession, setSessionInitError, t]);
 
-  // State 1: No project selected — show welcome panel without input
-  if (!activeProjectPath) {
-    return (
-      <div className="flex h-full flex-col">
-        <WelcomePanel hasProject={false} />
+  return (
+    <div className="h-full">
+      {/* Remote webview: mount once activated, then keep alive via CSS toggle */}
+      {webviewMountedRef.current && (
+        <div className={remoteMode ? "h-full" : "hidden"}>
+          {/* cloud-gated: RemoteSessionWebview disabled in OSS */}
+        </div>
+      )}
+      <div className={remoteMode ? "hidden" : "h-full"}>
+        {/* Boundary scoped to the active session/draft so a runtime error in
+            AgentChatSession or AgentChatDraft (e.g. React error #185) shows a
+            recoverable fallback instead of unmounting the whole app to a white
+            screen. Keyed on the session/draft identity so switching sessions
+            naturally resets the boundary. */}
+        <ErrorBoundary key={activeSessionId ?? project?.id ?? "no-project"}>
+          {activeSessionId && sessionCwd ? (
+            <AgentChatSession key={activeSessionId} sessionId={activeSessionId} cwd={sessionCwd} />
+          ) : (
+            <AgentChatDraft
+              key={project?.id ?? "no-project"}
+              project={project}
+              activeDraftProjectPath={activeDraftProjectPath}
+              sessionInitError={sessionInitError}
+              sendingRef={sendingRef}
+              onSend={handleSend}
+              onRetry={handleRetry}
+            />
+          )}
+        </ErrorBoundary>
       </div>
-    );
-  }
+      <DeeplinkProjectDialogHost />
+    </div>
+  );
+}
 
-  // State 2: No session yet (or new empty session) — show welcome panel with input
-  if (!hasActiveChat) {
-    return (
-      <div className="flex h-full flex-col">
-        <WelcomePanel hasProject />
-        <MessageInput
-          onSend={handleSend}
-          onCancel={() => {}}
-          streaming={false}
-          disabled={!activeProjectPath}
-          sessionInitializing={sessionInitializing}
-          sessionInitError={sessionInitError}
-          onRetry={handleRetry}
-          cwd={cwd}
-        />
-        {cwd && (
-          <div className="px-4 pb-2 max-w-3xl mx-auto w-full">
-            <BranchSwitcher cwd={cwd} />
+type AgentChatDraftProps = {
+  project: ReturnType<typeof useActiveProject>["project"];
+  activeDraftProjectPath: string | null;
+  sessionInitError: string | null;
+  sendingRef: React.RefObject<boolean>;
+  onSend: (
+    message: string,
+    attachments?: ImageAttachment[],
+    reactGrabComments?: ReactGrabCommentPayload | null,
+  ) => void;
+  onRetry: () => void;
+};
+
+function AgentChatDraft({
+  project,
+  activeDraftProjectPath,
+  sessionInitError,
+  sendingRef,
+  onSend,
+  onRetry,
+}: AgentChatDraftProps) {
+  const devMode = useDraftAgentStore(
+    (s) =>
+      (activeDraftProjectPath ? s.drafts[activeDraftProjectPath]?.devMode : undefined) ?? "free",
+  );
+
+  const isPlayground = project?.id === PLAYGROUND_PROJECT_ID;
+  // Show DevModeSelector for non-Playground draft projects. The selector
+  // itself self-hides when no injectable dev-workflow plugin is enabled at
+  // this cwd, so a render here is "candidate slot", not "guaranteed UI".
+  const shouldShowDevModeSelector = !isPlayground && !!activeDraftProjectPath;
+
+  return (
+    <DraftBackground>
+      <div className="mb-auto mt-[20vh] flex flex-col items-center gap-4">
+        <WelcomePanel devMode={devMode} projectName={project?.name} isPlayground={isPlayground} />
+        {shouldShowDevModeSelector && <DevModeSelector projectPath={activeDraftProjectPath} />}
+        {activeDraftProjectPath ? (
+          <div className="mx-auto w-full max-w-3xl">
+            <MessageInput
+              onSend={onSend}
+              onCancel={() => {}}
+              streaming={false}
+              disabled={false}
+              sessionInitializing={sendingRef.current}
+              sessionInitError={sessionInitError}
+              onRetry={onRetry}
+              cwd={activeDraftProjectPath ?? ""}
+            />
+            <DraftToolbar />
           </div>
+        ) : (
+          <ProjectSelector variant="select" />
         )}
       </div>
-    );
-  }
+    </DraftBackground>
+  );
+}
 
-  // State 3: Active session — full chat
-  return <AgentChatSession key={activeSessionId} sessionId={activeSessionId!} cwd={cwd} />;
+function DraftBackground({ children }: { children: React.ReactNode }) {
+  const { resolvedTheme } = useTheme();
+  return (
+    <div
+      className="flex h-full flex-col bg-cover bg-no-repeat bg-[position:0_0]"
+      style={{
+        backgroundImage: `url("${getChatPanelBgUrl(resolvedTheme as "dark" | "light" | undefined)}")`,
+      }}
+    >
+      {children}
+    </div>
+  );
 }
 
 function AgentChatSession({ sessionId, cwd }: { sessionId: string; cwd: string }) {
   const tasks = useAgentStore((s) => s.sessions.get(sessionId)?.tasks);
-  const { messages, status, error, pendingRequests, sendMessage, stop, clearError } =
-    useClaudeCodeChat(sessionId);
+  const {
+    messages,
+    status,
+    error,
+    pendingRequests,
+    rateLimitNotice,
+    sendMessage,
+    stop,
+    clearError,
+  } = useClaudeCodeChat(sessionId);
   const hasPendingRequest = pendingRequests.length > 0;
+  const isProcessing = status === "streaming" || status === "submitted";
 
   // Ref to access scroll context for smooth scrolling on new message
   const conversationContextRef = useRef<StickToBottomContext | null>(null);
 
+  const composerRef = useRef<MessageInputHandle>(null);
+
   const { initialScrollBehavior } = useScrollPosition(sessionId, conversationContextRef);
 
-  const handleSend = (text: string, attachments?: ImageAttachment[]) => {
+  const handleSend = (
+    text: string,
+    attachments?: ImageAttachment[],
+    reactGrabComments?: ReactGrabCommentPayload | null,
+  ) => {
     chatLog(
       "handleSend: sessionId=%s msgLen=%d attachments=%d",
       sessionId.slice(0, 8),
@@ -293,7 +400,11 @@ function AgentChatSession({ sessionId, cwd }: { sessionId: string; cwd: string }
     sendMessage({
       text,
       files: files.length > 0 ? files : undefined,
-      metadata: { sessionId, parentToolUseId: null },
+      metadata: {
+        sessionId,
+        parentToolUseId: null,
+        reactGrabComments: reactGrabComments ?? undefined,
+      },
     });
     // Smooth scroll to bottom when user sends a new message
     conversationContextRef.current?.scrollToBottom("smooth");
@@ -304,56 +415,101 @@ function AgentChatSession({ sessionId, cwd }: { sessionId: string; cwd: string }
     stop();
   };
 
+  const handleEditQueued = useCallback(
+    (item: QueuedMessage) => {
+      if (!composerRef.current) return;
+      composerRef.current.seed({
+        content: item.content,
+        attachments: item.attachments,
+        reactGrabComments: item.reactGrabComments,
+      });
+      useAgentStore.getState().removeQueued(sessionId, item.id);
+    },
+    [sessionId],
+  );
+
   return (
-    <div className="@container/chat flex h-full flex-col">
-      <Conversation contextRef={conversationContextRef} initial={initialScrollBehavior}>
-        <ConversationContent>
-          {messages.map((message, i) => (
-            <MessageParts
-              key={message.id}
-              message={message}
-              isComplete={
-                (status !== "streaming" && status !== "submitted") || i !== messages.length - 1
-              }
-              renderToolPart={(_partMessage, part) => <ClaudeCodeToolUIPart part={part} />}
-              sessionId={sessionId}
-              isStreaming={status === "streaming" || status === "submitted"}
-            />
-          ))}
-        </ConversationContent>
-        <ConversationScrollButton />
-      </Conversation>
-      <div className="shrink-0 max-w-3xl mx-auto w-full">
-        <TaskProgress tasks={tasks} />
-        {error && <ChatError message={error.message} onDismiss={clearError} />}
-        <div className={cn("relative min-w-0", hasPendingRequest && "grid")}>
-          <div className={cn(hasPendingRequest && "col-start-1 row-start-1 self-end z-10 min-w-0")}>
-            <PermissionDialog sessionId={sessionId} />
-          </div>
-          <div
-            className={cn(
-              "relative min-w-0",
-              hasPendingRequest && "col-start-1 row-start-1 self-end pointer-events-none z-0",
+    <SummaryPanelProvider>
+      <div className="@container/chat relative flex h-full flex-row" data-slot="chat-session">
+        {/* Chat main area */}
+        <div className="relative flex h-full min-w-0 flex-1 flex-col">
+          <SummaryTriggerButton />
+          <FilePathStatusProvider>
+            <Conversation
+              contextRef={conversationContextRef}
+              initial={initialScrollBehavior}
+              data-testid="chat-panel"
+            >
+              <ConversationContent data-testid="chat-messages-container">
+                {messages.map((message, i) => (
+                  <div
+                    key={message.id}
+                    data-message-id={message.id}
+                    data-message-role={message.role}
+                    className="min-w-0"
+                  >
+                    <MessageParts
+                      message={message}
+                      isComplete={
+                        (status !== "streaming" && status !== "submitted") ||
+                        i !== messages.length - 1
+                      }
+                      renderToolPart={(_partMessage, part) => <ClaudeCodeToolUIPart part={part} />}
+                      sessionId={sessionId}
+                      isStreaming={status === "streaming" || status === "submitted"}
+                      isLatestTurnWithChanges={i === messages.length - 1}
+                    />
+                  </div>
+                ))}
+              </ConversationContent>
+              <ConversationScrollButton />
+              <ConversationAnchorScrollbar messages={messages} />
+            </Conversation>
+          </FilePathStatusProvider>
+          <div className="shrink-0 max-w-3xl mx-auto w-full">
+            <TaskProgress tasks={tasks} />
+            <RateLimitNoticeBanner notice={rateLimitNotice} />
+            {error && <ChatError message={error.message} onDismiss={clearError} />}
+            {!hasPendingRequest && (
+              <QueuedMessagesPreview sessionId={sessionId} onEdit={handleEditQueued} />
             )}
-          >
-            <MessageInput
-              onSend={handleSend}
-              onCancel={handleCancel}
-              streaming={status === "streaming"}
-              disabled={hasPendingRequest}
-              cwd={cwd}
-              dockAttached={hasPendingRequest}
-            />
+            <div className={cn("relative min-w-0", hasPendingRequest && "grid")}>
+              <div
+                className={cn(hasPendingRequest && "col-start-1 row-start-1 self-end z-10 min-w-0")}
+              >
+                <PermissionDialog sessionId={sessionId} />
+              </div>
+              <div
+                className={cn(
+                  "relative min-w-0",
+                  hasPendingRequest && "col-start-1 row-start-1 self-end pointer-events-none z-0",
+                )}
+              >
+                <MessageInput
+                  ref={composerRef}
+                  onSend={handleSend}
+                  onCancel={handleCancel}
+                  streaming={isProcessing}
+                  disabled={hasPendingRequest}
+                  cwd={cwd}
+                  dockAttached={hasPendingRequest}
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-2 px-4 pt-1.5 pb-2.5">
+              <ConversationBranchSwitcher
+                cwd={cwd}
+                disabled={status === "streaming" || status === "submitted"}
+              />
+              null /* cloud-gated */
+              <div className="flex-1" />
+              <ContextLeft sessionId={sessionId} />
+            </div>
           </div>
         </div>
-        {cwd && (
-          <div className="flex items-center px-4 pb-2">
-            <BranchSwitcher cwd={cwd} disabled={status === "streaming"} />
-            <div className="flex-1" />
-            <ContextLeft sessionId={sessionId} />
-          </div>
-        )}
+        {/* Pinned summary panel */}
+        <SummaryPinnedPanel />
       </div>
-    </div>
+    </SummaryPanelProvider>
   );
 }

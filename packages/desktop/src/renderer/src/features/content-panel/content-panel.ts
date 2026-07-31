@@ -173,6 +173,16 @@ export class ContentPanel {
     this.#store.getState().removeTab(this.projectPath, viewId);
   }
 
+  reloadView(viewId: string): void {
+    const tab = this.#store.getState().getTab(this.projectPath, viewId);
+    if (!tab) return;
+    const view = this.views.find((v) => v.viewType === tab.viewType);
+    if (!view?.reloadable) return;
+    const prev = (tab.state._reloadKey as number) || 0;
+    log("reload view", { viewId, reloadKey: prev + 1 });
+    this.#store.getState().updateTabState(this.projectPath, viewId, { _reloadKey: prev + 1 });
+  }
+
   activateView(viewId: string): void {
     log("activate view", { viewId });
     this.#store.getState().setActiveTab(this.projectPath, viewId);
@@ -185,5 +195,15 @@ export class ContentPanel {
   updateViewState(viewId: string, patch: Record<string, unknown>): void {
     log("update view state", { viewId });
     this.#store.getState().updateTabState(this.projectPath, viewId, patch);
+  }
+
+  /**
+   * Open (or activate) a view and apply state. 对齐内部 neo-monorepo ContentPanel.revealView.
+   * 与 openView 的区别：保证写入 state（用于 changes 等需预设 category 的跳转）。
+   */
+  revealView(viewType: string, state: Record<string, unknown>): string {
+    const id = this.openView(viewType, { state });
+    this.updateViewState(id, state);
+    return id;
   }
 }

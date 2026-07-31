@@ -20,15 +20,23 @@ import type {
 } from "./types";
 
 export const agentContract = {
+  getProjectCapabilities: oc
+    .input(z.object({ projectId: z.string().optional() }))
+    .output(type<any>()),
   activeSessions: oc.input(z.object({})).output(type<ActiveSessionInfo[]>()),
 
   subscribeSessionLifecycle: oc.output(eventIterator(type<SessionLifecycleEvent>())),
 
-  listSessions: oc.input(z.object({ cwd: z.string().optional() })).output(type<SessionInfo[]>()),
+  listSessions: oc
+    .input(z.object({ cwd: z.string().optional(), projectId: z.string().optional() }))
+    .output(type<SessionInfo[]>()),
 
   renameSession: oc
     .input(z.object({ sessionId: z.string(), title: z.string() }))
     .output(type<void>()),
+
+  /** 重跑插件 configContributions，刷新 agent 贡献（MCP server/hooks）。新 session 起生效。 */
+  refreshContributions: oc.input(z.object({})).output(type<{ refreshed: boolean }>()),
 
   updateSessionStartTime: oc
     .input(z.object({ sessionId: z.string(), createdAt: z.string() }))
@@ -39,6 +47,7 @@ export const agentContract = {
       .input(
         z.object({
           cwd: z.string(),
+          projectId: z.string(),
           model: z.string().optional(),
           providerId: z.string().nullable().optional(),
         }),
@@ -68,16 +77,18 @@ export const agentContract = {
 
     closeSession: oc.input(z.object({ sessionId: z.string() })).output(type<void>()),
 
-    loadSession: oc.input(z.object({ sessionId: z.string(), cwd: z.string() })).output(
-      type<{
-        sessionId: string;
-        capabilities: Awaited<ReturnType<Query["initializationResult"]>>;
-        messages: ClaudeCodeUIMessage[];
-        currentModel?: string;
-        modelScope?: ModelScope;
-        providerId?: string;
-      }>(),
-    ),
+    loadSession: oc
+      .input(z.object({ sessionId: z.string(), cwd: z.string(), projectId: z.string() }))
+      .output(
+        type<{
+          sessionId: string;
+          capabilities: Awaited<ReturnType<Query["initializationResult"]>>;
+          messages: ClaudeCodeUIMessage[];
+          currentModel?: string;
+          modelScope?: ModelScope;
+          providerId?: string;
+        }>(),
+      ),
   },
 
   network: {
@@ -101,6 +112,7 @@ export const agentContract = {
       z.object({
         sessionId: z.string(),
         cwd: z.string(),
+        projectId: z.string(),
         title: z.string().optional(),
       }),
     )

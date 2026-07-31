@@ -1,7 +1,7 @@
 import { oc, type } from "@orpc/contract";
 import { z } from "zod";
 
-import type { PreviewSkill, RegistryGroup, SkillMeta, SkillUpdate } from "./types";
+import type { BuiltinSkill, PreviewSkill, RegistryGroup, SkillMeta, SkillUpdate } from "./types";
 
 const scopeSchema = z.enum(["global", "project"]);
 const allScopeSchema = z.enum(["all", "global", "project"]);
@@ -12,6 +12,7 @@ const skillIdentifier = z.object({
 });
 
 export const skillsContract = {
+  builtin: oc.output(type<BuiltinSkill[]>()),
   list: oc
     .input(z.object({ scope: allScopeSchema, projectPath: z.string().optional() }))
     .output(type<SkillMeta[]>()),

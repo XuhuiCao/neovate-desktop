@@ -8,14 +8,20 @@ import type { AppContext } from "./router";
 
 import { isMac } from "../shared/platform";
 import { MainApp } from "./app";
+import { eventBus } from "./core/event-bus";
 import { ApplicationMenu } from "./core/menu";
 import { PowerBlockerService } from "./core/power-blocker-service";
 import { shellEnvService } from "./core/shell-service";
 import { RequestTracker } from "./features/agent/request-tracker";
 import { SessionManager } from "./features/agent/session-manager";
+import { AttachmentService } from "./features/chat/attachments/service";
 import { PluginsService } from "./features/claude-code-plugins/plugins-service";
 import { ConfigStore } from "./features/config/config-store";
+import { DevWorkflowService } from "./features/dev-workflow/dev-workflow-service";
+import { handleNeovateFileProtocol, registerNeovateFileScheme } from "./features/file/protocol";
+import { FsService } from "./features/fs/fs-service";
 import { LlmService } from "./features/llm/llm-service";
+import { NotificationService } from "./features/notification/notification-service";
 import { PopupWindowShortcut } from "./features/popup-window/global-shortcut";
 import { ProjectStore } from "./features/project/project-store";
 import { DingTalkAdapter } from "./features/remote-control/platforms/dingtalk";
@@ -24,13 +30,16 @@ import { WeChatAdapter } from "./features/remote-control/platforms/wechat";
 import { RemoteControlService } from "./features/remote-control/remote-control-service";
 import { SkillsService } from "./features/skills/skills-service";
 import { StateStore } from "./features/state/state-store";
+import { TokenReporter } from "./features/token-usage/reporter";
 import { UpdaterService } from "./features/updater/service";
+import { WorktreeService } from "./features/worktree/worktree-service";
 import browserPlugin from "./plugins/browser";
 import changesPlugin from "./plugins/changes";
 // import demoMcpLivePreviewPlugin from "./plugins/demo-mcp-live-preview";
 import editorPlugin from "./plugins/editor";
 import filesPlugin from "./plugins/files";
 import gitPlugin from "./plugins/git";
+import neoDesktopMcpPlugin from "./plugins/neo-desktop-mcp";
 import terminalPlugin from "./plugins/terminal";
 
 const log = debug("neovate:orpc");
@@ -42,6 +51,10 @@ startupLog("main process module loaded %s", elapsed());
 if (is.dev && process.env.ELECTRON_CDP_PORT) {
   app.commandLine.appendSwitch("remote-debugging-port", process.env.ELECTRON_CDP_PORT);
 }
+
+// Register neovate-file:// scheme before app ready (privileged registration
+// is only honored pre-ready). Handler is installed after whenReady below.
+registerNeovateFileScheme();
 
 // Each SDK session adds a process.on("exit") listener to kill its child process.
 // Raise the limit so normal multi-session usage doesn't trigger a warning.
@@ -82,14 +95,21 @@ process.on("unhandledRejection", (reason) => {
 });
 const requestTracker = new RequestTracker();
 const powerBlocker = new PowerBlockerService(configStore);
+const tokenReporter = new TokenReporter();
+const stateStore = new StateStore();
+const devWorkflowService = new DevWorkflowService(stateStore);
 const sessionManager = new SessionManager(
   configStore,
   projectStore,
   requestTracker,
   powerBlocker,
   () => mainApp.pluginManager.contributions.agents,
+  tokenReporter,
+  devWorkflowService,
+  () => mainApp.refreshContributions(),
 );
-const stateStore = new StateStore();
+const fsService = new FsService();
+const attachmentService = new AttachmentService();
 const llmService = new LlmService(configStore, shellEnvService);
 const mainApp = new MainApp({
   appName: app.getName(),
@@ -100,6 +120,7 @@ const mainApp = new MainApp({
     editorPlugin,
     changesPlugin,
     browserPlugin,
+    neoDesktopMcpPlugin,
     // demoMcpLivePreviewPlugin,
   ],
   llmService,
@@ -108,6 +129,8 @@ const updaterService = new UpdaterService({
   onBeforeQuitForUpdate: () => mainApp.windowManager.prepareForQuit(),
 });
 const pluginsService = new PluginsService();
+const notificationService = new NotificationService();
+const worktreeService = new WorktreeService();
 const skillsService = new SkillsService(projectStore, configStore, process.resourcesPath);
 const remoteControlService = new RemoteControlService(
   sessionManager,
@@ -123,14 +146,20 @@ remoteControlService.registerAdapter(new WeChatAdapter());
 const appContext: AppContext = {
   sessionManager,
   requestTracker,
+  attachmentService,
   configStore,
+  devWorkflowService,
+  fsService,
   llmService,
+  notificationService,
   projectStore,
   pluginsService,
   skillsService,
   stateStore,
+  tokenReporter,
   remoteControlService,
   updaterService,
+  worktreeService,
   mainApp,
   storage: mainApp.getStorage(),
 };
@@ -167,10 +196,22 @@ let popupShortcut: PopupWindowShortcut | null = null;
 startupLog("app.whenReady waiting %s", elapsed());
 app.whenReady().then(async () => {
   startupLog("app.whenReady fired %s", elapsed());
-  electronApp.setAppUserModelId("com.neovateai.desktop");
+  // appId 与 electron-builder 一致：dev 用 .dev 后缀（修复历史遗留：此前 dev/prod 都用同一个 model id）
+  electronApp.setAppUserModelId(
+    import.meta.env.DEV ? "com.neovateai.desktop.dev" : "com.neovateai.desktop",
+  );
 
   await mainApp.start();
   startupLog("mainApp.start done %s", elapsed());
+
+  // Bind main→renderer event bus to the main window
+  if (mainApp.windowManager.mainWindow) {
+    eventBus.bind(mainApp.windowManager.mainWindow);
+  }
+
+  // Install neovate-file:// protocol handler (scheme registered pre-ready)
+  handleNeovateFileProtocol();
+
   void updaterService.init();
 
   // Start remote control platform adapters (fire-and-forget — must not block window)

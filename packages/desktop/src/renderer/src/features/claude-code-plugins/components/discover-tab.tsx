@@ -1,3 +1,7 @@
+import { Badge } from "@neo/ui/components/badge";
+import { Button } from "@neo/ui/components/button";
+import { Spinner } from "@neo/ui/components/spinner";
+import { toastManager } from "@neo/ui/components/toast";
 import { Download, Plus, X } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -8,10 +12,6 @@ import type {
 } from "../../../../../shared/features/claude-code-plugins/types";
 import type { Project } from "../../../../../shared/features/project/types";
 
-import { Badge } from "../../../components/ui/badge";
-import { Button } from "../../../components/ui/button";
-import { Spinner } from "../../../components/ui/spinner";
-import { toastManager } from "../../../components/ui/toast";
 import { client } from "../../../orpc";
 import { PluginDetailModal } from "./plugin-detail-modal";
 

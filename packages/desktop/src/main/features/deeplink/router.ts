@@ -23,4 +23,8 @@ export const deeplinkRouter = os.deeplink.router({
       yield event;
     }
   }),
+
+  handle: os.deeplink.handle.handler(({ input, context }) => {
+    context.mainApp.deeplink.handle(input.url);
+  }),
 });

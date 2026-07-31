@@ -1,8 +1,8 @@
 <div align="center">
-<img src="https://mdn.alipayobjects.com/huamei_9rin5s/afts/img/0uIJQaelzccAAAAAQCAAAAgADiB8AQFr/original" alt="Neovate Logo" width="60" />
+<img src="packages/desktop/build/icons/prod/icon.png" alt="Neovate Logo" width="60" />
 <br />
 <br />
-<img src="https://mdn.alipayobjects.com/huamei_9rin5s/afts/img/UdphTJIBImUAAAAAQKAAAAgADiB8AQFr/original" alt="Neovate Logo Text" width="160" />
+<h1>Neovate Desktop</h1>
 
 ### Desktop
 
@@ -32,6 +32,20 @@ bun dev
 ## Contributing
 
 Contributions are welcome! Please read the [CONTRIBUTING.md](./CONTRIBUTING.md) file for guidelines on setting up the development environment, running tests, and submitting pull requests.
+
+## Features
+
+Beyond the core Claude Code chat experience, Neovate Desktop ships with:
+
+- **Provider authorization (dual-mode)** — sign in with a Claude subscription (inherit, zero-config) or plug in a custom Anthropic-compatible endpoint (API key + baseURL). See `main/features/provider`.
+- **Notifications** — native OS notifications + in-app toast, via `main/features/notification` and the main→renderer event bus (`main/core/event-bus`).
+- **`neovate-file://` protocol** — load local resources (images, PDFs, …) directly in the renderer; plus a thin local fs service (`main/features/file`, `main/features/fs`).
+- **Token usage (local-only)** — per-session and global token/cost/duration accounting, never reported externally (`main/features/token-usage`).
+- **Git Worktree** — start isolated branch sessions from the sidebar (`main/features/worktree`).
+- **Dev workflow** — switch `default` / `plan` / `dev` permission modes and prepend a draft prefix to every turn (`main/features/dev-workflow`).
+- **neo-desktop MCP** — a built-in MCP server exposing local file/terminal/open capabilities to the agent (`main/plugins/neo-desktop-mcp`).
+- **Agent contributions** — plugins contribute MCP servers / hooks; see [`docs/designs/agent-contributions.md`](./docs/designs/agent-contributions.md).
+- **Attachments** — attach images, PDFs, and text files to chat messages.
 
 ## Credits
 

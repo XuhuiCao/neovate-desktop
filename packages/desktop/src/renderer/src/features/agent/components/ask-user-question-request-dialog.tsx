@@ -3,14 +3,14 @@
 import type { PermissionResult } from "@anthropic-ai/claude-agent-sdk";
 import type { z } from "zod";
 
+import { Button } from "@neo/ui/components/button";
+import { Checkbox } from "@neo/ui/components/checkbox";
+import { Label } from "@neo/ui/components/label";
+import { Radio, RadioGroup } from "@neo/ui/components/radio-group";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { AskUserQuestionInputSchema } from "../../../../../shared/claude-code/tools/ask-user-question";
-import { Button } from "../../../components/ui/button";
-import { Checkbox } from "../../../components/ui/checkbox";
-import { Label } from "../../../components/ui/label";
-import { Radio, RadioGroup } from "../../../components/ui/radio-group";
 
 type Props = {
   input: z.infer<typeof AskUserQuestionInputSchema>;
@@ -101,7 +101,7 @@ export function AskUserQuestionRequestDialog({ input, onResolve }: Props) {
   const isLastQuestion = activeQuestionIndex === input.questions.length - 1;
 
   return (
-    <div className="relative bg-background-secondary px-4 py-3">
+    <div className="relative bg-card px-4 py-3">
       {activeQuestion && (
         <div className="space-y-3">
           {/* Header: Question text + progress indicator */}

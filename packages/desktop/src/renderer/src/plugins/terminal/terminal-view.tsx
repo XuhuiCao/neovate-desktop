@@ -23,12 +23,13 @@ type TerminalClient = ContractRouterClient<{ terminal: typeof terminalContract }
 const log = debug("neovate:terminal");
 
 const darkTheme = {
-  background: "#0a0a0a",
-  foreground: "#e0e0e0",
-  cursor: "#f0f0f0",
-  cursorAccent: "#0a0a0a",
+  // One-Dark（规范 §6.5）
+  background: "#282c34",
+  foreground: "#abb2bf",
+  cursor: "#ffffff",
+  cursorAccent: "#282c34",
   selectionBackground: "rgba(255, 255, 255, 0.2)",
-  black: "#1a1a1a",
+  black: "#282c34",
   red: "#e06c75",
   green: "#98c379",
   yellow: "#e5c07b",

@@ -181,6 +181,25 @@ export const BUILT_IN_PROVIDER_TEMPLATES: ProviderTemplate[] = [
     envOverrides: {},
   },
   {
+    id: "deepseek",
+    name: "DeepSeek",
+    description: {
+      "en-US": "DeepSeek official API",
+      "zh-CN": "DeepSeek",
+    },
+    baseURL: "https://api.deepseek.com/anthropic",
+    apiKeyURL: "https://platform.deepseek.com/api_keys",
+    docURL: "https://api-docs.deepseek.com/",
+    models: {
+      "deepseek-v4-flash": { displayName: "DeepSeek V4 Flash" },
+      "deepseek-v4-pro": { displayName: "DeepSeek V4 Pro" },
+    },
+    modelMap: {
+      model: "deepseek-v4-pro",
+    },
+    envOverrides: {},
+  },
+  {
     id: "zenmux",
     name: "ZenMux",
     description: {

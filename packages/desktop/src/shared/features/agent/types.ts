@@ -5,7 +5,12 @@ export type ModelInfo = {
   displayName: string;
   description: string;
   supportsEffort?: boolean;
-  supportedEffortLevels?: ("low" | "medium" | "high" | "max")[];
+  // Mirrors the SDK's effort level union (claude-agent-sdk 0.3.x added 'xhigh').
+  supportedEffortLevels?: ("low" | "medium" | "high" | "xhigh" | "max")[];
+  resolvedModel?: string;
+  supportsAdaptiveThinking?: boolean;
+  supportsFastMode?: boolean;
+  supportsAutoMode?: boolean;
 };
 
 export type AccountInfo = {
@@ -98,6 +103,8 @@ export type SessionInfo = {
   cwd?: string;
   updatedAt: string;
   createdAt: string;
+  isWorktree?: boolean;
+  projectId?: string;
 };
 
 /** Event emitted when a session is created or deleted */

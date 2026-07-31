@@ -1,12 +1,5 @@
-import debug from "debug";
-import { useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
-
-import type { Project } from "../../../../../shared/features/project/types";
-import type { PreviewSkill } from "../../../../../shared/features/skills/types";
-
-import { Button } from "../../../components/ui/button";
-import { Checkbox } from "../../../components/ui/checkbox";
+import { Button } from "@neo/ui/components/button";
+import { Checkbox } from "@neo/ui/components/checkbox";
 import {
   Dialog,
   DialogDescription,
@@ -15,16 +8,23 @@ import {
   DialogPanel,
   DialogPopup,
   DialogTitle,
-} from "../../../components/ui/dialog";
-import { Input } from "../../../components/ui/input";
+} from "@neo/ui/components/dialog";
+import { Input } from "@neo/ui/components/input";
 import {
   Select,
   SelectItem,
   SelectPopup,
   SelectTrigger,
   SelectValue,
-} from "../../../components/ui/select";
-import { Spinner } from "../../../components/ui/spinner";
+} from "@neo/ui/components/select";
+import { Spinner } from "@neo/ui/components/spinner";
+import debug from "debug";
+import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+
+import type { Project } from "../../../../../shared/features/project/types";
+import type { PreviewSkill } from "../../../../../shared/features/skills/types";
+
 import { cn } from "../../../lib/utils";
 import { client } from "../../../orpc";
 import { useConfigStore } from "../../config/store";

@@ -2,11 +2,7 @@
 
 import type { ComponentProps } from "react";
 
-import { ChevronsUpDownIcon } from "lucide-react";
-import { createContext, useContext } from "react";
-
-import { cn } from "../../lib/utils";
-import { Button } from "../ui/button";
+import { Button } from "@neo/ui/components/button";
 import {
   Card,
   CardAction,
@@ -15,8 +11,16 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "../ui/card";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible";
+} from "@neo/ui/components/card";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@neo/ui/components/collapsible";
+import { ChevronsUpDownIcon } from "lucide-react";
+import { createContext, useContext } from "react";
+
+import { cn } from "../../lib/utils";
 import { Shimmer } from "./shimmer";
 
 interface PlanContextValue {

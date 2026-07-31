@@ -14,6 +14,11 @@ import { useAgentStore } from "../agent/store";
 type ProjectState = {
   projects: ProjectInfo[];
   activeProject: Project | null;
+  /** Active project's absolute path (= activeProject?.path). 对齐内部 neo-monorepo. */
+  cwd: string | null;
+  projectsSectionCollapsed: boolean;
+  pinnedSectionCollapsed: boolean;
+  savedClosedAccordions: string[] | null;
   loading: boolean;
   /** projectPath → archived sessionIds */
   archivedSessions: Record<string, string[]>;
@@ -23,9 +28,24 @@ type ProjectState = {
 
   setProjects: (projects: ProjectInfo[]) => void;
   setActiveProject: (project: Project | null) => void;
+  setCwd: (cwd: string | null) => void;
   setLoading: (loading: boolean) => void;
+  switchToProject: (projectId: string) => void;
   switchToProjectByPath: (projectPath: string) => void;
+  setSavedClosedAccordions: (ids: string[] | null) => void;
+  setProjectsSectionCollapsed: (collapsed: boolean) => void;
+  setPinnedSectionCollapsed: (collapsed: boolean) => void;
   archiveSession: (projectPath: string, sessionId: string, isActive?: boolean) => void;
+  /**
+   * Un-archive a session.
+   *
+   * NOTE: deliberate asymmetry with `archiveSession`. Archive is called from
+   * the sidebar with the active project's id. Un-archive is called from the
+   * archived-sessions settings panel, which iterates the `archivedSessions`
+   * map whose keys are projectPaths — including orphans whose project may no
+   * longer be in `projects[]`.
+   */
+  unarchiveSession: (projectPath: string, sessionId: string) => void;
   togglePinSession: (projectPath: string, sessionId: string) => void;
   setClosedProjectAccordions: (ids: string[]) => void;
   reorderProjects: (projectIds: string[]) => void;
@@ -36,13 +56,25 @@ export const useProjectStore = create<ProjectState>()(
   immer((set) => ({
     projects: [],
     activeProject: null,
+    cwd: null,
+    projectsSectionCollapsed: false,
+    pinnedSectionCollapsed: false,
+    savedClosedAccordions: null,
     loading: false,
     archivedSessions: {},
     pinnedSessions: {},
     closedProjectAccordions: [],
 
     setProjects: (projects) => set({ projects }),
-    setActiveProject: (activeProject) => set({ activeProject }),
+    setActiveProject: (activeProject) => set({ activeProject, cwd: activeProject?.path ?? null }),
+    setCwd: (cwd) => set({ cwd }),
+    switchToProject: (projectId) => {
+      const project = useProjectStore.getState().projects.find((p) => p.id === projectId);
+      if (project) useProjectStore.getState().switchToProjectByPath(project.path);
+    },
+    setSavedClosedAccordions: (ids) => set({ savedClosedAccordions: ids }),
+    setProjectsSectionCollapsed: (collapsed) => set({ projectsSectionCollapsed: collapsed }),
+    setPinnedSectionCollapsed: (collapsed) => set({ pinnedSectionCollapsed: collapsed }),
     setLoading: (loading) => set({ loading }),
     switchToProjectByPath: (projectPath) => {
       const { activeProject, projects } = useProjectStore.getState();
@@ -51,10 +83,10 @@ export const useProjectStore = create<ProjectState>()(
       if (!project || project.pathMissing) return;
       log("switch to project by path", { projectPath, id: project.id });
       const prev = activeProject;
-      set({ activeProject: project });
+      set({ activeProject: project, cwd: project.path });
       client.project.setActive({ id: project.id }).catch(() => {
         log("switch to project by path failed, reverting", { projectPath });
-        set({ activeProject: prev });
+        set({ activeProject: prev, cwd: prev?.path ?? null });
       });
     },
     archiveSession: (projectPath, sessionId, isActive) => {
@@ -102,6 +134,20 @@ export const useProjectStore = create<ProjectState>()(
             .catch(() => {});
         }
       }
+    },
+    unarchiveSession: (projectPath, sessionId) => {
+      log("unarchive session", { projectPath, sessionId });
+      client.project.unarchiveSession({ projectPath, sessionId }).catch(() => {});
+      set((state) => {
+        const list = state.archivedSessions[projectPath];
+        if (!list) return;
+        const next = list.filter((id) => id !== sessionId);
+        if (next.length === 0) {
+          delete state.archivedSessions[projectPath];
+        } else {
+          state.archivedSessions[projectPath] = next;
+        }
+      });
     },
     togglePinSession: (projectPath, sessionId) => {
       log("toggle pin session", { projectPath, sessionId });

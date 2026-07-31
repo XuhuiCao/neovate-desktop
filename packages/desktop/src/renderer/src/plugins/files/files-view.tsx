@@ -1,15 +1,5 @@
 import type { ContractRouterClient } from "@orpc/contract";
 
-import { consumeEventIterator } from "@orpc/client";
-import debug from "debug";
-import { useTheme } from "next-themes";
-import { useCallback, useEffect, useRef, useState } from "react";
-
-import type { Project } from "../../../../shared/features/project/types";
-
-import { filesContract } from "../../../../shared/plugins/files/contract";
-import { getEmpty2Url } from "../../assets/images";
-import { useLayoutStore } from "../../components/app-layout/store";
 import {
   AlertDialog,
   AlertDialogClose,
@@ -18,14 +8,26 @@ import {
   AlertDialogHeader,
   AlertDialogPopup,
   AlertDialogTitle,
-} from "../../components/ui/alert-dialog";
-import { Button } from "../../components/ui/button";
-import { toastManager } from "../../components/ui/toast";
+} from "@neo/ui/components/alert-dialog";
+import { Button } from "@neo/ui/components/button";
+import { toastManager } from "@neo/ui/components/toast";
+import { consumeEventIterator } from "@orpc/client";
+import debug from "debug";
+import { XIcon } from "lucide-react";
+import { useTheme } from "next-themes";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+import type { Project } from "../../../../shared/features/project/types";
+
+import { filesContract } from "../../../../shared/plugins/files/contract";
+import { getEmpty2Url } from "../../assets/images";
 import { usePluginContext } from "../../core/app";
+import { useContentPanelViewContext } from "../../features/content-panel/components/view-context";
 import { useProjectStore } from "../../features/project/store";
 import { FileNodeItem, FileTreeContext, useFileData } from "./hooks/useFileData";
 import { useTreeKeyboardShortcuts } from "./hooks/useTreeKeyboardShortcuts";
 import { useFilesTranslation } from "./i18n";
+import { MarkdownPreview } from "./markdown-preview";
 import { TreeNode } from "./tree-node";
 import { getCreateErrorMessage } from "./utils/error";
 
@@ -54,14 +56,14 @@ function FilesViewComponent({ project }: FilesViewProps) {
     sourcePath: string;
     operation: "copy" | "cut";
   } | null>(null);
+  const [markdownPreview, setMarkdownPreview] = useState<{ path: string; content: string } | null>(
+    null,
+  );
   const { resolvedTheme } = useTheme();
 
   const cwd = project?.path || "";
 
-  const isVisible = useLayoutStore(
-    (s) =>
-      !s.panels.secondarySidebar?.collapsed && s.panels.secondarySidebar?.activeView === "files",
-  );
+  const { isActive: isVisible } = useContentPanelViewContext();
 
   // Debounce timers for per-directory refresh
   const refreshTimersRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
@@ -205,10 +207,23 @@ function FilesViewComponent({ project }: FilesViewProps) {
     onPaste: (node) => handlePaste(node),
   });
 
-  const handleSelect = (item: FileNodeItem) => {
+  const handleSelect = async (item: FileNodeItem) => {
     select(item.fullPath);
 
     if (!item.isFolder && project) {
+      // .md/.mdx 文件走内联 MarkdownPreview（规范 §6.3），不调 code-server
+      if (/\.(md|mdx)$/i.test(item.fileName)) {
+        try {
+          const fsClient = orpcClient as {
+            fs: { readTextFile: (args: { path: string }) => Promise<{ content: string }> };
+          };
+          const { content } = await fsClient.fs.readTextFile({ path: item.fullPath });
+          setMarkdownPreview({ path: item.fullPath, content });
+        } catch (err) {
+          log("read markdown failed: %O", err);
+        }
+        return;
+      }
       log("open file path=%s", item.relPath);
       app.workbench.contentPanel.openView("editor");
       window.dispatchEvent(
@@ -510,71 +525,87 @@ function FilesViewComponent({ project }: FilesViewProps) {
         createEnd,
       }}
     >
-      <div className="flex h-full flex-col p-3 overflow-hidden">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-sm font-semibold text-muted-foreground">{t("title")}</h2>
+      {markdownPreview ? (
+        <div className="flex h-full flex-col overflow-hidden">
+          <div className="flex shrink-0 items-center gap-2 border-b px-3 py-1.5">
+            <span className="truncate text-sm text-muted-foreground">{markdownPreview.path}</span>
+            <button
+              className="ml-auto inline-flex size-7 cursor-pointer items-center justify-center rounded-md text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+              onClick={() => setMarkdownPreview(null)}
+              aria-label={t("contextMenu.close")}
+            >
+              <XIcon className="size-4" />
+            </button>
+          </div>
+          <MarkdownPreview content={markdownPreview.content} className="!p-3" />
         </div>
+      ) : (
+        <div className="flex h-full flex-col p-3 overflow-hidden">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-sm font-semibold text-muted-foreground">{t("title")}</h2>
+          </div>
 
-        <div
-          className="flex-1 overflow-auto -mr-2.5"
-          onClick={(e) => {
-            // Only clear selection when clicking the empty area (not tree nodes)
-            if (e.target === e.currentTarget) {
-              cancelSelect();
-            }
-          }}
-        >
-          {nodes.length === 0 ? (
-            <div className="flex items-center justify-center h-32">
-              <p className="text-xs text-muted-foreground">{t("emptyDirectory")}</p>
-            </div>
-          ) : (
-            <div className="space-y-1">
-              {rootLevelNodes.map((item) => (
-                <TreeNode
-                  key={item.fullPath}
-                  item={item}
-                  level={0}
-                  onExpand={expand}
-                  onToggleExpand={toggleExpand}
-                  onSelect={handleSelect}
-                  onDelete={handleDelete}
-                  onRename={handleRename}
-                  onCreate={handleCreate}
-                  onAdd={handleAddContext}
-                  onCopy={handleCopy}
-                  onCut={handleCut}
-                  onPaste={handlePaste}
-                  canPaste={canPaste}
-                  onReveal={handleReveal}
-                  cutSourcePath={
-                    clipboardItem?.operation === "cut" ? clipboardItem.sourcePath : null
-                  }
-                />
-              ))}
-            </div>
-          )}
+          <div
+            className="flex-1 overflow-auto -mr-2.5"
+            onClick={(e) => {
+              // Only clear selection when clicking the empty area (not tree nodes)
+              if (e.target === e.currentTarget) {
+                cancelSelect();
+              }
+            }}
+          >
+            {nodes.length === 0 ? (
+              <div className="flex items-center justify-center h-32">
+                <p className="text-xs text-muted-foreground">{t("emptyDirectory")}</p>
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {rootLevelNodes.map((item) => (
+                  <TreeNode
+                    key={item.fullPath}
+                    item={item}
+                    level={0}
+                    onExpand={expand}
+                    onToggleExpand={toggleExpand}
+                    onSelect={handleSelect}
+                    onDelete={handleDelete}
+                    onRename={handleRename}
+                    onCreate={handleCreate}
+                    onAdd={handleAddContext}
+                    onCopy={handleCopy}
+                    onCut={handleCut}
+                    onPaste={handlePaste}
+                    canPaste={canPaste}
+                    onReveal={handleReveal}
+                    cutSourcePath={
+                      clipboardItem?.operation === "cut" ? clipboardItem.sourcePath : null
+                    }
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+            <AlertDialogPopup>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t("delete.title")}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t("delete.description", { name: itemToDelete?.fileName })}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogClose render={<Button variant="outline" />}>
+                  {t("common.cancel", { ns: "translation" })}
+                </AlertDialogClose>
+                <Button variant="destructive" onClick={handleConfirmDelete}>
+                  {t("common.delete", { ns: "translation" })}
+                </Button>
+              </AlertDialogFooter>
+            </AlertDialogPopup>
+          </AlertDialog>
         </div>
-
-        <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-          <AlertDialogPopup>
-            <AlertDialogHeader>
-              <AlertDialogTitle>{t("delete.title")}</AlertDialogTitle>
-              <AlertDialogDescription>
-                {t("delete.description", { name: itemToDelete?.fileName })}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogClose render={<Button variant="outline" />}>
-                {t("common.cancel", { ns: "translation" })}
-              </AlertDialogClose>
-              <Button variant="destructive" onClick={handleConfirmDelete}>
-                {t("common.delete", { ns: "translation" })}
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogPopup>
-        </AlertDialog>
-      </div>
+      )}
     </FileTreeContext.Provider>
   );
 }

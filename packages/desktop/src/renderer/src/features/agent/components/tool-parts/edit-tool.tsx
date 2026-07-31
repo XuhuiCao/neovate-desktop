@@ -1,7 +1,7 @@
 import { MultiFileDiff } from "@pierre/diffs/react";
-import { FileEdit } from "lucide-react";
+import { FileEditIcon } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 
 import type { EditUIToolInvocation } from "../../../../../../shared/claude-code/types";
 
@@ -10,32 +10,17 @@ import {
   ToolContent,
   ToolHeader,
   ToolHeaderIcon,
+  ToolHeaderTitle,
 } from "../../../../components/ai-elements/tool";
-import { Badge } from "../../../../components/ui/badge";
-import {
-  Tooltip,
-  TooltipPopup,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../../../../components/ui/tooltip";
-import { useRendererApp } from "../../../../core/app";
+import { FileTag } from "./file-tag";
 
 export function EditTool({ invocation }: { invocation: EditUIToolInvocation }) {
   const input = invocation?.state !== "input-streaming" ? invocation?.input : undefined;
   const output = invocation?.state === "output-available" ? invocation.output : undefined;
   const { resolvedTheme } = useTheme();
-  const app = useRendererApp();
 
   const filePath = output?.filePath ?? input?.file_path;
   const fileName = filePath?.split("/").pop();
-
-  const handleFileClick = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-      if (filePath) app.opener.open(filePath);
-    },
-    [app, filePath],
-  );
 
   const diffStats = useMemo(() => {
     if (output?.structuredPatch) {
@@ -69,22 +54,9 @@ export function EditTool({ invocation }: { invocation: EditUIToolInvocation }) {
   return (
     <Tool invocation={invocation}>
       <ToolHeader>
-        <ToolHeaderIcon icon={FileEdit} />
-        <span className="shrink-0">Edit</span>
-        {fileName && (
-          <TooltipProvider delay={0}>
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <Badge variant="outline" className="cursor-pointer" onClick={handleFileClick}>
-                    {fileName}
-                  </Badge>
-                }
-              />
-              <TooltipPopup>{filePath}</TooltipPopup>
-            </Tooltip>
-          </TooltipProvider>
-        )}
+        <ToolHeaderIcon icon={FileEditIcon} />
+        <ToolHeaderTitle>Edit</ToolHeaderTitle>
+        {filePath && <FileTag filePath={filePath} />}
         {diffStats && (
           <span className="shrink-0 text-xs text-muted-foreground">
             <span className="text-green-600 dark:text-green-500">+{diffStats.additions}</span>{" "}

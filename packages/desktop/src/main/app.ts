@@ -35,6 +35,12 @@ export class MainApp implements IMainApp {
   private readonly storage: StorageService;
   private readonly llmService: ILlmService;
   #router: AnyRouter | null = null;
+  #pluginCtx: {
+    app: MainApp;
+    orpcServer: typeof os;
+    shell: typeof shellEnvService;
+    llm: ILlmService;
+  } | null = null;
 
   get router(): AnyRouter {
     if (!this.#router) throw new Error("MainApp.start() must be called first");
@@ -62,10 +68,25 @@ export class MainApp implements IMainApp {
     return this.storage;
   }
 
+  /**
+   * 重跑插件 `configContributions`，刷新 router/agents/deeplink 贡献。
+   * 用于插件热插拔（安装/卸载）后让新 session 加载最新贡献（含 MCP server）。
+   * 已存活 session 的 SDK query options 在 init 时定型，下一 session 起生效。
+   */
+  async refreshContributions(): Promise<void> {
+    if (!this.#pluginCtx) {
+      log("refreshContributions skipped — start() not called yet");
+      return;
+    }
+    await this.pluginManager.configContributions(this.#pluginCtx);
+    log("refreshContributions done");
+  }
+
   async start(): Promise<void> {
     const t0 = performance.now();
     const el = () => `${Math.round(performance.now() - t0)}ms`;
     const ctx = { app: this, orpcServer: os, shell: shellEnvService, llm: this.llmService };
+    this.#pluginCtx = ctx;
     await this.pluginManager.configContributions(ctx);
     log("main configContributions done %s", el());
 

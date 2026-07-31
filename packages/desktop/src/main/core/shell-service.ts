@@ -202,3 +202,12 @@ class ShellEnvironmentService implements IShellService {
 }
 
 export const shellEnvService = new ShellEnvironmentService();
+
+// Git 由 main 进程非交互调用；剥离交互式环境变量（EDITOR/PAGER 等），
+// 避免 git 意外唤起交互式编辑器或分页器。对齐内部 neo-monorepo。
+const INTERACTIVE_GIT_ENV_KEYS = new Set(["EDITOR", "VISUAL", "GIT_EDITOR", "PAGER", "GIT_PAGER"]);
+
+export async function getGitSafeEnv(): Promise<Record<string, string>> {
+  const env = await shellEnvService.getEnv();
+  return Object.fromEntries(Object.entries(env).filter(([k]) => !INTERACTIVE_GIT_ENV_KEYS.has(k)));
+}

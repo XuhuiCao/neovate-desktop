@@ -1,4 +1,4 @@
-import { Download } from "lucide-react";
+import { DownloadIcon } from "lucide-react";
 
 import type { WebFetchUIToolInvocation } from "../../../../../../shared/claude-code/types";
 
@@ -8,6 +8,7 @@ import {
   ToolContent,
   ToolHeader,
   ToolHeaderIcon,
+  ToolHeaderTitle,
 } from "../../../../components/ai-elements/tool";
 
 export function WebFetchTool({ invocation }: { invocation: WebFetchUIToolInvocation }) {
@@ -17,9 +18,8 @@ export function WebFetchTool({ invocation }: { invocation: WebFetchUIToolInvocat
   return (
     <Tool invocation={invocation}>
       <ToolHeader>
-        <ToolHeaderIcon icon={Download} />
-        <span className="shrink-0">WebFetch</span>
-        {input?.url && <span className="min-w-0 truncate">{input.url}</span>}
+        <ToolHeaderIcon icon={DownloadIcon} />
+        <ToolHeaderTitle>WebFetch{input?.url && <> {input.url}</>}</ToolHeaderTitle>
       </ToolHeader>
       <ToolContent className="space-y-3">
         {input?.prompt ? (

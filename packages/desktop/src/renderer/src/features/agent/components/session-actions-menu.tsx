@@ -1,12 +1,13 @@
 import type { ReactElement, ReactNode } from "react";
 
+import { Button } from "@neo/ui/components/button";
+import { Menu, MenuItem, MenuPopup, MenuSeparator, MenuTrigger } from "@neo/ui/components/menu";
 import debug from "debug";
 import { MoreHorizontal } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { encodeProjectPath } from "../../../../../shared/claude-code/paths";
 import { DEEPLINK_SCHEME } from "../../../../../shared/constants";
-import { Button } from "../../../components/ui/button";
 import {
   ContextMenu,
   ContextMenuItem,
@@ -14,7 +15,6 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "../../../components/ui/context-menu";
-import { Menu, MenuItem, MenuPopup, MenuSeparator, MenuTrigger } from "../../../components/ui/menu";
 import { useConfigStore } from "../../config/store";
 import { useProjectStore } from "../../project/store";
 import { claudeCodeChatManager } from "../chat-manager";
@@ -24,7 +24,10 @@ const log = debug("neovate:session-actions-menu");
 
 interface SessionActionsMenuProps {
   sessionId: string;
-  projectPath: string;
+  /** Active project path. Either projectPath or projectId is required. */
+  projectPath?: string;
+  /** Active project id (resolved to projectPath via the project store if projectPath absent). */
+  projectId?: string;
   variant?: "dropdown" | "context";
   trigger?: ReactElement;
   children?: ReactNode;
@@ -33,13 +36,19 @@ interface SessionActionsMenuProps {
 
 export function SessionActionsMenu({
   sessionId,
-  projectPath,
+  projectPath: propProjectPath,
+  projectId,
   variant = "dropdown",
   trigger,
   children,
   onRenameStart,
 }: SessionActionsMenuProps) {
   const { t } = useTranslation();
+  const projects = useProjectStore((s) => s.projects);
+  const projectPath =
+    propProjectPath ??
+    (projectId ? projects.find((p) => p.id === projectId)?.path : undefined) ??
+    "";
   const togglePinSession = useProjectStore((s) => s.togglePinSession);
   const archiveSession = useProjectStore((s) => s.archiveSession);
   const pinnedSessions = useProjectStore((s) => s.pinnedSessions);
@@ -99,6 +108,7 @@ export function SessionActionsMenu({
       const { forkedSessionId } = await claudeCodeChatManager.forkSession(
         sessionId,
         cwd,
+        "",
         sessionTitle,
       );
       const forkTitle = sessionTitle ? `${sessionTitle} (Fork)` : "(Fork)";

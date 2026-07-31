@@ -55,7 +55,10 @@ const extractCodeContent = (children: ReactNode): string => {
 function MarkdownLink({ className, children, node: _, ...props }: MarkdownAnchorProps) {
   return (
     <a
-      className={cn("text-primary transition-colors underline-offset-2 hover:underline", className)}
+      className={cn(
+        "text-primary underline-offset-2 break-words transition-colors hover:underline",
+        className,
+      )}
       {...props}
     >
       {children}
@@ -71,7 +74,7 @@ function MarkdownInlineCode({ className, children, node: _, ...props }: Markdown
     return (
       <code
         className={cn(
-          "inline-block rounded-md bg-muted/50 px-1.5 py-0.5 text-xs align-middle",
+          "inline-block max-w-full break-all rounded-md bg-code px-1.5 py-0.5 text-sm align-middle",
           className,
         )}
         {...props}
@@ -87,7 +90,7 @@ function MarkdownInlineCode({ className, children, node: _, ...props }: Markdown
   return (
     <CodeBlock
       className={cn(
-        "inline-block rounded-md bg-muted/50 px-1.5 py-0.5 text-xs align-middle",
+        "inline-block max-w-full break-all rounded-md bg-code px-1.5 py-0.5 text-sm align-middle",
         className,
       )}
       code={codeContent}
@@ -106,11 +109,11 @@ function MarkdownPre({ className, children, node: preNode }: MarkdownPreProps) {
   if (codeNode) {
     const codeClassName = (codeNode.properties?.className as string[] | undefined)?.join(" ");
     const language = extractLanguage(codeClassName) ?? ("text" as BundledLanguage);
-    const codeContent = extractHastText(codeNode);
+    const codeContent = extractHastText(codeNode).replace(/\n+$/, "");
 
     return (
       <CodeBlock
-        className={cn("my-4 first:mt-0 last:mb-0", className)}
+        className={cn("my-3 first:mt-0 last:mb-0", className)}
         code={codeContent}
         language={language}
       />
@@ -119,7 +122,7 @@ function MarkdownPre({ className, children, node: preNode }: MarkdownPreProps) {
 
   // Fallback for non-code pre elements
   return (
-    <pre className={cn("my-4 overflow-x-auto first:mt-0 last:mb-0", className)}>{children}</pre>
+    <pre className={cn("my-3 overflow-x-auto first:mt-0 last:mb-0", className)}>{children}</pre>
   );
 }
 

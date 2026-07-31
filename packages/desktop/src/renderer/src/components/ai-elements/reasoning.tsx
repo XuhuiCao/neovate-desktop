@@ -2,6 +2,11 @@
 
 import type { ComponentProps, ReactNode } from "react";
 
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@neo/ui/components/collapsible";
 import { useControllableState } from "@radix-ui/react-use-controllable-state";
 import { BrainIcon, ChevronDownIcon } from "lucide-react";
 import {
@@ -18,7 +23,6 @@ import { Streamdown } from "streamdown";
 
 import { markdownPlugins } from "../../lib/markdown";
 import { cn } from "../../lib/utils";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible";
 import { markdownBaseComponents } from "./markdown-base-components";
 import { Shimmer } from "./shimmer";
 

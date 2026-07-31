@@ -1,13 +1,9 @@
+import { Collapsible, CollapsibleTrigger, CollapsiblePanel } from "@neo/ui/components/collapsible";
 import { ChevronDown, FileText, Pencil, Terminal, Search, Wrench } from "lucide-react";
 import { useState } from "react";
 
 import type { ToolCallState } from "../store";
 
-import {
-  Collapsible,
-  CollapsibleTrigger,
-  CollapsiblePanel,
-} from "../../../components/ui/collapsible";
 import { cn } from "../../../lib/utils";
 
 function categorize(name: string): "read" | "write" | "bash" | "search" | "other" {

@@ -1,4 +1,4 @@
-import { Map } from "lucide-react";
+import { MapIcon } from "lucide-react";
 
 import type { EnterPlanModeUIToolInvocation } from "../../../../../../shared/claude-code/types";
 
@@ -7,6 +7,7 @@ import {
   ToolContent,
   ToolHeader,
   ToolHeaderIcon,
+  ToolHeaderTitle,
 } from "../../../../components/ai-elements/tool";
 
 export function EnterPlanModeTool({ invocation }: { invocation: EnterPlanModeUIToolInvocation }) {
@@ -15,8 +16,8 @@ export function EnterPlanModeTool({ invocation }: { invocation: EnterPlanModeUIT
   return (
     <Tool invocation={invocation}>
       <ToolHeader>
-        <ToolHeaderIcon icon={Map} />
-        Enter Plan Mode
+        <ToolHeaderIcon icon={MapIcon} />
+        <ToolHeaderTitle>Enter Plan Mode</ToolHeaderTitle>
       </ToolHeader>
       <ToolContent>
         <p className="text-sm text-muted-foreground">

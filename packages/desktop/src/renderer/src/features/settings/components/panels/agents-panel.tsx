@@ -1,3 +1,22 @@
+import {
+  Menu,
+  MenuGroup,
+  MenuGroupLabel,
+  MenuPopup,
+  MenuRadioGroup,
+  MenuRadioItem,
+  MenuSeparator,
+  MenuTrigger,
+} from "@neo/ui/components/menu";
+import {
+  Select,
+  SelectItem,
+  SelectPopup,
+  SelectTrigger,
+  SelectValue,
+} from "@neo/ui/components/select";
+import { Spinner } from "@neo/ui/components/spinner";
+import { Switch } from "@neo/ui/components/switch";
 import debug from "debug";
 import { Bot, ChevronDown, Code, Hand, TriangleAlert } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -9,31 +28,11 @@ import type {
   SendMessageWith,
 } from "../../../../../../shared/features/config/types";
 
-import {
-  Menu,
-  MenuGroup,
-  MenuGroupLabel,
-  MenuPopup,
-  MenuRadioGroup,
-  MenuRadioItem,
-  MenuSeparator,
-  MenuTrigger,
-} from "../../../../components/ui/menu";
-import {
-  Select,
-  SelectItem,
-  SelectPopup,
-  SelectTrigger,
-  SelectValue,
-} from "../../../../components/ui/select";
-import { Spinner } from "../../../../components/ui/spinner";
-import { Switch } from "../../../../components/ui/switch";
 import { ToggleOptions } from "../../../../components/ui/toggle-options";
 import { client } from "../../../../orpc";
 import { claudeCodeChatManager } from "../../../agent/chat-manager";
 import { useAgentStore } from "../../../agent/store";
 import { useConfigStore } from "../../../config/store";
-import { useProjectStore } from "../../../project/store";
 import { useProviderStore } from "../../../provider/store";
 import { SettingsGroup } from "../settings-group";
 import { SettingsRow } from "../settings-row";
@@ -153,8 +152,8 @@ export const AgentsPanel = () => {
                   <div className="flex items-start gap-2">
                     <Hand className="size-3.5 mt-px shrink-0 opacity-60" />
                     <div className="flex flex-col">
-                      <span className="text-xs">{t("settings.agents.permissionMode.default")}</span>
-                      <span className="text-[10px] leading-tight text-muted-foreground/80 font-normal">
+                      <span className="text-sm">{t("settings.agents.permissionMode.default")}</span>
+                      <span className="text-xs leading-tight text-muted-foreground/80 font-normal">
                         {t("settings.agents.permissionMode.default.desc")}
                       </span>
                     </div>
@@ -167,10 +166,10 @@ export const AgentsPanel = () => {
                   <div className="flex items-start gap-2">
                     <Code className="size-3.5 mt-px shrink-0 opacity-60" />
                     <div className="flex flex-col">
-                      <span className="text-xs">
+                      <span className="text-sm">
                         {t("settings.agents.permissionMode.acceptEdits")}
                       </span>
-                      <span className="text-[10px] leading-tight text-muted-foreground/80 font-normal">
+                      <span className="text-xs leading-tight text-muted-foreground/80 font-normal">
                         {t("settings.agents.permissionMode.acceptEdits.desc")}
                       </span>
                     </div>
@@ -183,10 +182,10 @@ export const AgentsPanel = () => {
                   <div className="flex items-start gap-2">
                     <TriangleAlert className="size-3.5 mt-px shrink-0 opacity-60" />
                     <div className="flex flex-col">
-                      <span className="text-xs">
+                      <span className="text-sm">
                         {t("settings.agents.permissionMode.bypassPermissions")}
                       </span>
-                      <span className="text-[10px] leading-tight text-muted-foreground/80 font-normal">
+                      <span className="text-xs leading-tight text-muted-foreground/80 font-normal">
                         {t("settings.agents.permissionMode.bypassPermissions.desc")}
                       </span>
                     </div>
@@ -372,8 +371,7 @@ function GlobalModelSelect() {
       log("global model selection: providerId=%s model=%s", providerId, model);
       setSelectedProviderId(providerId ?? undefined);
       setSelectedModel(model ?? undefined);
-      const projectPath = useProjectStore.getState().activeProject?.path;
-      claudeCodeChatManager.switchGlobalModel(providerId, model, projectPath);
+      claudeCodeChatManager.switchGlobalModel(providerId, model);
     },
     [selectedProviderId, selectedModel],
   );

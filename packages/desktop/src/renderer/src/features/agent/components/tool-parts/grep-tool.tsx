@@ -1,4 +1,4 @@
-import { Regex } from "lucide-react";
+import { RegexIcon } from "lucide-react";
 
 import type { GrepUIToolInvocation } from "../../../../../../shared/claude-code/types";
 
@@ -7,6 +7,7 @@ import {
   ToolContent,
   ToolHeader,
   ToolHeaderIcon,
+  ToolHeaderTitle,
 } from "../../../../components/ai-elements/tool";
 
 export function GrepTool({ invocation }: { invocation: GrepUIToolInvocation }) {
@@ -16,14 +17,16 @@ export function GrepTool({ invocation }: { invocation: GrepUIToolInvocation }) {
   return (
     <Tool invocation={invocation}>
       <ToolHeader>
-        <ToolHeaderIcon icon={Regex} />
-        <span className="shrink-0">Grep</span>
-        <span className="min-w-0 truncate">
-          {input?.pattern && <>for "{input.pattern}"</>} {input?.path && <>in {input.path}</>}
-        </span>
+        <ToolHeaderIcon icon={RegexIcon} />
+        <ToolHeaderTitle>
+          Grep{input?.pattern && <> for "{input.pattern}"</>}
+          {input?.path && <> in {input.path}</>}
+        </ToolHeaderTitle>
       </ToolHeader>
       <ToolContent>
-        {typeof output === "string" ? <pre className="text-xs">{output}</pre> : null}
+        {typeof output === "string" ? (
+          <pre className="text-xs whitespace-pre-wrap">{output}</pre>
+        ) : null}
       </ToolContent>
     </Tool>
   );

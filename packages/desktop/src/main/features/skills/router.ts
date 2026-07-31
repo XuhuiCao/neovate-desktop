@@ -18,6 +18,10 @@ function wrapError(e: unknown, fallback: string): never {
 }
 
 export const skillsRouter = os.skills.router({
+  builtin: os.skills.builtin.handler(async () => {
+    return [];
+  }),
+
   list: os.skills.list.handler(async ({ input, context }) => {
     try {
       return await context.skillsService.list(input.scope, input.projectPath);

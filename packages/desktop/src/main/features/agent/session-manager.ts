@@ -40,7 +40,9 @@ import { mergeAgentContributions } from "../../core/plugin/contributions";
 const execFileAsync = promisify(execFile);
 import type { Provider } from "../../../shared/features/provider/types";
 import type { ConfigStore } from "../config/config-store";
+import type { DevWorkflowService } from "../dev-workflow/dev-workflow-service";
 import type { ProjectStore } from "../project/project-store";
+import type { TokenReporter } from "../token-usage/reporter";
 import type { RequestTracker } from "./request-tracker";
 
 import { APP_DATA_DIR } from "../../core/app-paths";
@@ -141,7 +143,27 @@ export class SessionManager {
     private requestTracker: RequestTracker,
     private powerBlocker: PowerBlockerService,
     private getAgentContributions: () => Contributions["agents"] = () => [],
+    private tokenReporter?: TokenReporter,
+    private devWorkflowService?: DevWorkflowService,
+    private refreshPluginContributions?: () => Promise<void>,
   ) {}
+
+  /**
+   * 刷新插件 agent 贡献（重跑 `configContributions`）。
+   *
+   * SDK `query` 的 options（含 mcpServers/hooks）在 session init 时定型，已存活 session
+   * 无法热替换；此处刷新后，**新创建的 session** 会通过 `getAgentContributions()`
+   * 实时读取最新贡献。返回 refreshed 表示是否实际触发了刷新。
+   */
+  async refreshAgentContributions(sessionId?: string): Promise<{ refreshed: boolean }> {
+    log("refreshAgentContributions: sessionId=%s", sessionId ?? "(all)");
+    if (!this.refreshPluginContributions) {
+      log("refreshAgentContributions: no refresh hook wired");
+      return { refreshed: false };
+    }
+    await this.refreshPluginContributions();
+    return { refreshed: true };
+  }
 
   onLifecycle(listener: (event: SessionLifecycleEvent) => void): () => void {
     this.lifecycleListeners.push(listener);
@@ -183,6 +205,14 @@ export class SessionManager {
     const resolved = resolveClaudeCodeExecutable(
       this.configStore.get("claudeCodeBinPath") || undefined,
     );
+    // Dev-workflow mode overrides permissionMode (default = honor configStore)
+    const dwf = this.devWorkflowService?.get();
+    let permissionMode: import("@anthropic-ai/claude-agent-sdk").PermissionMode =
+      (this.configStore.get(
+        "permissionMode",
+      ) as import("@anthropic-ai/claude-agent-sdk").PermissionMode) ?? "default";
+    if (dwf?.mode === "plan") permissionMode = "plan";
+    else if (dwf?.mode === "dev") permissionMode = "bypassPermissions";
     return {
       sessionId,
       model,
@@ -192,7 +222,7 @@ export class SessionManager {
       settingSources: ["local", "project", "user"],
       enableFileCheckpointing: true,
       includePartialMessages: true,
-      permissionMode: this.configStore.get("permissionMode") ?? "default",
+      permissionMode,
       promptSuggestions: true,
       systemPrompt: {
         type: "preset",
@@ -440,7 +470,12 @@ export class SessionManager {
 
     // Build settings.env for provider credentials (flag settings layer = highest priority)
     let settingsEnv: Record<string, string> | undefined;
-    if (provider) {
+    if (provider && provider.auth === "inherit") {
+      // inherit 模式：不注入任何 Anthropic env，也不删除 ANTHROPIC_API_KEY，
+      // 让 SDK 自解析本机 Claude Code 登录态（OAuth / ~/.claude/settings.json）。
+      // 等价于历史上"未选 provider"的 SDK Default 路径。
+      log("initSession: provider=%s auth=inherit (SDK resolves credentials)", provider.name);
+    } else if (provider) {
       // Remove ANTHROPIC_API_KEY from process env to avoid conflicts
       delete env.ANTHROPIC_API_KEY;
 
@@ -586,13 +621,11 @@ export class SessionManager {
       | undefined;
 
     if (resolved.standalone) {
-      spawnOverride = (spawnOpts) =>
-        spawn(resolved.executable, spawnOpts.args, {
-          cwd: spawnOpts.cwd,
-          env: spawnOpts.env,
-          signal: spawnOpts.signal,
-          stdio: ["pipe", "pipe", "pipe"],
-        }) as unknown as SpawnedProcess;
+      // Let the SDK spawn the platform binary itself — overriding spawn in
+      // standalone mode desyncs the SDK's child lifecycle/signal protocol
+      // (stdin/IPC) and the child gets SIGKILLed on init. The SDK already
+      // knows the binary path (pathToClaudeCodeExecutable below).
+      spawnOverride = undefined;
     } else if (networkInspector) {
       spawnOverride = (spawnOpts) => {
         const interceptorPath = resolveInterceptorPath();
@@ -818,10 +851,21 @@ export class SessionManager {
       return;
     }
     this.closingSessions.add(sessionId);
+    // SDK 0.3.x: query.close() can throw synchronously AND return a promise
+    // that rejects later (transport drain on a closing subprocess). The sync
+    // throw escapes before Promise.resolve can wrap it, so guard both paths —
+    // otherwise an uncaught rejection hits the global handler → process.exit.
     try {
-      session.query.close();
+      const closeResult: unknown = session.query.close();
+      void Promise.resolve(closeResult).catch((err: unknown) => {
+        log(
+          "closeSession: query.close async rejection (ignored) sessionId=%s err=%o",
+          sessionId,
+          err,
+        );
+      });
     } catch (err) {
-      log("closeSession: query.close error sessionId=%s err=%o", sessionId, err);
+      log("closeSession: query.close sync throw (ignored) sessionId=%s err=%o", sessionId, err);
     }
     el("query.close");
     for (const [requestId, pending] of session.pendingRequests) {
@@ -1169,6 +1213,10 @@ export class SessionManager {
       .map((p) => p.text)
       .join("");
 
+    // Dev-workflow: prepend draft prefix to the user's message text (title仍用原始 text)
+    const draftPrefix = this.devWorkflowService?.get().draftPrefix?.trim() ?? "";
+    const finalText = draftPrefix ? `${draftPrefix}\n\n${text}` : text;
+
     // Emit lifecycle "created" on first message (not on createSession, so empty sessions don't appear)
     if (!this.emittedCreatedSessions.has(sessionId)) {
       this.emittedCreatedSessions.add(sessionId);
@@ -1186,29 +1234,78 @@ export class SessionManager {
       });
     }
 
-    const imageBlocks = message.parts
-      .filter(
-        (p): p is { type: "file"; mediaType: string; url: string } =>
-          p.type === "file" &&
-          typeof (p as any).mediaType === "string" &&
-          (p as any).mediaType.startsWith("image/"),
-      )
-      .map((p) => {
-        const base64 = p.url.startsWith("data:") ? p.url.split(",")[1] : p.url;
-        return {
-          type: "image" as const,
+    // UIMessage -> SDKUserMessage: build content blocks from file parts + text.
+    // 支持 image / PDF / 文本类内联，其他二进制以 @filename 路径引用注入文本。
+    const TEXT_MEDIA_TYPES = new Set([
+      "application/json",
+      "application/javascript",
+      "application/typescript",
+      "application/xml",
+      "application/x-yaml",
+      "application/yaml",
+    ]);
+    const isTextMedia = (mt: string) => mt.startsWith("text/") || TEXT_MEDIA_TYPES.has(mt);
+
+    const contentBlocks: Array<
+      | { type: "text"; text: string }
+      | {
+          type: "image";
           source: {
-            type: "base64" as const,
-            media_type: p.mediaType as "image/jpeg" | "image/png" | "image/gif" | "image/webp",
+            type: "base64";
+            media_type: "image/jpeg" | "image/png" | "image/gif" | "image/webp";
+            data: string;
+          };
+        }
+      | {
+          type: "document";
+          source: { type: "base64"; media_type: "application/pdf"; data: string };
+        }
+    > = [];
+    const pathRefs: string[] = [];
+
+    for (const p of message.parts) {
+      if (p.type !== "file") continue;
+      const mediaType = (p as { mediaType?: string }).mediaType;
+      const url = (p as { url?: string }).url;
+      const filename = (p as { filename?: string }).filename;
+      if (!mediaType || !url) continue;
+      const base64 = url.startsWith("data:") ? url.split(",")[1] : url;
+
+      if (mediaType.startsWith("image/")) {
+        contentBlocks.push({
+          type: "image",
+          source: {
+            type: "base64",
+            media_type: mediaType as "image/jpeg" | "image/png" | "image/gif" | "image/webp",
             data: base64,
           },
-        };
-      });
+        });
+      } else if (mediaType === "application/pdf") {
+        contentBlocks.push({
+          type: "document",
+          source: { type: "base64", media_type: "application/pdf", data: base64 },
+        });
+      } else if (isTextMedia(mediaType)) {
+        const decoded = Buffer.from(base64, "base64").toString("utf-8");
+        contentBlocks.push({
+          type: "text",
+          text: `<attachment:${filename ?? "file"}>\n${decoded}`,
+        });
+      } else {
+        // 无法内联的二进制：以 @filename 路径引用形式注入文本提示
+        pathRefs.push(filename ?? "file");
+      }
+    }
 
+    const pathRefText = pathRefs.length > 0 ? pathRefs.map((f) => `@${f}`).join(" ") : "";
+    const combinedText = [finalText, pathRefText].filter(Boolean).join("\n\n");
     const content =
-      imageBlocks.length > 0
-        ? [...(text ? [{ type: "text" as const, text }] : []), ...imageBlocks]
-        : text;
+      contentBlocks.length > 0
+        ? [
+            ...(combinedText ? [{ type: "text" as const, text: combinedText }] : []),
+            ...contentBlocks,
+          ]
+        : combinedText;
 
     // Pre-turn snapshot: capture working tree state before Claude modifies files
     let preTurnRef: string | undefined;
@@ -1306,7 +1403,11 @@ export class SessionManager {
 
         // On result, publish context_usage event with computed remaining %
         if (value.type === "result") {
-          const modelEntries = Object.values(value.modelUsage ?? {});
+          // value is the SDK stream union here; narrow to the result variant so
+          // modelUsage's Record<string, ModelUsage> value type is preserved
+          // (TS otherwise widens Object.values(...) to {} under the union).
+          const result = value as import("@anthropic-ai/claude-agent-sdk").SDKResultMessage;
+          const modelEntries = Object.values(result.modelUsage ?? {});
           const contextWindowSize = modelEntries[0]?.contextWindow ?? 0;
           const remainingPct =
             contextWindowSize > 0
@@ -1325,6 +1426,29 @@ export class SessionManager {
               remainingPct,
             },
           });
+
+          // Per-turn token usage delta (local-only accumulation, no external reporting)
+          const turnUsage = value.usage;
+          const turnInput =
+            (turnUsage.input_tokens ?? 0) +
+            (turnUsage.cache_creation_input_tokens ?? 0) +
+            (turnUsage.cache_read_input_tokens ?? 0);
+          const delta = {
+            inputTokens: turnInput,
+            outputTokens: turnUsage.output_tokens ?? 0,
+            costUsd: value.total_cost_usd,
+            durationMs: value.duration_ms,
+          };
+          this.tokenReporter?.recordTurn(sessionId, delta);
+          this.eventPublisher.publish(sessionId, {
+            kind: "event",
+            event: {
+              id: randomUUID(),
+              type: "token_usage",
+              ...delta,
+            },
+          });
+
           this.powerBlocker.onTurnEnd(sessionId);
         }
 
@@ -1371,7 +1495,13 @@ export class SessionManager {
 
     if (dispatch.kind === "interrupt") {
       log("handleDispatch: interrupt sessionId=%s", sessionId);
-      session.query.interrupt();
+      // Fire-and-forget, but capture rejection at origin — interrupt can reject
+      // when the SDK transport is closing or the subprocess is unresponsive
+      // (races with rewind/fork/archive cleanup), which would otherwise surface
+      // as an uncaught rejection on the global handler.
+      session.query.interrupt().catch((err: unknown) => {
+        log("handleDispatch: interrupt failed (ignored) sessionId=%s err=%o", sessionId, err);
+      });
       return { kind: "interrupt", ok: true };
     }
 

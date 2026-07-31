@@ -17,7 +17,7 @@ export function SettingsRow({ title, description, children, className }: Setting
         className,
       )}
     >
-      <div className="flex-1 pr-4">
+      <div className="flex-1 pr-4 min-w-0">
         <div className="text-sm font-medium text-foreground">{title}</div>
         {description && (
           <div className="text-xs text-muted-foreground/80 mt-0.5">{description}</div>

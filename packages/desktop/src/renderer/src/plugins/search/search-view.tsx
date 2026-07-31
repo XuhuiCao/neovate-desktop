@@ -1,5 +1,6 @@
 import type { ContractRouterClient } from "@orpc/contract";
 
+import { Input } from "@neo/ui/components/input";
 import debug from "debug";
 import { Search, FileText, Loader2, ChevronRight, CaseSensitive, WholeWord } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
@@ -7,9 +8,8 @@ import { useState, useEffect, useRef } from "react";
 import type { Project } from "../../../../shared/features/project/types";
 
 import { utilsContract } from "../../../../shared/features/utils/contract";
-import { useLayoutStore } from "../../components/app-layout/store";
-import { Input } from "../../components/ui/input";
 import { usePluginContext } from "../../core/app";
+import { useContentPanelViewContext } from "../../features/content-panel/components/view-context";
 import { useProjectStore } from "../../features/project/store";
 import { cn } from "../../lib/utils";
 import { useSearchTranslation } from "./i18n";
@@ -59,10 +59,7 @@ function SearchViewComponent({ project }: SearchViewProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  const isVisible = useLayoutStore(
-    (s) =>
-      !s.panels.secondarySidebar?.collapsed && s.panels.secondarySidebar?.activeView === "search",
-  );
+  const { isActive: isVisible } = useContentPanelViewContext();
 
   const cwd = project?.path || "";
 

@@ -1,9 +1,8 @@
+import { Button } from "@neo/ui/components/button";
+import { Input } from "@neo/ui/components/input";
 import { ArrowLeft, ArrowRight, MousePointerClick, PanelBottom, RefreshCw } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
 
 interface NavBarProps {
   url: string;

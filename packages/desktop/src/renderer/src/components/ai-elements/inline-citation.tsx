@@ -2,13 +2,13 @@
 
 import type { ComponentProps, FC } from "react";
 
+import { Badge } from "@neo/ui/components/badge";
 import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 
 import type { CarouselApi } from "../ui/carousel";
 
 import { cn } from "../../lib/utils";
-import { Badge } from "../ui/badge";
 import { Carousel, CarouselContent, CarouselItem } from "../ui/carousel";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "../ui/hover-card";
 

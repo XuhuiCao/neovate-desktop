@@ -1,6 +1,5 @@
-import { File } from "@pierre/diffs/react";
-import { FileText } from "lucide-react";
-import { useCallback } from "react";
+import { FileTextIcon, ImageIcon } from "lucide-react";
+import { useMemo } from "react";
 
 import type { ReadUIToolInvocation } from "../../../../../../shared/claude-code/types";
 
@@ -9,72 +8,45 @@ import {
   ToolContent,
   ToolHeader,
   ToolHeaderIcon,
+  ToolHeaderTitle,
 } from "../../../../components/ai-elements/tool";
-import { Badge } from "../../../../components/ui/badge";
-import {
-  Tooltip,
-  TooltipPopup,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../../../../components/ui/tooltip";
-import { useRendererApp } from "../../../../core";
+import { ImageOverlay } from "../image-overlay";
+import { FileTag } from "./file-tag";
 
 export function ReadTool({ invocation }: { invocation: ReadUIToolInvocation }) {
-  const app = useRendererApp();
+  if (!invocation || invocation.state === "input-streaming") return null;
 
   const { input, output } = invocation;
   const filePath = input?.file_path;
+  const isImage = output?.type === "image";
 
-  const handleFileClick = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-      if (filePath) app.opener.open(filePath);
-    },
-    [app, filePath],
+  const imageSrc = useMemo(
+    () =>
+      isImage && output.file ? `data:${output.file.type};base64,${output.file.base64}` : undefined,
+    [isImage, output],
   );
 
-  if (!invocation || invocation.state === "input-streaming") return null;
-
-  const fileName = filePath?.split("/").pop();
-
-  const imageDataUrl =
-    output?.type === "image" ? `data:${output.file.type};base64,${output.file.base64}` : undefined;
-
   return (
-    <Tool invocation={invocation}>
+    <Tool invocation={invocation} collapsible={isImage} defaultOpen={isImage}>
       <ToolHeader>
-        <ToolHeaderIcon icon={FileText} />
-        <span className="shrink-0">
-          Read {output?.type === "text" ? `${output.file.totalLines} lines` : null}
-        </span>
-        {fileName && (
-          <TooltipProvider delay={0}>
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <Badge variant="outline" className="cursor-pointer" onClick={handleFileClick}>
-                    {fileName}
-                  </Badge>
-                }
-              />
-              <TooltipPopup>{filePath}</TooltipPopup>
-            </Tooltip>
-          </TooltipProvider>
-        )}
+        <ToolHeaderIcon icon={isImage ? ImageIcon : FileTextIcon} />
+        <ToolHeaderTitle>
+          Read{" "}
+          {output?.type === "text" ? `${output.file.totalLines} lines` : isImage ? "image" : null}
+        </ToolHeaderTitle>
+        {filePath && <FileTag filePath={filePath} />}
       </ToolHeader>
-      <ToolContent>
-        {output?.type === "text" ? (
-          <File
-            file={{ contents: output.file.content, name: fileName || "" }}
-            options={{ disableFileHeader: true }}
-          />
-        ) : null}
-        {output?.type === "image" && imageDataUrl ? (
-          <div className="flex flex-wrap gap-2">
-            <img src={imageDataUrl} alt={fileName} className="max-h-48 rounded-md" />
-          </div>
-        ) : null}
-      </ToolContent>
+      {isImage && imageSrc && (
+        <ToolContent className="bg-transparent p-0">
+          <ImageOverlay src={imageSrc} alt={filePath}>
+            <img
+              src={imageSrc}
+              alt={filePath ?? ""}
+              className="max-h-80 max-w-full rounded-lg object-contain ring-1 ring-border/50 cursor-zoom-in transition-opacity hover:opacity-90"
+            />
+          </ImageOverlay>
+        </ToolContent>
+      )}
     </Tool>
   );
 }

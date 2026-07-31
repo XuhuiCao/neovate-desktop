@@ -1,8 +1,9 @@
 import { implement, ORPCError } from "@orpc/server";
 import debug from "debug";
-import { BrowserWindow, dialog } from "electron";
+import { app, BrowserWindow, dialog } from "electron";
 import { randomUUID } from "node:crypto";
-import { existsSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync } from "node:fs";
+import nodeOs from "node:os";
 import path from "node:path";
 
 import type { AppContext } from "../../router";
@@ -22,6 +23,47 @@ function pathExists(p: string): boolean {
   const exists = existsSync(p);
   pathCache.set(p, { exists, ts: Date.now() });
   return exists;
+}
+
+/**
+ * Sanitize repository name to prevent path traversal attacks.
+ * Strips directory components, path traversal sequences, and invalid filename
+ * characters. Used when constructing a target subdirectory from a repo URL.
+ */
+function sanitizeRepoName(repoName: string): string {
+  // Use path.basename to strip any directory components
+  let sanitized = path.basename(repoName);
+
+  // Remove path traversal sequences
+  sanitized = sanitized.replace(/\.\./g, "");
+
+  // Remove invalid filename characters (Windows + common restrictions)
+  sanitized = sanitized.replace(/[<>:"|?*\\/]/g, "");
+
+  // Remove leading dots and dashes (hidden files, invalid branch names)
+  sanitized = sanitized.replace(/^[.-]+/, "");
+
+  // Limit length
+  sanitized = sanitized.slice(0, 100);
+
+  // Fallback if sanitized name is empty
+  return sanitized || "repo";
+}
+
+/**
+ * Get default directory for cloning repositories.
+ * Prefers system downloads directory, falls back to home directory.
+ */
+function getDefaultCloneBaseDir(): string {
+  try {
+    const downloadsPath = app.getPath("downloads");
+    if (downloadsPath && existsSync(downloadsPath)) {
+      return downloadsPath;
+    }
+  } catch {
+    // app.getPath may not be available in tests
+  }
+  return nodeOs.homedir();
 }
 
 const os = implement({ project: projectContract }).$context<AppContext>();
@@ -145,6 +187,60 @@ export const projectRouter = os.project.router({
     return { path: result.filePaths[0] };
   }),
 
+  pickCloneDirectory: os.project.pickCloneDirectory.handler(async ({ input }) => {
+    const safeRepoName = sanitizeRepoName(input.repoName);
+    const defaultPath = path.join(getDefaultCloneBaseDir(), safeRepoName);
+    log("pickCloneDirectory called", { repoName: input.repoName, safeRepoName, defaultPath });
+    const win = BrowserWindow.getFocusedWindow();
+    const options: Electron.OpenDialogOptions = {
+      properties: ["openDirectory", "createDirectory"],
+      defaultPath,
+    };
+    const result = win
+      ? await dialog.showOpenDialog(win, options)
+      : await dialog.showOpenDialog(options);
+    if (result.canceled || result.filePaths.length === 0) {
+      log("directory picker canceled");
+      return null;
+    }
+    log("directory selected", { path: result.filePaths[0] });
+    return { path: result.filePaths[0] };
+  }),
+
+  resolveCloneTargetDir: os.project.resolveCloneTargetDir.handler(async ({ input }) => {
+    const safeRepoName = sanitizeRepoName(input.repoName);
+    const { path: selectedPath } = input;
+    log("resolving clone target dir", { selectedPath, repoName: input.repoName, safeRepoName });
+
+    let targetDir = selectedPath;
+
+    // Check if directory exists
+    if (!existsSync(selectedPath)) {
+      // Directory doesn't exist, create it
+      log("directory doesn't exist, creating", { selectedPath });
+      mkdirSync(selectedPath, { recursive: true });
+    } else {
+      // Directory exists, check if it's empty
+      try {
+        const files = readdirSync(selectedPath);
+        if (files.length > 0) {
+          // Directory not empty, create subdirectory with repo name
+          targetDir = path.join(selectedPath, safeRepoName);
+          log("directory not empty, creating subdirectory", { targetDir });
+          if (!existsSync(targetDir)) {
+            mkdirSync(targetDir, { recursive: true });
+          }
+        }
+      } catch (e) {
+        log("failed to read directory", { selectedPath, error: e });
+        throw new Error(`Failed to access directory: ${selectedPath}`, { cause: e });
+      }
+    }
+
+    log("resolved clone target dir", { targetDir });
+    return { path: targetDir };
+  }),
+
   getArchivedSessions: os.project.getArchivedSessions.handler(({ context }) => {
     return context.projectStore.getArchivedSessions();
   }),
@@ -152,6 +248,11 @@ export const projectRouter = os.project.router({
   archiveSession: os.project.archiveSession.handler(({ input, context }) => {
     log("archive session", { projectPath: input.projectPath, sessionId: input.sessionId });
     context.projectStore.archiveSession(input.projectPath, input.sessionId);
+  }),
+
+  unarchiveSession: os.project.unarchiveSession.handler(({ input, context }) => {
+    log("unarchive session", { projectPath: input.projectPath, sessionId: input.sessionId });
+    context.projectStore.unarchiveSession(input.projectPath, input.sessionId);
   }),
 
   getPinnedSessions: os.project.getPinnedSessions.handler(({ context }) => {

@@ -2,12 +2,16 @@
 
 import type { ComponentProps } from "react";
 
+import { Button } from "@neo/ui/components/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@neo/ui/components/collapsible";
+import { ScrollArea } from "@neo/ui/components/scroll-area";
 import { ChevronDownIcon, PaperclipIcon } from "lucide-react";
 
 import { cn } from "../../lib/utils";
-import { Button } from "../ui/button";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible";
-import { ScrollArea } from "../ui/scroll-area";
 
 export interface QueueMessagePart {
   type: string;

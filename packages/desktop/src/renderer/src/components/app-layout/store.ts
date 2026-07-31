@@ -33,7 +33,6 @@ type LayoutStore = {
   togglePanel: (id: PanelId) => Promise<void> | void;
   startResize: (separatorIndex: number, clientX: number) => void;
   stopResize: () => void;
-  setSecondarySidebarActiveView: (viewId: string) => Promise<void> | void;
   openFullRightPanel: (id: string) => void;
   closeFullRightPanel: () => void;
 };
@@ -42,7 +41,6 @@ const DEFAULT_PANELS: Record<PanelId, PanelState> = {
   primarySidebar: { width: 300, collapsed: false },
   chatPanel: { width: 0, collapsed: false }, // width calculated on mount
   contentPanel: { width: 300, collapsed: true },
-  secondarySidebar: { width: 240, collapsed: true, activeView: "git" },
 };
 
 /** Exported for testing. Validates and clamps persisted panel state. */
@@ -73,7 +71,6 @@ export function mergePersisted<T extends { panels: Record<PanelId, PanelState> }
       ...panels[id],
       width,
       collapsed: id === "chatPanel" ? false : panel.collapsed,
-      ...(typeof panel.activeView === "string" ? { activeView: panel.activeView } : {}),
     };
   }
 
@@ -135,45 +132,6 @@ const layoutStore = createStore<LayoutStore>()(
           if (!get().fullRightPanelId) return;
           log("close full right panel");
           set({ fullRightPanelId: null });
-        },
-
-        setSecondarySidebarActiveView: async (viewId) => {
-          const { panels } = get();
-          const sidebar = panels.secondarySidebar;
-          if (!sidebar) return;
-
-          // Toggle off: same view already open → collapse
-          if (sidebar.activeView === viewId && !sidebar.collapsed) {
-            log("collapse secondary sidebar (same view toggled)", { viewId });
-            set({ panels: collapsePanel(panels, "secondarySidebar") });
-            return;
-          }
-
-          log("set secondary sidebar view", { viewId, wasCollapsed: sidebar.collapsed });
-          const wasCollapsed = sidebar.collapsed;
-          let windowWidth = window.innerWidth;
-          if (wasCollapsed) {
-            const minWidth = computeMinWindowWidthWithPanel(panels, "secondarySidebar");
-            log("secondary sidebar expanding, ensure min width", { minWidth });
-            await client.window.ensureWidth({ minWidth }).catch(() => {});
-            windowWidth = Math.max(window.innerWidth, minWidth);
-          }
-
-          set((state) => {
-            const current = {
-              ...state.panels,
-              secondarySidebar: {
-                ...state.panels.secondarySidebar,
-                activeView: viewId,
-              },
-            };
-            // Re-check: use fresh state for collapsed check
-            return {
-              panels: state.panels.secondarySidebar.collapsed
-                ? openPanel(current, "secondarySidebar", windowWidth)
-                : current,
-            };
-          });
         },
       }),
       {

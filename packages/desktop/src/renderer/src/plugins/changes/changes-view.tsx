@@ -1,3 +1,11 @@
+import { Popover, PopoverTrigger, PopoverPopup } from "@neo/ui/components/popover";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectPopup,
+  SelectItem,
+} from "@neo/ui/components/select";
 import { MultiFileDiff } from "@pierre/diffs/react";
 import {
   AlertTriangle,
@@ -13,16 +21,9 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Tree, type NodeApi } from "react-arborist";
 
 import { useLayoutStore } from "../../components/app-layout/store";
-import { Popover, PopoverTrigger, PopoverPopup } from "../../components/ui/popover";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectPopup,
-  SelectItem,
-} from "../../components/ui/select";
 import { usePluginContext } from "../../core/app";
 import { useSessionChatStatus } from "../../features/agent/hooks/use-session-chat-status";
 import { useContentPanelViewContext } from "../../features/content-panel/components/view-context";
@@ -33,6 +34,141 @@ import { useChanges, type ChangesCategory, type ChangesFile } from "./hooks/useC
 import { useChangesTranslation } from "./i18n";
 
 type DiffStyle = "unified" | "split";
+
+function renderStatusBadge(status: string) {
+  switch (status) {
+    case "modified":
+      return <span className="text-xs font-medium text-yellow-600">M</span>;
+    case "deleted":
+      return <span className="text-xs font-medium text-red-600">D</span>;
+    case "untracked":
+      return <span className="text-xs font-medium text-green-600">U</span>;
+    case "added":
+      return <span className="text-xs font-medium text-green-600">A</span>;
+    case "conflicted":
+      return <span className="text-xs font-medium text-red-600">!</span>;
+    default:
+      return null;
+  }
+}
+
+// ─── ScmFileTree（react-arborist，规范 §6.7）────────────────────────────
+
+interface ScmDirNode {
+  id: string;
+  name: string;
+  children: ScmTreeNode[];
+}
+interface ScmFileNode {
+  id: string;
+  name: string;
+  file: ChangesFile;
+}
+type ScmTreeNode = ScmDirNode | ScmFileNode;
+
+function buildScmTree(files: ChangesFile[]): ScmTreeNode[] {
+  const root: ScmDirNode = { id: "", name: "", children: [] };
+  for (const file of files) {
+    const segments = file.relPath.split("/");
+    let current = root;
+    for (let i = 0; i < segments.length; i++) {
+      const seg = segments[i];
+      const isLeaf = i === segments.length - 1;
+      const id = `${current.id}/${seg}`.replace(/^\//, "");
+      if (isLeaf) {
+        current.children.push({ id, name: seg, file });
+      } else {
+        let dir = current.children.find((c): c is ScmDirNode => "children" in c && c.name === seg);
+        if (!dir) {
+          dir = { id, name: seg, children: [] };
+          current.children.push(dir);
+        }
+        current = dir;
+      }
+    }
+  }
+  return root.children;
+}
+
+// react-arborist Tree 渲染器（规范 §6.7：rowHeight 28、indent 12）
+function ScmNodeRenderer({
+  node,
+  style,
+}: {
+  node: NodeApi<ScmTreeNode>;
+  style: React.CSSProperties;
+}) {
+  const data = node.data;
+  const isDir = "children" in data;
+  if (isDir) {
+    return (
+      <div
+        style={style}
+        className="flex h-7 cursor-pointer items-center pr-1 select-none hover:bg-accent/50"
+        onClick={() => node.toggle()}
+      >
+        {node.isOpen ? (
+          <ChevronDown className="size-3.5 shrink-0 text-muted-foreground" />
+        ) : (
+          <ChevronRight className="size-3.5 shrink-0 text-muted-foreground" />
+        )}
+        <span className="truncate text-xs text-foreground">{data.name}</span>
+      </div>
+    );
+  }
+  return (
+    <div style={style} className="flex h-7 items-center pr-1 cursor-pointer select-none group">
+      <div
+        className="seti-icon shrink-0"
+        data-lang={data.file.extName.toLowerCase()}
+        style={{ fontSize: 12 }}
+      />
+      <span className="truncate flex-1 text-xs text-foreground">{data.name}</span>
+      {renderStatusBadge(data.file.status)}
+    </div>
+  );
+}
+
+function ScmFileTree({
+  files,
+  onActivate,
+}: {
+  files: ChangesFile[];
+  onActivate: (file: ChangesFile) => void;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState(240);
+  const treeData = useMemo(() => buildScmTree(files), [files]);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const update = () => setHeight(el.clientHeight || 240);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const treeProps = {
+    data: treeData,
+    height,
+    width: "100%",
+    rowHeight: 28,
+    indent: 12,
+    openByDefault: true,
+    onActivate: (node: NodeApi<ScmTreeNode>) => {
+      const d = node.data;
+      if ("file" in d) onActivate(d.file);
+    },
+  };
+
+  return (
+    <div ref={containerRef} className="h-full">
+      {height > 0 && <Tree {...treeProps}>{ScmNodeRenderer}</Tree>}
+    </div>
+  );
+}
 
 const FILE_SIZE_LIMIT = 1_000_000; // 1MB
 const LARGE_DIFF_THRESHOLD = 200_000; // 200KB — soft gate for large diffs
@@ -297,21 +433,6 @@ export default memo(function ChangesView() {
     );
   }
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "modified":
-        return <span className="text-xs font-medium text-yellow-600">M</span>;
-      case "deleted":
-        return <span className="text-xs font-medium text-red-600">D</span>;
-      case "untracked":
-        return <span className="text-xs font-medium text-green-600">U</span>;
-      case "added":
-        return <span className="text-xs font-medium text-green-600">A</span>;
-      default:
-        return null;
-    }
-  };
-
   const renderError = () => {
     if (category === "last-turn" && error === "no_session") {
       return (
@@ -410,7 +531,7 @@ export default memo(function ChangesView() {
               )}
             </span>
           )}
-          {getStatusBadge(file.status)}
+          {renderStatusBadge(file.status)}
         </div>
         {isExpanded && (
           <div className="overflow-auto">
@@ -549,7 +670,7 @@ export default memo(function ChangesView() {
           <PopoverTrigger className="p-1 hover:bg-accent rounded">
             <Ellipsis className="w-3.5 h-3.5 text-muted-foreground" />
           </PopoverTrigger>
-          <PopoverPopup side="bottom" align="end" viewportClassName="p-1">
+          <PopoverPopup side="bottom" align="end" className="p-1">
             <div className="min-w-32">
               <button
                 onClick={() => refresh()}
@@ -641,28 +762,13 @@ export default memo(function ChangesView() {
 
         {/* File tree sidebar */}
         {showFileTree && files.length > 0 && (
-          <div className="w-48 border-l overflow-y-auto shrink-0">
+          <div className="w-48 border-l overflow-hidden shrink-0">
             <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground border-b">
               Files
             </div>
-            {files.map((file) => (
-              <div
-                key={file.relPath}
-                className={`flex items-center gap-1.5 px-2 py-1 text-xs cursor-pointer hover:bg-accent/50 truncate ${
-                  expandedFiles.has(file.relPath) ? "bg-accent/30" : ""
-                }`}
-                title={file.relPath}
-                onClick={() => scrollToFile(file)}
-              >
-                <div
-                  className="seti-icon shrink-0"
-                  data-lang={file.extName.toLowerCase()}
-                  style={{ fontSize: 12 }}
-                />
-                <span className="truncate flex-1">{file.fileName}</span>
-                {getStatusBadge(file.status)}
-              </div>
-            ))}
+            <div className="h-[calc(100%-1.75rem)]">
+              <ScmFileTree files={files} onActivate={scrollToFile} />
+            </div>
           </div>
         )}
       </div>

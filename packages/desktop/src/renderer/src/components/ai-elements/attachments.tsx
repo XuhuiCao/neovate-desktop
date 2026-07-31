@@ -3,6 +3,7 @@
 import type { FileUIPart, SourceDocumentUIPart } from "ai";
 import type { ComponentProps, HTMLAttributes, ReactNode } from "react";
 
+import { Button } from "@neo/ui/components/button";
 import {
   FileTextIcon,
   GlobeIcon,
@@ -13,9 +14,10 @@ import {
   XIcon,
 } from "lucide-react";
 import { createContext, useCallback, useContext, useMemo } from "react";
+import Zoom from "react-medium-image-zoom";
 
+import { buildNeovateFileSchemeUrl } from "../../../../shared/features/file/scheme";
 import { cn } from "../../lib/utils";
-import { Button } from "../ui/button";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "../ui/hover-card";
 
 // ============================================================================
@@ -81,24 +83,24 @@ export const getAttachmentLabel = (data: AttachmentData): string => {
   return data.filename || (category === "image" ? "Image" : "Attachment");
 };
 
-const renderAttachmentImage = (url: string, filename: string | undefined, isGrid: boolean) =>
-  isGrid ? (
-    <img
-      alt={filename || "Image"}
-      className="size-full object-cover"
-      height={96}
-      src={url}
-      width={96}
-    />
-  ) : (
-    <img
-      alt={filename || "Image"}
-      className="size-full rounded object-cover"
-      height={20}
-      src={url}
-      width={20}
-    />
+const renderAttachmentImage = (url: string, filename: string | undefined, isGrid: boolean) => {
+  // 本机绝对路径走 neovate-file:// 协议（规范 §5.7/§6.3）；data: 与远程 URL 原样使用
+  const src =
+    /^(?:[a-z]+:|\/)/i.test(url) && !url.startsWith("data:") && !url.startsWith("neovate-file:")
+      ? buildNeovateFileSchemeUrl(url)
+      : url;
+  return (
+    <Zoom>
+      <img
+        alt={filename || "Image"}
+        className={cn("object-cover", isGrid ? "size-full" : "size-full rounded")}
+        height={isGrid ? 96 : 20}
+        src={src}
+        width={isGrid ? 96 : 20}
+      />
+    </Zoom>
   );
+};
 
 // ============================================================================
 // Contexts

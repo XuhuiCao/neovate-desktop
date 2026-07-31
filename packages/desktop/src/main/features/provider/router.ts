@@ -192,9 +192,38 @@ export const providerRouter = os.provider.router({
       });
     }
 
+    // 解析授权模式：显式传入优先，否则按 apiKey 有无推断（向后兼容）
+    const auth = input.auth ?? (input.apiKey ? "api-key" : "inherit");
+    const baseURL = input.baseURL ?? "";
+    const apiKey = input.apiKey ?? "";
+    const models = input.models ?? {};
+    const modelMap = input.modelMap ?? {};
+
+    // api-key 模式必须有 baseURL/apiKey 与至少一个 model（contract 已放宽，此处兜底）
+    if (auth === "api-key") {
+      if (!baseURL) {
+        throw new ORPCError("BAD_REQUEST", {
+          defined: true,
+          message: "baseURL is required for api-key providers",
+        });
+      }
+      if (!apiKey) {
+        throw new ORPCError("BAD_REQUEST", {
+          defined: true,
+          message: "apiKey is required for api-key providers",
+        });
+      }
+      if (Object.keys(models).length === 0) {
+        throw new ORPCError("BAD_REQUEST", {
+          defined: true,
+          message: "At least one model required for api-key providers",
+        });
+      }
+    }
+
     // Validate modelMap values reference keys in models
-    for (const [slot, modelId] of Object.entries(input.modelMap)) {
-      if (modelId && !(modelId in input.models)) {
+    for (const [slot, modelId] of Object.entries(modelMap)) {
+      if (modelId && !(modelId in models)) {
         throw new ORPCError("BAD_REQUEST", {
           defined: true,
           message: `modelMap.${slot} references "${modelId}" which is not in models`,
@@ -214,21 +243,22 @@ export const providerRouter = os.provider.router({
       id = `${id}-${i}`;
     }
 
-    const provider = {
+    const provider: Provider = {
       id,
       name: input.name,
       enabled: true,
-      baseURL: input.baseURL,
-      apiKey: input.apiKey,
-      models: input.models,
-      modelMap: input.modelMap,
+      baseURL,
+      apiKey,
+      models,
+      modelMap,
       envOverrides: input.envOverrides ?? {},
+      auth,
       ...(input.builtInId ? { builtInId: input.builtInId } : {}),
       ...(input.dismissedSyncModels ? { dismissedSyncModels: input.dismissedSyncModels } : {}),
     };
 
     context.configStore.addProvider(provider);
-    log("create: name=%s id=%s", provider.name, provider.id);
+    log("create: name=%s id=%s auth=%s", provider.name, provider.id, provider.auth);
     return provider;
   }),
 

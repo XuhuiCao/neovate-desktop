@@ -2,10 +2,14 @@
 
 import type { ComponentProps } from "react";
 
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@neo/ui/components/collapsible";
 import { ChevronDownIcon, SearchIcon } from "lucide-react";
 
 import { cn } from "../../lib/utils";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible";
 
 export type TaskItemFileProps = ComponentProps<"div">;
 

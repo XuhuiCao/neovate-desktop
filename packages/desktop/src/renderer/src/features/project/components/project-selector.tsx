@@ -1,14 +1,15 @@
 import type React from "react";
 
-import { Delete02Icon, FolderIcon } from "@hugeicons/core-free-icons";
+import { Delete02Icon, Download01Icon, FolderIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Popover, PopoverPopup, PopoverTrigger } from "@neo/ui/components/popover";
 import { CheckIcon, ChevronsUpDownIcon, SearchIcon, TriangleAlertIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { PLAYGROUND_PROJECT_ID } from "../../../../../shared/features/project/constants";
-import { Popover, PopoverPopup, PopoverTrigger } from "../../../components/ui/popover";
 import { useProject } from "../hooks/use-project";
+import { CloneProjectDialog } from "./clone-project-dialog";
 
 interface ProjectSelectorProps {
   children?: React.ReactElement<Record<string, unknown>>;
@@ -30,11 +31,19 @@ function HighlightMatch({ text, query }: { text: string; query: string }) {
 
 export function ProjectSelector({ children, variant = "menu" }: ProjectSelectorProps) {
   const { t } = useTranslation();
-  const { projects, activeProject, loading, openProject, switchProject, removeProject } =
-    useProject();
+  const {
+    projects,
+    activeProject,
+    loading,
+    openProject,
+    openProjectByPath,
+    switchProject,
+    removeProject,
+  } = useProject();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [highlightIndex, setHighlightIndex] = useState(0);
+  const [cloneDialogOpen, setCloneDialogOpen] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -90,12 +99,17 @@ export function ProjectSelector({ children, variant = "menu" }: ProjectSelectorP
     openProject();
   }, [openProject]);
 
+  const handleOpenCloneDialog = useCallback(() => {
+    setOpen(false);
+    setCloneDialogOpen(true);
+  }, []);
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       {variant === "select" ? (
         <PopoverTrigger
           render={
-            <button className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-input bg-[var(--background-secondary)] px-4 py-2 text-sm hover:bg-accent/50">
+            <button className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-input bg-card px-4 py-2 text-sm hover:bg-accent/50">
               <span className={activeProject ? "text-foreground" : "text-muted-foreground"}>
                 {activeProject?.name ?? t("project.selectProject")}
               </span>
@@ -109,8 +123,7 @@ export function ProjectSelector({ children, variant = "menu" }: ProjectSelectorP
       <PopoverPopup
         side="bottom"
         align={variant === "select" ? "center" : "start"}
-        className="w-80"
-        viewportClassName="py-1 [--viewport-inline-padding:--spacing(1)]"
+        className="w-80 [--viewport-inline-padding:--spacing(1)]"
       >
         <div onKeyDown={handleKeyDown}>
           {projects.length > 0 && (
@@ -136,6 +149,15 @@ export function ProjectSelector({ children, variant = "menu" }: ProjectSelectorP
           >
             <HugeiconsIcon icon={FolderIcon} size={16} strokeWidth={1.5} />
             <span>{t("project.openProject")}</span>
+          </button>
+
+          <button
+            className="flex min-h-7 w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1 text-sm text-foreground outline-none hover:bg-accent"
+            onClick={handleOpenCloneDialog}
+            disabled={loading}
+          >
+            <HugeiconsIcon icon={Download01Icon} size={16} strokeWidth={1.5} />
+            <span>{t("project.cloneNewProject")}</span>
           </button>
 
           {filtered.length > 0 ? (
@@ -223,6 +245,13 @@ export function ProjectSelector({ children, variant = "menu" }: ProjectSelectorP
           ) : null}
         </div>
       </PopoverPopup>
+      <CloneProjectDialog
+        open={cloneDialogOpen}
+        onOpenChange={setCloneDialogOpen}
+        onSuccess={async (path) => {
+          await openProjectByPath(path);
+        }}
+      />
     </Popover>
   );
 }

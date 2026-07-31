@@ -1,3 +1,8 @@
+import { Badge } from "@neo/ui/components/badge";
+import { Button } from "@neo/ui/components/button";
+import { Input } from "@neo/ui/components/input";
+import { Spinner } from "@neo/ui/components/spinner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@neo/ui/components/tabs";
 import debug from "debug";
 import {
   AlertTriangle,
@@ -19,11 +24,6 @@ import type {
   PluginUpdate,
 } from "../../../../../shared/features/claude-code-plugins/types";
 
-import { Badge } from "../../../components/ui/badge";
-import { Button } from "../../../components/ui/button";
-import { Input } from "../../../components/ui/input";
-import { Spinner } from "../../../components/ui/spinner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs";
 import { cn } from "../../../lib/utils";
 import { client } from "../../../orpc";
 import { claudeCodeChatManager } from "../../agent/chat-manager";
@@ -116,7 +116,7 @@ export const PluginsPanel = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
+      <div className="flex items-center justify-center py-16">
         <Spinner className="h-6 w-6" />
       </div>
     );
@@ -153,7 +153,7 @@ export const PluginsPanel = () => {
           if (tab !== "discover") setSourceFilter(null);
         }}
       >
-        <TabsList variant="pill" className="mb-5">
+        <TabsList variant="default" className="mb-5">
           <TabsTrigger value="discover">
             <Download className="size-3.5 mr-1.5" />
             {t("settings.plugins.discover")}
@@ -162,7 +162,11 @@ export const PluginsPanel = () => {
             <CheckCircle className="size-3.5 mr-1.5" />
             {t("settings.plugins.installed")}
             {installed.length > 0 && (
-              <Badge variant="secondary" size="sm" className="ml-1.5">
+              <Badge
+                variant="outline"
+                size="sm"
+                className="ml-1.5 border-primary/30 bg-primary/8 text-primary dark:bg-primary/16"
+              >
                 {installed.length}
               </Badge>
             )}

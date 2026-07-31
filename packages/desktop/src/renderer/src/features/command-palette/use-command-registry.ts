@@ -1,5 +1,6 @@
 import { Comment01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { toastManager } from "@neo/ui/components/toast";
 import {
   MessageSquarePlus,
   MessageCircle,
@@ -27,7 +28,6 @@ import type { CommandItem } from "./types";
 
 import { PLAYGROUND_PROJECT_ID } from "../../../../shared/features/project/constants";
 import { layoutStore } from "../../components/app-layout/store";
-import { toastManager } from "../../components/ui/toast";
 import { useRendererApp } from "../../core/app";
 import { formatKeyForDisplay, DEFAULT_KEYBINDINGS } from "../../lib/keybindings";
 import { useLoadSession } from "../agent/hooks/use-load-session";
@@ -265,7 +265,7 @@ export function useCommandRegistry() {
         icon: FolderOpen,
         shortcut: shortcutFor("toggleFiles"),
         keywords: ["files", "explorer", "file browser"],
-        onSelect: () => layoutStore.getState().setSecondarySidebarActiveView("files"),
+        onSelect: () => app.workbench.contentPanel.toggleView("files"),
       },
       {
         id: "toggleSidebar",

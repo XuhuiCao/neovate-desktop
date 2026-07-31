@@ -2,3 +2,5 @@
 @import "./seti.css";
 @import "streamdown/styles.css";
 @import "katex/dist/katex.min.css";
+@import "react-medium-image-zoom/dist/styles.css";
+@import "./image-zoom.css";

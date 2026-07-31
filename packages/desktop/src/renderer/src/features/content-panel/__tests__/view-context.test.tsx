@@ -29,6 +29,13 @@ vi.mock("../../../core", () => ({
   }),
 }));
 
+// Mock useProjectStore so the cross-project isActive guard sees PROJECT as active.
+// Path is hardcoded here because vi.mock factories are hoisted above const declarations.
+vi.mock("../../project/store", () => ({
+  useProjectStore: (selector: (s: { activeProject: { path: string } | null }) => unknown) =>
+    selector({ activeProject: { path: "/test/project" } }),
+}));
+
 const PROJECT = "/test/project";
 const VIEWS: ContentPanelView[] = [
   {
@@ -62,7 +69,9 @@ beforeEach(() => {
 
 function wrapper({ children }: { children: ReactNode }) {
   return (
-    <ContentPanelViewContextProvider viewId="tab-1">{children}</ContentPanelViewContextProvider>
+    <ContentPanelViewContextProvider viewId="tab-1" projectPath={PROJECT}>
+      {children}
+    </ContentPanelViewContextProvider>
   );
 }
 

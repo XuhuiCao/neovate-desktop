@@ -7,6 +7,8 @@ export type SettingsMenuId =
   | "keybindings"
   | "providers"
   | "remoteControl"
+  | "notifications"
+  | "archivedSessions"
   | "about";
 
 interface SettingsUIState {

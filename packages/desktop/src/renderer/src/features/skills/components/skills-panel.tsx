@@ -1,5 +1,19 @@
+import { Badge } from "@neo/ui/components/badge";
+import { Button } from "@neo/ui/components/button";
+import { Input } from "@neo/ui/components/input";
+import { Spinner } from "@neo/ui/components/spinner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@neo/ui/components/tabs";
 import debug from "debug";
-import { CheckCircle, Download, Plus, RefreshCw, Search, Settings2, Wand2 } from "lucide-react";
+import {
+  BookOpen,
+  CheckCircle,
+  Download,
+  Plus,
+  RefreshCw,
+  Search,
+  Settings2,
+  Wand2,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -10,17 +24,13 @@ import type {
   SkillUpdate,
 } from "../../../../../shared/features/skills/types";
 
-import { Badge } from "../../../components/ui/badge";
-import { Button } from "../../../components/ui/button";
-import { Input } from "../../../components/ui/input";
-import { Spinner } from "../../../components/ui/spinner";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs";
 import { cn } from "../../../lib/utils";
 import { client } from "../../../orpc";
 import { claudeCodeChatManager } from "../../agent/chat-manager";
 import { useConfigStore } from "../../config/store";
 import { useProjectStore } from "../../project/store";
 import { SkillAddModal } from "./skill-add-modal";
+import { SkillBuiltinTab } from "./skill-builtin-tab";
 import { SkillDiscoverTab } from "./skill-discover-tab";
 import { SkillInstalledTab } from "./skill-installed-tab";
 import { SkillRegistryModal } from "./skill-registry-modal";
@@ -207,16 +217,24 @@ export const SkillsPanel = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList variant="pill" className="mb-5">
+        <TabsList variant="default" className="mb-5">
           <TabsTrigger value="discover">
             <Download className="size-3.5 mr-1.5" />
             {t("settings.skills.discover")}
+          </TabsTrigger>
+          <TabsTrigger value="builtin">
+            <BookOpen className="size-3.5 mr-1.5" />
+            {t("settings.skills.builtin")}
           </TabsTrigger>
           <TabsTrigger value="installed">
             <CheckCircle className="size-3.5 mr-1.5" />
             {t("settings.skills.installedTab")}
             {installed.length > 0 && (
-              <Badge variant="secondary" size="sm" className="ml-1.5">
+              <Badge
+                variant="outline"
+                size="sm"
+                className="ml-1.5 border-primary/30 bg-primary/8 text-primary dark:bg-primary/16"
+              >
                 {installed.length}
               </Badge>
             )}
@@ -234,6 +252,10 @@ export const SkillsPanel = () => {
             onInstall={handleInstallRecommended}
             onAddRegistry={() => setShowRegistryModal(true)}
           />
+        </TabsContent>
+
+        <TabsContent value="builtin">
+          <SkillBuiltinTab />
         </TabsContent>
 
         <TabsContent value="installed">

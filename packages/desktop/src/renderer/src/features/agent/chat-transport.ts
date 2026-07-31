@@ -38,10 +38,10 @@ export class ClaudeCodeChatTransport implements ChatTransport<ClaudeCodeUIMessag
     return null;
   }
 
-  /** Fire-and-forget: push a user message to the server. */
+  /** Push a user message to the server; returns the turn's UUID for file-history lookups. */
   async send(sessionId: string, message: ClaudeCodeUIMessage) {
     log("send: sessionId=%s", sessionId);
-    await this.rpc.claudeCode.send({ sessionId, message });
+    return this.rpc.claudeCode.send({ sessionId, message });
   }
 
   subscribe({ chatId }: { chatId: string }) {

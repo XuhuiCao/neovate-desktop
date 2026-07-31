@@ -2,29 +2,39 @@ import { oc, type } from "@orpc/contract";
 import { z } from "zod";
 
 import { agentContract } from "./features/agent/contract";
+import { attachmentsContract } from "./features/chat/attachments/contract";
 import { pluginsContract } from "./features/claude-code-plugins/contract";
 import { configContract } from "./features/config/contract";
 import { deeplinkContract } from "./features/deeplink/contract";
+import { devWorkflowContract } from "./features/dev-workflow/contract";
 import { electronContract } from "./features/electron/contract";
+import { fsContract } from "./features/fs/contract";
 import { llmContract } from "./features/llm/contract";
+import { notificationContract } from "./features/notification/contract";
 import { projectContract } from "./features/project/contract";
 import { providerContract } from "./features/provider/contract";
 import { remoteControlContract } from "./features/remote-control/contract";
 import { rulesContract } from "./features/rules/contract";
 import { skillsContract } from "./features/skills/contract";
 import { storageContract } from "./features/storage/contract";
+import { tokenUsageContract } from "./features/token-usage/contract";
 import { updaterContract } from "./features/updater/contract";
 import { utilsContract } from "./features/utils/contract";
+import { worktreeContract } from "./features/worktree/contract";
 import { changesContract } from "./plugins/changes/contract";
 import { gitContract } from "./plugins/git/contract";
 
 export const contract = {
   ping: oc.output(type<"pong">()),
   agent: agentContract,
+  chat: { attachments: attachmentsContract },
   deeplink: deeplinkContract,
   config: configContract,
+  devWorkflow: devWorkflowContract,
   electron: electronContract,
+  fs: fsContract,
   llm: llmContract,
+  notification: notificationContract,
   remoteControl: remoteControlContract,
   project: projectContract,
   provider: providerContract,
@@ -32,8 +42,10 @@ export const contract = {
   plugins: pluginsContract,
   skills: skillsContract,
   storage: storageContract,
+  tokenUsage: tokenUsageContract,
   updater: updaterContract,
   utils: utilsContract,
+  worktree: worktreeContract,
   git: gitContract,
   changes: changesContract,
   window: {

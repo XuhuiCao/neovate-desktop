@@ -1,9 +1,9 @@
+import { Button, type ButtonProps } from "@neo/ui/components/button";
+import { Menu, MenuItem, MenuPopup, MenuTrigger } from "@neo/ui/components/menu";
 import { ChevronDown, Gauge, Square, Zap } from "lucide-react";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { Button, type ButtonProps } from "../../components/ui/button";
-import { Menu, MenuItem, MenuPopup, MenuTrigger } from "../../components/ui/menu";
 import { useProviderStore } from "./store";
 
 interface BenchmarkButtonProps {

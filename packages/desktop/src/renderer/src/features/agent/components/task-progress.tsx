@@ -13,10 +13,10 @@ export function TaskProgress({ tasks }: Props) {
   return (
     <div className="flex flex-col gap-1 border-t border-border px-4 py-2">
       {activeTasks.map((task) => (
-        <div key={task.taskId} className="flex items-center gap-2 text-xs text-muted-foreground">
+        <div key={task.taskId} className="flex items-center gap-2 text-sm text-muted-foreground">
           <span className="size-1.5 animate-pulse rounded-full bg-yellow-500" />
           {task.taskType && (
-            <span className="rounded bg-muted px-1 py-0.5 text-[10px] font-medium">
+            <span className="rounded bg-muted px-1 py-0.5 text-xs font-medium">
               {task.taskType}
             </span>
           )}

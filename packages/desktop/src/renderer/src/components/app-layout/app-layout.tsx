@@ -2,14 +2,21 @@ import {
   ArrowDown01Icon,
   FolderIcon,
   PanelLeftIcon,
-  PanelRightIcon,
   Settings03Icon,
   ViewSidebarLeftIcon,
-  ViewSidebarRightIcon,
   SidebarRightIcon,
   SidebarRight01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { Button } from "@neo/ui/components/button";
+import { Separator } from "@neo/ui/components/separator";
+import {
+  Tooltip,
+  TooltipCreateHandle,
+  TooltipPopup,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@neo/ui/components/tooltip";
 import { Plus } from "lucide-react";
 import { motion } from "motion/react";
 import { useTheme } from "next-themes";
@@ -33,15 +40,6 @@ import { useProjectStore } from "../../features/project/store";
 import { useSettingsStore } from "../../features/settings";
 import { cn } from "../../lib/utils";
 import { client } from "../../orpc";
-import { Button } from "../ui/button";
-import { Separator } from "../ui/separator";
-import {
-  Tooltip,
-  TooltipCreateHandle,
-  TooltipPopup,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../ui/tooltip";
 import {
   APP_LAYOUT_COLLAPSED_TITLEBAR_LEFT_MARGIN,
   APP_LAYOUT_GRID,
@@ -68,7 +66,7 @@ export function AppLayoutRoot({ children }: { children: ReactNode }) {
     <div
       data-slot="app-layout-root"
       data-testid="app-root"
-      className="relative grid h-screen w-screen overflow-hidden pb-2 bg-background"
+      className="relative grid h-screen w-screen overflow-hidden bg-background pb-2 pr-2"
       style={APP_LAYOUT_GRID}
     >
       <div className="[-webkit-app-region:drag] absolute inset-x-0 top-0 h-10" />
@@ -239,8 +237,6 @@ const secondaryTitlebarTooltipHandle = TooltipCreateHandle<string>();
 
 export function AppLayoutSecondaryTitleBar() {
   const { t, i18n } = useTranslation();
-  const secondaryCollapsed = useLayoutStore((s) => s.panels.secondarySidebar?.collapsed);
-  const togglePanel = useLayoutStore((s) => s.togglePanel);
   const activeProject = useProjectStore((s) => s.activeProject);
   const setShowSettings = useSettingsStore((s) => s.setShowSettings);
   const locale = normalizeLocale(i18n.language);
@@ -284,19 +280,6 @@ export function AppLayoutSecondaryTitleBar() {
         <Button
           variant="ghost"
           size="icon-sm"
-          onClick={() => togglePanel("secondarySidebar")}
-          title={secondaryCollapsed ? t("sidebar.showSidebar") : t("sidebar.hideSidebar")}
-          className={cn("hover:bg-accent", !secondaryCollapsed && "bg-accent")}
-        >
-          <HugeiconsIcon
-            icon={secondaryCollapsed ? PanelRightIcon : ViewSidebarRightIcon}
-            size={16}
-            strokeWidth={1.8}
-          />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon-sm"
           className="size-7"
           title={t("sidebar.settings")}
           onClick={() => setShowSettings(true)}
@@ -316,7 +299,7 @@ export function AppLayoutStatusBar() {
   const { t } = useTranslation();
   return (
     <div data-slot="status-bar" className="flex h-6 shrink-0 items-center px-3">
-      <span className="text-[11px] text-muted-foreground">{t("status.ready")}</span>
+      <span className="text-sm text-muted-foreground">{t("status.ready")}</span>
     </div>
   );
 }
@@ -336,7 +319,7 @@ function ContentPanelToggle() {
     >
       <HugeiconsIcon
         icon={collapsed ? SidebarRightIcon : SidebarRight01Icon}
-        size={16}
+        className="size-4"
         strokeWidth={1.8}
       />
     </Button>

@@ -1,9 +1,9 @@
+import { toastManager } from "@neo/ui/components/toast";
 import { ORPCError } from "@orpc/client";
 import debug from "debug";
 import { useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
-import { toastManager } from "../../../components/ui/toast";
 import { client } from "../../../orpc";
 import { useProjectStore } from "../store";
 
@@ -44,6 +44,17 @@ export function useProject() {
     await fetchProjects();
     return project;
   }, [fetchProjects]);
+
+  const openProjectByPath = useCallback(
+    async (path: string) => {
+      log("opening project at path", { path });
+      const project = await client.project.open({ path });
+      log("project opened", { id: project.id, name: project.name });
+      await fetchProjects();
+      return project;
+    },
+    [fetchProjects],
+  );
 
   const createProject = useCallback(
     async (path: string, name?: string) => {
@@ -95,6 +106,7 @@ export function useProject() {
     activeProject,
     loading,
     openProject,
+    openProjectByPath,
     createProject,
     removeProject,
     switchProject,

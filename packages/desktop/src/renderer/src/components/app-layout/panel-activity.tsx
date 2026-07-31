@@ -69,17 +69,3 @@ export function AppLayoutContentPanelActivity({
     </AppLayoutPanelActivity>
   );
 }
-
-export function AppLayoutSecondarySidebarActivity({
-  enabled = true,
-  hideDelayMs = 220,
-  children,
-}: AppLayoutAutoPanelActivityProps) {
-  const collapsed = useLayoutStore((s) => s.panels.secondarySidebar?.collapsed ?? false);
-
-  return (
-    <AppLayoutPanelActivity active={!collapsed} enabled={enabled} hideDelayMs={hideDelayMs}>
-      {children}
-    </AppLayoutPanelActivity>
-  );
-}

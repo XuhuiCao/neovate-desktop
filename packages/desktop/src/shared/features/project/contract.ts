@@ -20,9 +20,23 @@ export const projectContract = {
 
   pickDirectory: oc.output(type<{ path: string } | null>()),
 
+  /** Pick a directory for cloning a git repository. Returns selected path (default suggested). */
+  pickCloneDirectory: oc
+    .input(z.object({ repoName: z.string() }))
+    .output(type<{ path: string } | null>()),
+
+  /** Resolve the target directory for clone. If selected dir is not empty, create a subdirectory with repoName. */
+  resolveCloneTargetDir: oc
+    .input(z.object({ path: z.string(), repoName: z.string() }))
+    .output(type<{ path: string }>()),
+
   getArchivedSessions: oc.output(type<Record<string, string[]>>()),
 
   archiveSession: oc
+    .input(z.object({ projectPath: z.string(), sessionId: z.string() }))
+    .output(type<void>()),
+
+  unarchiveSession: oc
     .input(z.object({ projectPath: z.string(), sessionId: z.string() }))
     .output(type<void>()),
 

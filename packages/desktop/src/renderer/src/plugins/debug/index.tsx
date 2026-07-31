@@ -17,19 +17,12 @@ const plugin: RendererPlugin = {
     if (!developerMode) return {};
 
     return {
-      activityBarItems: [
+      contentPanelViews: [
         {
-          id: "debug",
+          viewType: "debug",
+          name: { "en-US": "Developer Mode", "zh-CN": "开发者模式" },
           icon: DebugIcon,
-          tooltip: "Developer Mode",
-          order: 90,
-          action: { type: "secondarySidebarView", viewId: "debug" },
-        },
-      ],
-      secondarySidebarViews: [
-        {
-          id: "debug",
-          title: "Developer Mode",
+          singleton: true,
           deactivation: "offscreen",
           component: () => import("./debug-view"),
         },

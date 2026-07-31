@@ -1,3 +1,5 @@
+import { Button } from "@neo/ui/components/button";
+import { Menu, MenuTrigger, MenuPopup, MenuItem } from "@neo/ui/components/menu";
 import { Plus } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -6,8 +8,6 @@ import { useStore } from "zustand";
 import type { ContentPanelStoreState, Tab } from "../types";
 
 import { resolveLocalizedString } from "../../../../../shared/i18n";
-import { Button } from "../../../components/ui/button";
-import { Menu, MenuTrigger, MenuPopup, MenuItem } from "../../../components/ui/menu";
 import { useRendererApp } from "../../../core";
 import { normalizeLocale } from "../../../core/i18n/locales";
 import { useProjectStore } from "../../project/store";

@@ -242,7 +242,6 @@ function getShrinkTargets(
  * When contentPanel is expanded, it acts as a buffer to protect chatPanel width:
  * - Dragging primarySidebar:chatPanel separator shrinks contentPanel first
  * - Dragging chatPanel:contentPanel separator shrinks contentPanel first
- * - Dragging contentPanel:secondarySidebar separator shrinks contentPanel first
  */
 export function applyDelta(panels: PanelMap, separatorIndex: number, delta: number): PanelMap {
   if (delta === 0) return panels;
@@ -363,7 +362,7 @@ export function applyDelta(panels: PanelMap, separatorIndex: number, delta: numb
  * 4. Fit — shrink siblings if layout overflows
  *
  * When contentPanel is expanded, it acts as a buffer:
- * - Opening primarySidebar or secondarySidebar absorbs width from contentPanel
+ * - Opening primarySidebar absorbs width from contentPanel
  * - This keeps chatPanel width stable
  */
 export function openPanel(panels: PanelMap, id: PanelId, windowWidth: number): PanelMap {

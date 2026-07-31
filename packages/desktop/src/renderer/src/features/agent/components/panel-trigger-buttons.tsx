@@ -1,9 +1,10 @@
 import type { LucideIcon } from "lucide-react";
 
-import { Puzzle, SquarePen, Wand2 } from "lucide-react";
+import { FolderGit2, Puzzle, Search, SquarePen } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { layoutStore, useLayoutStore } from "../../../components/app-layout/store";
+import { useCommandPaletteStore } from "../../../features/command-palette/store";
 import { useNewSession } from "../hooks/use-new-session";
 
 function SidebarActionButton({
@@ -44,6 +45,7 @@ export function PanelTriggerGroup({ projectPath }: { projectPath?: string }) {
   const { createNewSession } = useNewSession();
   const fullRightPanelId = useLayoutStore((s) => s.fullRightPanelId);
   const openFullRightPanel = useLayoutStore((s) => s.openFullRightPanel);
+  const openCommandPalette = useCommandPaletteStore((s) => s.open);
 
   return (
     <div className="mb-2.5 flex flex-col gap-0.5">
@@ -54,24 +56,29 @@ export function PanelTriggerGroup({ projectPath }: { projectPath?: string }) {
         disabled={!projectPath}
       />
       <SidebarActionButton
-        icon={Wand2}
-        label={t("settings.skills")}
-        onClick={() =>
-          fullRightPanelId === "skills"
-            ? layoutStore.getState().closeFullRightPanel()
-            : openFullRightPanel("skills")
-        }
-        active={fullRightPanelId === "skills"}
+        icon={Search}
+        label={t("sidebar.commandPalette")}
+        onClick={openCommandPalette}
       />
       <SidebarActionButton
         icon={Puzzle}
-        label={t("settings.plugins")}
+        label={t("sidebar.extensions")}
         onClick={() =>
-          fullRightPanelId === "plugins"
+          fullRightPanelId === "extensions"
             ? layoutStore.getState().closeFullRightPanel()
-            : openFullRightPanel("plugins")
+            : openFullRightPanel("extensions")
         }
-        active={fullRightPanelId === "plugins"}
+        active={fullRightPanelId === "extensions"}
+      />
+      <SidebarActionButton
+        icon={FolderGit2}
+        label={t("sidebar.projectInfo")}
+        onClick={() =>
+          fullRightPanelId === "projectInfo"
+            ? layoutStore.getState().closeFullRightPanel()
+            : openFullRightPanel("projectInfo")
+        }
+        active={fullRightPanelId === "projectInfo"}
       />
       <div className="mt-2 mx-3 h-px bg-gradient-to-r from-transparent via-border/50 to-transparent" />
     </div>

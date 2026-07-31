@@ -1,7 +1,7 @@
 import { MultiFileDiff } from "@pierre/diffs/react";
-import { Files } from "lucide-react";
+import { FilesIcon } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 
 import type { MultiEditUIToolInvocation } from "../../../../../../shared/claude-code/types";
 
@@ -10,33 +10,18 @@ import {
   ToolContent,
   ToolHeader,
   ToolHeaderIcon,
+  ToolHeaderTitle,
 } from "../../../../components/ai-elements/tool";
-import { Badge } from "../../../../components/ui/badge";
-import {
-  Tooltip,
-  TooltipPopup,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../../../../components/ui/tooltip";
-import { useRendererApp } from "../../../../core/app";
+import { FileTag } from "./file-tag";
 
 export function MultiEditTool({ invocation }: { invocation: MultiEditUIToolInvocation }) {
   if (!invocation || invocation.state === "input-streaming") return null;
   const { input } = invocation;
   const { resolvedTheme } = useTheme();
-  const app = useRendererApp();
 
   const filePath = input?.file_path;
   const fileName = filePath?.split("/").pop();
   const editCount = input?.edits?.length ?? 0;
-
-  const handleFileClick = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-      if (filePath) app.opener.open(filePath);
-    },
-    [app, filePath],
-  );
 
   const { addedLines, removedLines } = useMemo(() => {
     let added = 0;
@@ -51,22 +36,9 @@ export function MultiEditTool({ invocation }: { invocation: MultiEditUIToolInvoc
   return (
     <Tool invocation={invocation}>
       <ToolHeader>
-        <ToolHeaderIcon icon={Files} />
-        <span className="shrink-0">MultiEdit</span>
-        {fileName && (
-          <TooltipProvider delay={0}>
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <Badge variant="outline" className="cursor-pointer" onClick={handleFileClick}>
-                    {fileName}
-                  </Badge>
-                }
-              />
-              <TooltipPopup>{filePath}</TooltipPopup>
-            </Tooltip>
-          </TooltipProvider>
-        )}
+        <ToolHeaderIcon icon={FilesIcon} />
+        <ToolHeaderTitle>MultiEdit</ToolHeaderTitle>
+        {filePath && <FileTag filePath={filePath} />}
         <span className="shrink-0 text-xs text-muted-foreground">
           {editCount} edits{" "}
           <span className="text-green-600 dark:text-green-500">+{addedLines}</span>{" "}

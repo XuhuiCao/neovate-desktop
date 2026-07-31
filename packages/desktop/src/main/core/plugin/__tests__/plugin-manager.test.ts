@@ -181,4 +181,17 @@ describe("PluginManager", () => {
       await expect(manager.deactivate()).resolves.toBeUndefined();
     });
   });
+
+  describe("onContributionsChanged", () => {
+    it("fires after configContributions and unsubscribes via returned handle", async () => {
+      const cb = vi.fn();
+      const manager = new PluginManager([]);
+      const off = manager.onContributionsChanged(cb);
+      await manager.configContributions(makeCtx());
+      expect(cb).toHaveBeenCalledTimes(1);
+      off();
+      await manager.configContributions(makeCtx());
+      expect(cb).toHaveBeenCalledTimes(1);
+    });
+  });
 });

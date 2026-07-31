@@ -128,7 +128,7 @@ export function ContentPanelTabs() {
                       }}
                     >
                       <Suspense>
-                        <ContentPanelViewContextProvider viewId={tab.id}>
+                        <ContentPanelViewContextProvider viewId={tab.id} projectPath={path}>
                           <LazyComponent />
                         </ContentPanelViewContextProvider>
                       </Suspense>

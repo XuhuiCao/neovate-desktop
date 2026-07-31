@@ -1,5 +1,8 @@
 "use client";
 
+import { Button } from "@neo/ui/components/button";
+import { Label } from "@neo/ui/components/label";
+import { Radio, RadioGroup } from "@neo/ui/components/radio-group";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -14,9 +17,6 @@ import {
   PlanTitle,
   PlanTrigger,
 } from "../../../components/ai-elements/plan";
-import { Button } from "../../../components/ui/button";
-import { Label } from "../../../components/ui/label";
-import { Radio, RadioGroup } from "../../../components/ui/radio-group";
 
 export type PlanApprovalChoice =
   | { action: "approve"; mode: PermissionMode; clearContext: boolean }
@@ -80,7 +80,7 @@ export function ExitPlanModeRequestDialog({ plan, onChoice }: Props) {
   };
 
   return (
-    <div className="relative max-h-[calc(100cqh-8rem)] bg-background-secondary flex flex-col overflow-hidden">
+    <div className="relative max-h-[calc(100cqh-8rem)] bg-card flex flex-col overflow-hidden">
       <Plan defaultOpen className="m-2 min-h-0 flex-1 flex flex-col">
         <PlanHeader className="px-4 py-2.5 gap-1 items-center">
           <PlanTitle className="text-sm">{t("plan.title")}</PlanTitle>

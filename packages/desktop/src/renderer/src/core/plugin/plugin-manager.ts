@@ -9,9 +9,7 @@ import { contribution, type Contribution } from "./contribution";
 import {
   deduplicateById,
   sortByOrder,
-  type ActivityBarItem,
   type ContentPanelView,
-  type SecondarySidebarView,
   type TitlebarItem,
   type WindowContribution,
 } from "./contributions";
@@ -21,8 +19,6 @@ const log = debug("neovate:plugin");
 type HookFn = (...args: unknown[]) => unknown;
 
 type ViewContributions = {
-  activityBarItems: Contribution<ActivityBarItem>[];
-  secondarySidebarViews: Contribution<SecondarySidebarView>[];
   contentPanelViews: Contribution<ContentPanelView>[];
   primaryTitlebarItems: Contribution<TitlebarItem>[];
   secondaryTitlebarItems: Contribution<TitlebarItem>[];
@@ -36,8 +32,6 @@ type Contributions = {
 export class PluginManager {
   readonly #plugins: RendererPlugin[];
   viewContributions: ViewContributions = {
-    activityBarItems: [],
-    secondarySidebarViews: [],
     contentPanelViews: [],
     primaryTitlebarItems: [],
     secondaryTitlebarItems: [],
@@ -101,14 +95,6 @@ export class PluginManager {
     log("configViewContributions", { pluginCount: this.#plugins.length });
     const entries = await this.applyParallel("configViewContributions");
     this.viewContributions = {
-      activityBarItems: sortByOrder(
-        entries.flatMap((e) =>
-          (e.raw.activityBarItems ?? []).map((item) => contribution(e.plugin, item)),
-        ),
-      ),
-      secondarySidebarViews: entries.flatMap((e) =>
-        (e.raw.secondarySidebarViews ?? []).map((item) => contribution(e.plugin, item)),
-      ),
       contentPanelViews: entries.flatMap((e) =>
         (e.raw.contentPanelViews ?? []).map((item) => contribution(e.plugin, item)),
       ),

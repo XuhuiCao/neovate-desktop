@@ -27,24 +27,15 @@ const plugin: RendererPlugin = {
 
   configViewContributions() {
     return {
-      activityBarItems: [
+      contentPanelViews: [
         {
-          id: "git",
+          viewType: "git",
+          name: { "en-US": "Source Control", "zh-CN": "源代码管理" },
           icon: GitIcon,
-          tooltip: "Source Control",
-          order: 20,
-          action: { type: "secondarySidebarView", viewId: "git" },
-        },
-      ],
-      secondarySidebarViews: [
-        {
-          id: "git",
-          title: "Source Control",
+          singleton: true,
           deactivation: "offscreen",
           component: () => import("./git-view"),
         },
-      ],
-      contentPanelViews: [
         {
           viewType: "git-diff",
           name: { "en-US": "Git Diff", "zh-CN": "代码变更" },

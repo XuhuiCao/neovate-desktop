@@ -37,12 +37,47 @@ type Metadata = {
   parentToolUseId: string | null;
   /** Present when the message was sent from a remote control platform (e.g. Telegram). */
   source?: { platform: string };
+  /**
+   * Working directory of the query that produced this message, captured from the
+   * SDK `system/init`. Lets the markdown surface resolve relative file paths
+   * against the turn's own cwd instead of a single session-wide cwd. Absent on
+   * messages produced before this was recorded — consumers fall back to the
+   * surrounding session cwd.
+   */
+  cwd?: string;
+  reactGrabComments?: ReactGrabCommentPayload;
+};
+
+export type ReactGrabCommentPayload = {
+  payloadId: string;
+  summary: string;
+  count: number;
+  comments: Array<{
+    id: string;
+    commentText: string;
+    content?: string;
+    screenshotPath?: string;
+  }>;
+};
+
+export type TurnFileChangeStat = {
+  path: string;
+  insertions: number;
+  deletions: number;
+};
+
+export type TurnFileChanges = {
+  turnUserMessageId: string;
+  files: TurnFileChangeStat[];
+  insertions: number;
+  deletions: number;
 };
 
 type DataTypes = {
   "system/init": SDKSystemMessage;
   "system/compact_boundary": SDKCompactBoundaryMessage;
   "result/success": SDKResultSuccess;
+  "turn-file-changes": TurnFileChanges;
 } & { [K in SDKResultError["subtype"] as `result/${K}`]: SDKResultError };
 
 export type ClaudeCodeUIMessage = UIMessage<Metadata, DataTypes, ClaudeCodeUITools>;
@@ -71,6 +106,19 @@ export type ContextUsageEvent = {
   remainingPct: number;
 };
 
+/**
+ * 单轮 token 用量增量（本机统计，不外传）。
+ * 由 main 侧 SessionManager 在 SDK `result` 事件时计算并下发，
+ * 携带该轮的 input/output tokens、cost 与 duration 增量。
+ */
+export type TokenUsageEvent = {
+  type: "token_usage";
+  inputTokens: number;
+  outputTokens: number;
+  costUsd: number;
+  durationMs: number;
+};
+
 export type ClaudeCodeUIEventPart =
   | SDKResultMessage
   | SDKSystemMessage
@@ -91,7 +139,8 @@ export type ClaudeCodeUIEventPart =
   | SDKPromptSuggestionMessage
   | SDKAPIRetryMessage
   | SDKSessionStateChangedMessage
-  | ContextUsageEvent;
+  | ContextUsageEvent
+  | TokenUsageEvent;
 
 export type ClaudeCodeUIEventMessage = { id: string } & ClaudeCodeUIEventPart;
 

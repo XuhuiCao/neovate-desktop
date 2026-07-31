@@ -5,6 +5,10 @@ export { Agent, type AgentUIToolInvocation } from "./agent";
 export { Task, type TaskUIToolInvocation } from "./task";
 export { TaskOutput, type TaskOutputUIToolInvocation } from "./task-output";
 export { TaskStop, type TaskStopUIToolInvocation } from "./task-stop";
+export { TaskCreate, type TaskCreateUIToolInvocation } from "./task-create";
+export { TaskUpdate, type TaskUpdateUIToolInvocation } from "./task-update";
+export { TaskGet, type TaskGetUIToolInvocation } from "./task-get";
+export { TaskList, type TaskListUIToolInvocation } from "./task-list";
 export { Read, type ReadUIToolInvocation } from "./read";
 export { Edit, type EditUIToolInvocation } from "./edit";
 export { MultiEdit, type MultiEditUIToolInvocation } from "./multi-edit";
@@ -40,8 +44,12 @@ import { Read } from "./read";
 import { Skill } from "./skill";
 import { SlashCommand } from "./slash-command";
 import { Task } from "./task";
+import { TaskCreate } from "./task-create";
+import { TaskGet } from "./task-get";
+import { TaskList } from "./task-list";
 import { TaskOutput } from "./task-output";
 import { TaskStop } from "./task-stop";
+import { TaskUpdate } from "./task-update";
 import { TodoWrite } from "./todo-write";
 import { WebFetch } from "./web-fetch";
 import { WebSearch } from "./web-search";
@@ -59,6 +67,10 @@ export const toolSet = {
   Task,
   TaskOutput,
   TaskStop,
+  TaskCreate,
+  TaskUpdate,
+  TaskGet,
+  TaskList,
   Read,
   Edit,
   MultiEdit,

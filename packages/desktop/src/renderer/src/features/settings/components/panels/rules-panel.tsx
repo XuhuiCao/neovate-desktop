@@ -1,3 +1,5 @@
+import { Button } from "@neo/ui/components/button";
+import { Spinner } from "@neo/ui/components/spinner";
 import debug from "debug";
 import {
   AlertTriangle,
@@ -14,8 +16,6 @@ import { useTranslation } from "react-i18next";
 
 import type { ResolvedReference } from "../../../../../../shared/features/rules/contract";
 
-import { Button } from "../../../../components/ui/button";
-import { Spinner } from "../../../../components/ui/spinner";
 import { client } from "../../../../orpc";
 import { useSettingsStore } from "../../store";
 
@@ -235,7 +235,7 @@ export const RulesPanel = () => {
       <div className="flex items-center justify-between mb-2">
         <div>
           <h2 className="text-sm font-medium text-foreground">{t("settings.rules.globalRules")}</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">{filePath}</p>
+          <p className="text-sm text-muted-foreground mt-0.5">{filePath}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={handleOpenFolder}>
@@ -267,7 +267,7 @@ export const RulesPanel = () => {
       {/* Editor Container */}
       <div className="rounded-xl bg-muted/30 border border-border/50 overflow-hidden">
         {/* Description */}
-        <p className="text-xs text-muted-foreground px-4 pt-3 pb-2">
+        <p className="text-sm text-muted-foreground px-4 pt-3 pb-2">
           {t("settings.rules.globalRules.description")}
         </p>
 
@@ -331,7 +331,7 @@ export const RulesPanel = () => {
                   )}
                   <FileText className="size-3.5 text-muted-foreground shrink-0" />
                   <span className="text-sm font-medium text-foreground">{ref.filename}</span>
-                  <span className="text-xs text-muted-foreground ml-auto">
+                  <span className="text-sm text-muted-foreground ml-auto">
                     {ref.exists
                       ? t("settings.rules.lines", { count: ref.lineCount })
                       : t("settings.rules.notFound")}
@@ -339,7 +339,7 @@ export const RulesPanel = () => {
                 </button>
                 {ref.exists && expandedRefs.has(ref.filename) && (
                   <div className="border-t border-border/40 bg-background/50">
-                    <pre className="px-4 py-3 text-xs font-mono text-muted-foreground overflow-auto max-h-64 whitespace-pre-wrap">
+                    <pre className="px-4 py-3 text-sm font-mono text-muted-foreground overflow-auto max-h-64 whitespace-pre-wrap">
                       {ref.content}
                     </pre>
                   </div>

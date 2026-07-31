@@ -1,9 +1,9 @@
+import { Button } from "@neo/ui/components/button";
+import { Spinner } from "@neo/ui/components/spinner";
 import { HelpCircle, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { Button } from "../../../../components/ui/button";
-import { Spinner } from "../../../../components/ui/spinner";
 import { useRendererApp } from "../../../../core/app";
 import { client } from "../../../../orpc";
 import { useConfigStore } from "../../../config/store";

@@ -3,6 +3,7 @@ import i18n from "i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import { initReactI18next } from "react-i18next";
 
+import { APP_NAME } from "../../../../shared/constants";
 import enUS from "../../locales/en-US.json";
 import zhCN from "../../locales/zh-CN.json";
 import { DEFAULT_LOCALE, normalizeLocale, type Locales, type LocalePreference } from "./locales";
@@ -71,6 +72,8 @@ export class I18nManager {
       },
       interpolation: {
         escapeValue: false,
+        // 全局默认变量：locales 中 {{APP_NAME}} 无需调用方逐个传参
+        defaultVariables: { APP_NAME },
       },
     });
   }

@@ -1,3 +1,7 @@
+import { Badge } from "@neo/ui/components/badge";
+import { Button } from "@neo/ui/components/button";
+import { Input } from "@neo/ui/components/input";
+import { Switch } from "@neo/ui/components/switch";
 import { AlertTriangle, CheckCircle, Radio, XCircle } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
@@ -7,10 +11,6 @@ import type {
   PlatformStatusEvent,
 } from "../../../../../../shared/features/remote-control/types";
 
-import { Badge } from "../../../../components/ui/badge";
-import { Button } from "../../../../components/ui/button";
-import { Input } from "../../../../components/ui/input";
-import { Switch } from "../../../../components/ui/switch";
 import { client } from "../../../../orpc";
 import { SettingsGroup } from "../settings-group";
 import { SettingsRow } from "../settings-row";

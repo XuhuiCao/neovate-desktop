@@ -2,7 +2,11 @@ import debug from "debug";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 
-import type { ModelTestResult, Provider } from "../../../../shared/features/provider/types";
+import type {
+  ModelTestResult,
+  Provider,
+  ProviderAuth,
+} from "../../../../shared/features/provider/types";
 
 import { client } from "../../orpc";
 
@@ -20,10 +24,11 @@ type ProviderState = {
   load: () => Promise<void>;
   addProvider: (input: {
     name: string;
-    baseURL: string;
-    apiKey: string;
-    models: Record<string, { displayName?: string }>;
-    modelMap: { model?: string; haiku?: string; opus?: string; sonnet?: string };
+    auth?: ProviderAuth;
+    baseURL?: string;
+    apiKey?: string;
+    models?: Record<string, { displayName?: string }>;
+    modelMap?: { model?: string; haiku?: string; opus?: string; sonnet?: string };
     envOverrides?: Record<string, string>;
     builtInId?: string;
     dismissedSyncModels?: string[];
@@ -53,7 +58,13 @@ export const useProviderStore = create<ProviderState>()(
     },
 
     addProvider: async (input) => {
-      const provider = await client.provider.create(input);
+      const provider = await client.provider.create({
+        ...input,
+        baseURL: input.baseURL ?? "",
+        apiKey: input.apiKey ?? "",
+        models: input.models ?? {},
+        modelMap: input.modelMap ?? {},
+      } as any);
       log("provider added: id=%s name=%s", provider.id, provider.name);
       set((state) => {
         state.providers.push(provider);

@@ -14,7 +14,6 @@ describe("persist merge", () => {
     primarySidebar: { width: 300, collapsed: false },
     chatPanel: { width: 0, collapsed: false },
     contentPanel: { width: 300, collapsed: true },
-    secondarySidebar: { width: 240, collapsed: true, activeView: "git" },
   };
 
   function current() {
@@ -120,22 +119,5 @@ describe("persist merge", () => {
   it("returns current when persisted has no panels", () => {
     const c = current();
     expect(mergePersisted({}, c)).toBe(c);
-  });
-
-  it("preserves activeView from persisted state", () => {
-    const result = mergePersisted(
-      {
-        panels: {
-          secondarySidebar: {
-            width: 280,
-            collapsed: false,
-            activeView: "files",
-          },
-        },
-      },
-      current(),
-    );
-    expect(result.panels.secondarySidebar.activeView).toBe("files");
-    expect(result.panels.secondarySidebar.width).toBe(280);
   });
 });

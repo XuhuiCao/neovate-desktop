@@ -1,9 +1,9 @@
+import { toastManager } from "@neo/ui/components/toast";
 import debug from "debug";
 import i18n from "i18next";
 
 import type { DeeplinkEvent } from "../../../../shared/features/deeplink/contract";
 
-import { toastManager } from "../../components/ui/toast";
 import { useConfigStore } from "../config/store";
 import { useProjectStore } from "../project/store";
 import { claudeCodeChatManager } from "./chat-manager";

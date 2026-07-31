@@ -1,10 +1,4 @@
-import { Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
-
-import type { SkillsRegistry } from "../../../../../shared/features/config/types";
-
-import { Button } from "../../../components/ui/button";
+import { Button } from "@neo/ui/components/button";
 import {
   Dialog,
   DialogDescription,
@@ -13,8 +7,14 @@ import {
   DialogPanel,
   DialogPopup,
   DialogTitle,
-} from "../../../components/ui/dialog";
-import { Input } from "../../../components/ui/input";
+} from "@neo/ui/components/dialog";
+import { Input } from "@neo/ui/components/input";
+import { Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+
+import type { SkillsRegistry } from "../../../../../shared/features/config/types";
+
 import { cn } from "../../../lib/utils";
 
 interface SkillRegistryModalProps {

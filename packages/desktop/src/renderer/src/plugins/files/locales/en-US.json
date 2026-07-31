@@ -10,6 +10,7 @@
   "contextMenu.paste": "Paste",
   "contextMenu.delete": "Delete",
   "contextMenu.revealInFinder": "Reveal in Finder",
+  "contextMenu.close": "Close",
   "contextMenu.copyFullPath": "Copy Full Path",
   "contextMenu.copyRelativePath": "Copy Relative Path",
   "confirmDelete": "Are you sure you want to delete {{fileName}}?",

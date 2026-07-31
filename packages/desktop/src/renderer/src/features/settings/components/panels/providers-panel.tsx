@@ -1,3 +1,25 @@
+import {
+  AlertDialog,
+  AlertDialogClose,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogPopup,
+  AlertDialogTitle,
+} from "@neo/ui/components/alert-dialog";
+import { Badge } from "@neo/ui/components/badge";
+import { Button } from "@neo/ui/components/button";
+import { Input } from "@neo/ui/components/input";
+import {
+  Select,
+  SelectItem,
+  SelectPopup,
+  SelectTrigger,
+  SelectValue,
+} from "@neo/ui/components/select";
+import { Spinner } from "@neo/ui/components/spinner";
+import { Switch } from "@neo/ui/components/switch";
+import { Tooltip, TooltipPopup, TooltipTrigger } from "@neo/ui/components/tooltip";
 import debug from "debug";
 import {
   AlertCircle,
@@ -18,7 +40,11 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import type { Provider, ProviderModelMap } from "../../../../../../shared/features/provider/types";
+import type {
+  Provider,
+  ProviderAuth,
+  ProviderModelMap,
+} from "../../../../../../shared/features/provider/types";
 
 import {
   resolveL10n,
@@ -29,28 +55,6 @@ import {
   getModelMapDrift,
   getNewTemplateModels,
 } from "../../../../../../shared/features/provider/sync";
-import {
-  AlertDialog,
-  AlertDialogClose,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogPopup,
-  AlertDialogTitle,
-} from "../../../../components/ui/alert-dialog";
-import { Badge } from "../../../../components/ui/badge";
-import { Button } from "../../../../components/ui/button";
-import { Input } from "../../../../components/ui/input";
-import {
-  Select,
-  SelectItem,
-  SelectPopup,
-  SelectTrigger,
-  SelectValue,
-} from "../../../../components/ui/select";
-import { Spinner } from "../../../../components/ui/spinner";
-import { Switch } from "../../../../components/ui/switch";
-import { Tooltip, TooltipPopup, TooltipTrigger } from "../../../../components/ui/tooltip";
 import { useRendererApp } from "../../../../core/app";
 import { cn } from "../../../../lib/utils";
 import { BenchmarkButton } from "../../../provider/benchmark-button";
@@ -63,6 +67,7 @@ const log = debug("neovate:settings:providers");
 
 type ProviderFormData = {
   name: string;
+  auth: ProviderAuth;
   baseURL: string;
   apiKey: string;
   models: Record<string, { displayName?: string }>;
@@ -75,6 +80,7 @@ type ProviderFormData = {
 
 const emptyForm: ProviderFormData = {
   name: "",
+  auth: "api-key",
   baseURL: "",
   apiKey: "",
   models: {},
@@ -107,6 +113,7 @@ function getTemplateSortPriority(t: ProviderTemplate): number {
 function providerToForm(p: Provider): ProviderFormData {
   return {
     name: p.name,
+    auth: p.auth ?? "api-key",
     baseURL: p.baseURL,
     apiKey: p.apiKey,
     models: { ...p.models },
@@ -121,6 +128,7 @@ function providerToForm(p: Provider): ProviderFormData {
 function builtInToForm(t: ProviderTemplate, lang: string): ProviderFormData {
   return {
     name: resolveL10n(t.name, lang, t.nameLocalized),
+    auth: t.auth ?? "api-key",
     baseURL: t.baseURL,
     apiKey: "",
     models: { ...t.models },
@@ -198,13 +206,14 @@ export const ProvidersPanel = () => {
   );
 
   const canCheck = useMemo(() => {
+    if (form.auth === "inherit") return false;
     try {
       new URL(form.baseURL);
       return form.apiKey.trim() !== "" && Object.keys(form.models).length > 0;
     } catch {
       return false;
     }
-  }, [form.baseURL, form.apiKey, form.models]);
+  }, [form.auth, form.baseURL, form.apiKey, form.models]);
 
   const startCreate = useCallback(() => {
     setEditingId(null);
@@ -265,6 +274,8 @@ export const ProvidersPanel = () => {
 
   const validate = (): string | null => {
     if (!form.name.trim()) return t("settings.providers.validation.nameRequired");
+    // inherit 模式无 baseURL/apiKey/models，仅校验名称
+    if (form.auth === "inherit") return null;
     try {
       new URL(form.baseURL);
     } catch {
@@ -288,27 +299,39 @@ export const ProvidersPanel = () => {
       return;
     }
     setError(null);
-    log("saving provider: name=%s isCreating=%s editingId=%s", form.name, isCreating, editingId);
+    log(
+      "saving provider: name=%s auth=%s isCreating=%s editingId=%s",
+      form.name,
+      form.auth,
+      isCreating,
+      editingId,
+    );
+    const isInherit = form.auth === "inherit";
     try {
       if (isCreating) {
         await addProvider({
           name: form.name.trim(),
-          baseURL: form.baseURL.trim(),
-          apiKey: form.apiKey.trim(),
-          models: form.models,
-          modelMap: form.modelMap,
-          envOverrides: Object.keys(form.envOverrides).length > 0 ? form.envOverrides : undefined,
+          auth: form.auth,
+          baseURL: isInherit ? "" : form.baseURL.trim(),
+          apiKey: isInherit ? "" : form.apiKey.trim(),
+          models: isInherit ? {} : form.models,
+          modelMap: isInherit ? {} : form.modelMap,
+          envOverrides:
+            isInherit || Object.keys(form.envOverrides).length === 0
+              ? undefined
+              : form.envOverrides,
           builtInId: form.builtInId,
           dismissedSyncModels: form.dismissedSyncModels,
         });
       } else if (editingId) {
         await updateProvider(editingId, {
           name: form.name.trim(),
-          baseURL: form.baseURL.trim(),
-          apiKey: form.apiKey.trim(),
-          models: form.models,
-          modelMap: form.modelMap,
-          envOverrides: form.envOverrides,
+          auth: form.auth,
+          baseURL: isInherit ? "" : form.baseURL.trim(),
+          apiKey: isInherit ? "" : form.apiKey.trim(),
+          models: isInherit ? {} : form.models,
+          modelMap: isInherit ? {} : form.modelMap,
+          envOverrides: isInherit ? {} : form.envOverrides,
           enabled: form.enabled,
           dismissedSyncModels: form.dismissedSyncModels,
         });
@@ -452,6 +475,7 @@ export const ProvidersPanel = () => {
       id: editingId ?? "",
       name: form.name,
       enabled: form.enabled,
+      auth: form.auth,
       baseURL: form.baseURL,
       apiKey: form.apiKey,
       models: form.models,
@@ -516,6 +540,7 @@ export const ProvidersPanel = () => {
   }, []);
 
   const isEditing = isCreating || editingId !== null;
+  const isInherit = form.auth === "inherit";
   const modelKeys = Object.keys(form.models);
 
   return (
@@ -532,7 +557,7 @@ export const ProvidersPanel = () => {
           <p className="text-sm text-muted-foreground">{t("settings.providers.chooseTemplate")}</p>
           <div className="grid grid-cols-3 gap-3">
             {sortedTemplates.map((template) => {
-              const hostname = new URL(template.baseURL).hostname;
+              const hostname = template.baseURL ? new URL(template.baseURL).hostname : "OAuth";
               const isUsed = usedBuiltInIds.has(template.id);
               const isDeprecated = template.badges?.includes("deprecated") ?? false;
               return (
@@ -598,7 +623,7 @@ export const ProvidersPanel = () => {
                   )}
                 </span>
               }
-              description={p.baseURL}
+              description={p.auth === "inherit" ? t("settings.providers.auth.inherit") : p.baseURL}
             >
               <div className="flex items-center gap-2">
                 <Switch checked={p.enabled} onCheckedChange={() => handleToggle(p)} />
@@ -716,90 +741,122 @@ export const ProvidersPanel = () => {
             />
           </label>
 
-          {/* Base URL */}
-          <label className="block">
-            <span className="text-sm font-medium">{t("settings.providers.baseURL")}</span>
-            <Input
-              value={form.baseURL}
-              onChange={(e) => setForm((f) => ({ ...f, baseURL: e.target.value }))}
-              placeholder="https://openrouter.ai/api"
-              className="mt-1"
-            />
-          </label>
-
-          {/* API Key */}
+          {/* Auth mode */}
           <div>
-            <label htmlFor="provider-apikey" className="text-sm font-medium">
-              {t("settings.providers.apiKey")}
-            </label>
-            <div className="mt-1 flex items-center gap-1.5">
-              <Input
-                id="provider-apikey"
-                type={showApiKey ? "text" : "password"}
-                value={form.apiKey}
-                onChange={(e) => setForm((f) => ({ ...f, apiKey: e.target.value }))}
-                onBlur={handleApiKeyBlur}
-                placeholder="sk-..."
-                className="flex-1"
-              />
+            <span className="text-sm font-medium">{t("settings.providers.authMode")}</span>
+            <div className="mt-1 flex gap-2">
               <Button
                 type="button"
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 shrink-0"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => setShowApiKey((v) => !v)}
-                title={
-                  showApiKey
-                    ? t("settings.providers.hideApiKey")
-                    : t("settings.providers.showApiKey")
-                }
+                size="sm"
+                variant={isInherit ? "default" : "outline"}
+                onClick={() => setForm((f) => ({ ...f, auth: "inherit" }))}
               >
-                {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {t("settings.providers.auth.inherit")}
               </Button>
               <Button
                 type="button"
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 shrink-0"
-                onClick={handleCopyApiKey}
-                disabled={!form.apiKey}
-                title={t("settings.providers.copyApiKey")}
+                size="sm"
+                variant={isInherit ? "outline" : "default"}
+                onClick={() => setForm((f) => ({ ...f, auth: "api-key" }))}
               >
-                {apiKeyCopied ? (
-                  <Check className="h-4 w-4 text-success-foreground" />
-                ) : (
-                  <Copy className="h-4 w-4" />
-                )}
+                {t("settings.providers.auth.apiKey")}
               </Button>
             </div>
-            {(activeApiKeyURL || activeDocURL) && (
-              <div className="flex items-center gap-3 mt-1.5">
-                {activeApiKeyURL && (
-                  <a
-                    href={activeApiKeyURL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {t("settings.providers.getApiKey")}
-                    <ExternalLink className="h-3 w-3" />
-                  </a>
-                )}
-                {activeDocURL && (
-                  <a
-                    href={activeDocURL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {t("settings.providers.viewDocs")}
-                    <ExternalLink className="h-3 w-3" />
-                  </a>
-                )}
-              </div>
+            {isInherit && (
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                {t("settings.providers.auth.inheritHint")}
+              </p>
             )}
           </div>
+
+          {!isInherit && (
+            <>
+              {/* Base URL */}
+              <label className="block">
+                <span className="text-sm font-medium">{t("settings.providers.baseURL")}</span>
+                <Input
+                  value={form.baseURL}
+                  onChange={(e) => setForm((f) => ({ ...f, baseURL: e.target.value }))}
+                  placeholder="https://openrouter.ai/api"
+                  className="mt-1"
+                />
+              </label>
+
+              {/* API Key */}
+              <div>
+                <label htmlFor="provider-apikey" className="text-sm font-medium">
+                  {t("settings.providers.apiKey")}
+                </label>
+                <div className="mt-1 flex items-center gap-1.5">
+                  <Input
+                    id="provider-apikey"
+                    type={showApiKey ? "text" : "password"}
+                    value={form.apiKey}
+                    onChange={(e) => setForm((f) => ({ ...f, apiKey: e.target.value }))}
+                    onBlur={handleApiKeyBlur}
+                    placeholder="sk-..."
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 shrink-0"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => setShowApiKey((v) => !v)}
+                    title={
+                      showApiKey
+                        ? t("settings.providers.hideApiKey")
+                        : t("settings.providers.showApiKey")
+                    }
+                  >
+                    {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 shrink-0"
+                    onClick={handleCopyApiKey}
+                    disabled={!form.apiKey}
+                    title={t("settings.providers.copyApiKey")}
+                  >
+                    {apiKeyCopied ? (
+                      <Check className="h-4 w-4 text-success-foreground" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+                {(activeApiKeyURL || activeDocURL) && (
+                  <div className="flex items-center gap-3 mt-1.5">
+                    {activeApiKeyURL && (
+                      <a
+                        href={activeApiKeyURL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {t("settings.providers.getApiKey")}
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    )}
+                    {activeDocURL && (
+                      <a
+                        href={activeDocURL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {t("settings.providers.viewDocs")}
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    )}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
 
           {/* Enabled */}
           {editingId && (
@@ -812,236 +869,255 @@ export const ProvidersPanel = () => {
             </div>
           )}
 
-          {/* Models */}
-          <div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">{t("settings.providers.models")}</span>
-              {canCheck && (
-                <BenchmarkButton
-                  baseURL={form.baseURL}
-                  apiKey={form.apiKey}
-                  models={form.models}
-                  size="xs"
-                  variant="outline"
-                />
-              )}
-            </div>
-            {/* Sync new models section */}
-            {editingId && newModelEntries.length > 0 && (
-              <div className="mt-2 rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-2">
+          {!isInherit && (
+            <>
+              {/* Models */}
+              <div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-primary flex items-center gap-1.5">
-                    <RefreshCw className="h-3 w-3" />
-                    {t("settings.providers.sync.newModels", { count: newModelEntries.length })}
-                  </span>
-                  <div className="flex items-center gap-1.5">
-                    <Button variant="outline" size="xs" onClick={handleSyncModels}>
-                      {t("settings.providers.sync.syncAll")}
-                    </Button>
-                    <Button variant="ghost" size="xs" onClick={handleDismissSync}>
-                      {t("settings.providers.sync.dismiss")}
+                  <span className="text-sm font-medium">{t("settings.providers.models")}</span>
+                  {canCheck && (
+                    <BenchmarkButton
+                      baseURL={form.baseURL}
+                      apiKey={form.apiKey}
+                      models={form.models}
+                      size="xs"
+                      variant="outline"
+                    />
+                  )}
+                </div>
+                {/* Sync new models section */}
+                {editingId && newModelEntries.length > 0 && (
+                  <div className="mt-2 rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-primary flex items-center gap-1.5">
+                        <RefreshCw className="h-3 w-3" />
+                        {t("settings.providers.sync.newModels", { count: newModelEntries.length })}
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <Button variant="outline" size="xs" onClick={handleSyncModels}>
+                          {t("settings.providers.sync.syncAll")}
+                        </Button>
+                        <Button variant="ghost" size="xs" onClick={handleDismissSync}>
+                          {t("settings.providers.sync.dismiss")}
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="space-y-0.5">
+                      {newModelEntries.map(([id, entry]) => (
+                        <div
+                          key={id}
+                          className="flex items-center gap-2 text-xs text-muted-foreground"
+                        >
+                          <code className="bg-muted px-1.5 py-0.5 rounded">{id}</code>
+                          {entry.displayName && <span>{entry.displayName}</span>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="mt-1 space-y-1">
+                  {Object.entries(form.models).map(([key, entry]) => {
+                    const testKey = `${form.baseURL}:${key}`;
+                    const result = modelTestResults[testKey];
+                    const isRunning = testingModels[testKey] ?? false;
+                    const failed = result && !isRunning && !result.success;
+
+                    return (
+                      <div key={key}>
+                        <div className="flex items-center gap-2 text-sm">
+                          <code className="bg-muted px-1.5 py-0.5 rounded text-xs">{key}</code>
+                          {entry.displayName && (
+                            <span className="text-muted-foreground">{entry.displayName}</span>
+                          )}
+                          <div className="ml-auto flex items-center gap-1.5">
+                            {isRunning && <Spinner className="h-3 w-3" />}
+                            {result && !isRunning && result.success && result.type === "quick" && (
+                              <Check className="h-3.5 w-3.5 text-success-foreground" />
+                            )}
+                            {result &&
+                              !isRunning &&
+                              result.success &&
+                              result.type === "benchmark" && (
+                                <Tooltip>
+                                  <TooltipTrigger className="cursor-default">
+                                    <BenchmarkMetrics
+                                      ttftMs={result.ttftMs}
+                                      tpot={result.tpot}
+                                      tps={result.tps}
+                                    />
+                                  </TooltipTrigger>
+                                  <TooltipPopup>
+                                    <BenchmarkTooltipContent result={result} />
+                                  </TooltipPopup>
+                                </Tooltip>
+                              )}
+                            {failed && (
+                              <Badge variant="error" size="sm">
+                                <AlertCircle className="h-3 w-3" />
+                                {t("settings.providers.benchmark.failed")}
+                              </Badge>
+                            )}
+                            <button
+                              className="text-muted-foreground hover:text-destructive"
+                              onClick={() => removeModel(key)}
+                              aria-label={t("settings.providers.removeModel", { model: key })}
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
+                        {failed && result.error && (
+                          <p className="text-xs text-destructive mt-0.5 ml-1 break-all">
+                            {result.error}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                  <div className="flex items-center gap-2 pt-1">
+                    <Input
+                      value={newModelKey}
+                      onChange={(e) => setNewModelKey(e.target.value)}
+                      placeholder={t("settings.providers.modelId")}
+                      className="flex-1 h-7 text-xs"
+                      onKeyDown={(e) => e.key === "Enter" && addModel()}
+                    />
+                    <Input
+                      value={newModelDisplay}
+                      onChange={(e) => setNewModelDisplay(e.target.value)}
+                      placeholder={t("settings.providers.displayName")}
+                      className="flex-1 h-7 text-xs"
+                      onKeyDown={(e) => e.key === "Enter" && addModel()}
+                    />
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={addModel}>
+                      <Plus className="h-3 w-3" />
                     </Button>
                   </div>
                 </div>
-                <div className="space-y-0.5">
-                  {newModelEntries.map(([id, entry]) => (
-                    <div key={id} className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <code className="bg-muted px-1.5 py-0.5 rounded">{id}</code>
-                      {entry.displayName && <span>{entry.displayName}</span>}
+              </div>
+
+              {/* Model Map */}
+              <div>
+                <span className="text-sm font-medium">{t("settings.providers.modelMap")}</span>
+                <div className="mt-1 grid grid-cols-2 gap-2">
+                  {(["model", "haiku", "opus", "sonnet"] as const).map((slot) => (
+                    <div key={slot}>
+                      <label className="text-xs text-muted-foreground capitalize">{slot}</label>
+                      <Select
+                        value={form.modelMap[slot] ?? ""}
+                        onValueChange={(val) =>
+                          setForm((f) => ({
+                            ...f,
+                            modelMap: {
+                              ...f.modelMap,
+                              [slot]: val || undefined,
+                            },
+                          }))
+                        }
+                      >
+                        <SelectTrigger size="sm" className="w-full mt-1">
+                          <SelectValue>{form.modelMap[slot] ?? "--"}</SelectValue>
+                        </SelectTrigger>
+                        <SelectPopup>
+                          <SelectItem value="">--</SelectItem>
+                          {modelKeys.map((k) => (
+                            <SelectItem key={k} value={k}>
+                              {k}
+                            </SelectItem>
+                          ))}
+                        </SelectPopup>
+                      </Select>
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
-
-            <div className="mt-1 space-y-1">
-              {Object.entries(form.models).map(([key, entry]) => {
-                const testKey = `${form.baseURL}:${key}`;
-                const result = modelTestResults[testKey];
-                const isRunning = testingModels[testKey] ?? false;
-                const failed = result && !isRunning && !result.success;
-
-                return (
-                  <div key={key}>
-                    <div className="flex items-center gap-2 text-sm">
-                      <code className="bg-muted px-1.5 py-0.5 rounded text-xs">{key}</code>
-                      {entry.displayName && (
-                        <span className="text-muted-foreground">{entry.displayName}</span>
-                      )}
-                      <div className="ml-auto flex items-center gap-1.5">
-                        {isRunning && <Spinner className="h-3 w-3" />}
-                        {result && !isRunning && result.success && result.type === "quick" && (
-                          <Check className="h-3.5 w-3.5 text-success-foreground" />
-                        )}
-                        {result && !isRunning && result.success && result.type === "benchmark" && (
-                          <Tooltip>
-                            <TooltipTrigger className="cursor-default">
-                              <BenchmarkMetrics
-                                ttftMs={result.ttftMs}
-                                tpot={result.tpot}
-                                tps={result.tps}
-                              />
-                            </TooltipTrigger>
-                            <TooltipPopup>
-                              <BenchmarkTooltipContent result={result} />
-                            </TooltipPopup>
-                          </Tooltip>
-                        )}
-                        {failed && (
-                          <Badge variant="error" size="sm">
-                            <AlertCircle className="h-3 w-3" />
-                            {t("settings.providers.benchmark.failed")}
-                          </Badge>
-                        )}
-                        <button
-                          className="text-muted-foreground hover:text-destructive"
-                          onClick={() => removeModel(key)}
-                          aria-label={t("settings.providers.removeModel", { model: key })}
+                {/* ModelMap drift hints */}
+                {editingId &&
+                  mapDriftEntries
+                    .filter(([slot]) => !dismissedMapSlots.has(slot))
+                    .map(([slot, recommended]) => (
+                      <div
+                        key={slot}
+                        className="mt-2 flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-md px-2.5 py-1.5"
+                      >
+                        <Info className="h-3 w-3 shrink-0" />
+                        <span className="flex-1">
+                          {t(
+                            form.modelMap[slot]
+                              ? "settings.providers.sync.modelMapDrift"
+                              : "settings.providers.sync.modelMapDriftEmpty",
+                            {
+                              slot,
+                              recommended,
+                              current: form.modelMap[slot] ?? "",
+                            },
+                          )}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="xs"
+                          onClick={() => handleApplyMapDrift(slot, recommended)}
                         >
-                          <X className="h-3 w-3" />
-                        </button>
+                          {t("settings.providers.sync.apply")}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="xs"
+                          onClick={() => handleDismissMapDrift(slot)}
+                        >
+                          {t("settings.providers.sync.dismiss")}
+                        </Button>
                       </div>
-                    </div>
-                    {failed && result.error && (
-                      <p className="text-xs text-destructive mt-0.5 ml-1 break-all">
-                        {result.error}
-                      </p>
-                    )}
-                  </div>
-                );
-              })}
-              <div className="flex items-center gap-2 pt-1">
-                <Input
-                  value={newModelKey}
-                  onChange={(e) => setNewModelKey(e.target.value)}
-                  placeholder={t("settings.providers.modelId")}
-                  className="flex-1 h-7 text-xs"
-                  onKeyDown={(e) => e.key === "Enter" && addModel()}
-                />
-                <Input
-                  value={newModelDisplay}
-                  onChange={(e) => setNewModelDisplay(e.target.value)}
-                  placeholder={t("settings.providers.displayName")}
-                  className="flex-1 h-7 text-xs"
-                  onKeyDown={(e) => e.key === "Enter" && addModel()}
-                />
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={addModel}>
-                  <Plus className="h-3 w-3" />
-                </Button>
+                    ))}
               </div>
-            </div>
-          </div>
 
-          {/* Model Map */}
-          <div>
-            <span className="text-sm font-medium">{t("settings.providers.modelMap")}</span>
-            <div className="mt-1 grid grid-cols-2 gap-2">
-              {(["model", "haiku", "opus", "sonnet"] as const).map((slot) => (
-                <div key={slot}>
-                  <label className="text-xs text-muted-foreground capitalize">{slot}</label>
-                  <Select
-                    value={form.modelMap[slot] ?? ""}
-                    onValueChange={(val) =>
-                      setForm((f) => ({
-                        ...f,
-                        modelMap: {
-                          ...f.modelMap,
-                          [slot]: val || undefined,
-                        },
-                      }))
-                    }
-                  >
-                    <SelectTrigger size="sm" className="w-full mt-1">
-                      <SelectValue>{form.modelMap[slot] ?? "--"}</SelectValue>
-                    </SelectTrigger>
-                    <SelectPopup>
-                      <SelectItem value="">--</SelectItem>
-                      {modelKeys.map((k) => (
-                        <SelectItem key={k} value={k}>
-                          {k}
-                        </SelectItem>
-                      ))}
-                    </SelectPopup>
-                  </Select>
-                </div>
-              ))}
-            </div>
-            {/* ModelMap drift hints */}
-            {editingId &&
-              mapDriftEntries
-                .filter(([slot]) => !dismissedMapSlots.has(slot))
-                .map(([slot, recommended]) => (
-                  <div
-                    key={slot}
-                    className="mt-2 flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-md px-2.5 py-1.5"
-                  >
-                    <Info className="h-3 w-3 shrink-0" />
-                    <span className="flex-1">
-                      {t(
-                        form.modelMap[slot]
-                          ? "settings.providers.sync.modelMapDrift"
-                          : "settings.providers.sync.modelMapDriftEmpty",
-                        {
-                          slot,
-                          recommended,
-                          current: form.modelMap[slot] ?? "",
-                        },
-                      )}
-                    </span>
+              {/* Env Overrides */}
+              <div>
+                <span className="text-sm font-medium">{t("settings.providers.envOverrides")}</span>
+                <div className="mt-1 space-y-1">
+                  {Object.entries(form.envOverrides).map(([key, value]) => (
+                    <div key={key} className="flex items-center gap-2 text-sm">
+                      <code className="bg-muted px-1.5 py-0.5 rounded text-xs">{key}</code>
+                      <span className="text-muted-foreground text-xs truncate">
+                        {value || "(delete)"}
+                      </span>
+                      <button
+                        className="ml-auto text-muted-foreground hover:text-destructive"
+                        onClick={() => removeEnvOverride(key)}
+                        aria-label={t("settings.providers.removeEnvOverride", { key })}
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                  <div className="flex items-center gap-2 pt-1">
+                    <Input
+                      value={newEnvKey}
+                      onChange={(e) => setNewEnvKey(e.target.value)}
+                      placeholder="ENV_VAR"
+                      className="flex-1 h-7 text-xs"
+                      onKeyDown={(e) => e.key === "Enter" && addEnvOverride()}
+                    />
+                    <Input
+                      value={newEnvValue}
+                      onChange={(e) => setNewEnvValue(e.target.value)}
+                      placeholder="value"
+                      className="flex-1 h-7 text-xs"
+                      onKeyDown={(e) => e.key === "Enter" && addEnvOverride()}
+                    />
                     <Button
                       variant="ghost"
-                      size="xs"
-                      onClick={() => handleApplyMapDrift(slot, recommended)}
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={addEnvOverride}
                     >
-                      {t("settings.providers.sync.apply")}
-                    </Button>
-                    <Button variant="ghost" size="xs" onClick={() => handleDismissMapDrift(slot)}>
-                      {t("settings.providers.sync.dismiss")}
+                      <Plus className="h-3 w-3" />
                     </Button>
                   </div>
-                ))}
-          </div>
-
-          {/* Env Overrides */}
-          <div>
-            <span className="text-sm font-medium">{t("settings.providers.envOverrides")}</span>
-            <div className="mt-1 space-y-1">
-              {Object.entries(form.envOverrides).map(([key, value]) => (
-                <div key={key} className="flex items-center gap-2 text-sm">
-                  <code className="bg-muted px-1.5 py-0.5 rounded text-xs">{key}</code>
-                  <span className="text-muted-foreground text-xs truncate">
-                    {value || "(delete)"}
-                  </span>
-                  <button
-                    className="ml-auto text-muted-foreground hover:text-destructive"
-                    onClick={() => removeEnvOverride(key)}
-                    aria-label={t("settings.providers.removeEnvOverride", { key })}
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
                 </div>
-              ))}
-              <div className="flex items-center gap-2 pt-1">
-                <Input
-                  value={newEnvKey}
-                  onChange={(e) => setNewEnvKey(e.target.value)}
-                  placeholder="ENV_VAR"
-                  className="flex-1 h-7 text-xs"
-                  onKeyDown={(e) => e.key === "Enter" && addEnvOverride()}
-                />
-                <Input
-                  value={newEnvValue}
-                  onChange={(e) => setNewEnvValue(e.target.value)}
-                  placeholder="value"
-                  className="flex-1 h-7 text-xs"
-                  onKeyDown={(e) => e.key === "Enter" && addEnvOverride()}
-                />
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={addEnvOverride}>
-                  <Plus className="h-3 w-3" />
-                </Button>
               </div>
-            </div>
-          </div>
+            </>
+          )}
 
           {/* Actions */}
           <div className="flex gap-2 pt-2">

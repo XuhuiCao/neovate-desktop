@@ -1,3 +1,12 @@
+import { Badge } from "@neo/ui/components/badge";
+import {
+  Select,
+  SelectItem,
+  SelectPopup,
+  SelectTrigger,
+  SelectValue,
+} from "@neo/ui/components/select";
+import { Switch } from "@neo/ui/components/switch";
 import debug from "debug";
 import { ArrowUpCircle } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
@@ -6,15 +15,6 @@ import { useTranslation } from "react-i18next";
 import type { Project } from "../../../../../shared/features/project/types";
 import type { SkillMeta, SkillUpdate } from "../../../../../shared/features/skills/types";
 
-import { Badge } from "../../../components/ui/badge";
-import {
-  Select,
-  SelectItem,
-  SelectPopup,
-  SelectTrigger,
-  SelectValue,
-} from "../../../components/ui/select";
-import { Switch } from "../../../components/ui/switch";
 import { client } from "../../../orpc";
 import { claudeCodeChatManager } from "../../agent/chat-manager";
 import { useProjectStore } from "../../project/store";

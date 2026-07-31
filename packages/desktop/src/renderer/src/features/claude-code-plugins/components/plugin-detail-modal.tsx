@@ -1,3 +1,23 @@
+import { Badge } from "@neo/ui/components/badge";
+import { Button } from "@neo/ui/components/button";
+import {
+  Dialog,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogPanel,
+  DialogPopup,
+  DialogTitle,
+} from "@neo/ui/components/dialog";
+import {
+  Select,
+  SelectItem,
+  SelectPopup,
+  SelectTrigger,
+  SelectValue,
+} from "@neo/ui/components/select";
+import { Spinner } from "@neo/ui/components/spinner";
+import { Switch } from "@neo/ui/components/switch";
 import debug from "debug";
 import { AlertTriangle, ArrowUpCircle, Check, ExternalLink, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -10,26 +30,6 @@ import type {
 } from "../../../../../shared/features/claude-code-plugins/types";
 import type { Project } from "../../../../../shared/features/project/types";
 
-import { Badge } from "../../../components/ui/badge";
-import { Button } from "../../../components/ui/button";
-import {
-  Dialog,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogPanel,
-  DialogPopup,
-  DialogTitle,
-} from "../../../components/ui/dialog";
-import {
-  Select,
-  SelectItem,
-  SelectPopup,
-  SelectTrigger,
-  SelectValue,
-} from "../../../components/ui/select";
-import { Spinner } from "../../../components/ui/spinner";
-import { Switch } from "../../../components/ui/switch";
 import { client } from "../../../orpc";
 
 const log = debug("neovate:plugins");

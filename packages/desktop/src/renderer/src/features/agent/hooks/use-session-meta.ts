@@ -11,7 +11,7 @@ export function useSessionMeta(sessionId: string | null) {
   return useAgentStore(
     useShallow((s) => {
       if (!sessionId) return null;
-      const session = s.sessions.get(sessionId);
+      const session = (s as any).sessions.get(sessionId);
       if (!session) return null;
       return {
         permissionMode: session.permissionMode,

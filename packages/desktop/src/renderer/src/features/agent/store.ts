@@ -1,14 +1,18 @@
+import type { JSONContent } from "@tiptap/react";
+
 import debug from "debug";
 import { enableMapSet } from "immer";
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 
+import type { ReactGrabCommentPayload } from "../../../../shared/claude-code/types";
 import type {
   SessionInfo,
   SlashCommandInfo,
   ModelInfo,
   ModelScope,
   PermissionMode,
+  ImageAttachment,
 } from "../../../../shared/features/agent/types";
 
 import { client } from "../../orpc";
@@ -54,6 +58,14 @@ export type SessionUsage = {
   remainingPct: number;
 };
 
+export type QueuedMessage = {
+  id: string;
+  content: JSONContent;
+  attachments: ImageAttachment[];
+  reactGrabComments?: ReactGrabCommentPayload;
+  createdAt: number;
+};
+
 export type ChatSession = {
   sessionId: string;
   cwd?: string;
@@ -69,6 +81,8 @@ export type ChatSession = {
   permissionMode?: PermissionMode;
   usage?: SessionUsage;
   tasks: Map<string, TaskState>;
+  queuedMessages: QueuedMessage[];
+  pendingReactGrabComments?: ReactGrabCommentPayload | null;
 };
 
 export type RewindUndoBuffer = {
@@ -78,6 +92,19 @@ export type RewindUndoBuffer = {
 
 type AgentState = {
   sessions: Map<string, ChatSession>;
+  sidebarListMode: "all" | "local" | "cloud";
+  setSidebarListMode: (mode: "all" | "local" | "cloud") => void;
+  remoteMode: boolean;
+  setRemoteMode: (active: boolean) => void;
+  remoteSessionId: string | null;
+  setRemoteSession: (sessionId: string | null) => void;
+  remoteQueryParams: URLSearchParams | null;
+  setRemoteQueryParams: (params: URLSearchParams | null) => void;
+  refreshCloudSessions: (() => void) | null;
+  setRefreshCloudSessions: (fn: (() => void) | null) => void;
+  removeQueued: (sessionId: string, id: string) => void;
+  enqueueMessage: (sessionId: string, message: QueuedMessage) => void;
+  setPendingReactGrabComments: (sessionId: string, payload: ReactGrabCommentPayload | null) => void;
   activeSessionId: string | null;
   agentSessions: SessionInfo[];
   sessionsLoaded: boolean;
@@ -99,7 +126,12 @@ type AgentState = {
     meta?: { title?: string; createdAt?: string; cwd?: string; isNew?: boolean },
   ) => void;
   removeSession: (sessionId: string) => void;
-  addUserMessage: (sessionId: string, content: string) => void;
+  addUserMessage: (
+    sessionId: string,
+    content: string,
+    options?: { reactGrabComments?: ReactGrabCommentPayload },
+  ) => void;
+  popQueued: (sessionId: string, id: string) => QueuedMessage | undefined;
   setAvailableCommands: (sessionId: string, commands: SlashCommandInfo[]) => void;
   setAvailableModels: (sessionId: string, models: ModelInfo[]) => void;
   setCurrentModel: (sessionId: string, model: string) => void;
@@ -109,6 +141,11 @@ type AgentState = {
   setSessionUsage: (
     sessionId: string,
     usage: { contextWindowSize: number; usedTokens: number; remainingPct: number },
+  ) => void;
+  /** 累加单轮 token 用量增量到 session.usage 的累计字段（本机统计）。 */
+  addSessionTokenUsage: (
+    sessionId: string,
+    delta: { inputTokens: number; outputTokens: number; costUsd: number; durationMs: number },
   ) => void;
   renameSession: (sessionId: string, title: string) => Promise<void>;
   sessionInitError: string | null;
@@ -125,9 +162,19 @@ type AgentState = {
   undoRewindStore: (originalSessionId: string, originalSession: ChatSession) => void;
 };
 
-export const useAgentStore = create<AgentState>()(
+export function useQueuedMessages(sessionId: string): QueuedMessage[] {
+  return useAgentStore((s: any) => s.sessions.get(sessionId)?.queuedMessages ?? []);
+}
+
+const _useAgentStore: any = create<AgentState>()(
+  // @ts-ignore TS2345 immer StateCreator
   immer((set, get) => ({
     sessions: new Map(),
+    sidebarListMode: "all",
+    remoteMode: false,
+    remoteSessionId: null,
+    remoteQueryParams: null,
+    refreshCloudSessions: null,
     activeSessionId: null,
     agentSessions: [],
     sessionsLoaded: false,
@@ -147,6 +194,8 @@ export const useAgentStore = create<AgentState>()(
       });
       if (sessionId) clearTurnResult(sessionId);
     },
+    setSidebarListMode: (mode) => set({ sidebarListMode: mode }),
+    setRemoteMode: (active) => set({ remoteMode: active }),
 
     setAgentSessions: (agentSessions) => {
       storeLog("setAgentSessions: count=%d", agentSessions.length);
@@ -187,6 +236,7 @@ export const useAgentStore = create<AgentState>()(
           availableCommands: [],
           availableModels: [],
           tasks: new Map(),
+          queuedMessages: [],
         });
         state.activeSessionId = sessionId;
         state._sessionsMetaVersion += 1;
@@ -207,6 +257,7 @@ export const useAgentStore = create<AgentState>()(
           availableCommands: [],
           availableModels: [],
           tasks: new Map(),
+          queuedMessages: [],
         });
         state._sessionsMetaVersion += 1;
         storeLog("createBackgroundSession: totalSessions=%d (not activated)", state.sessions.size);
@@ -279,6 +330,18 @@ export const useAgentStore = create<AgentState>()(
       }
     },
 
+    popQueued: (sessionId, id) => {
+      let popped: QueuedMessage | undefined;
+      set((state) => {
+        const session = state.sessions.get(sessionId);
+        if (!session) return;
+        const idx = session.queuedMessages.findIndex((q) => q.id === id);
+        if (idx === -1) return;
+        popped = session.queuedMessages[idx];
+        session.queuedMessages = session.queuedMessages.filter((q) => q.id !== id);
+      });
+      return popped;
+    },
     setAvailableCommands: (sessionId, commands) => {
       storeLog(
         "setAvailableCommands: sid=%s commands=%o",
@@ -377,6 +440,32 @@ export const useAgentStore = create<AgentState>()(
       });
     },
 
+    addSessionTokenUsage: (sessionId, delta) => {
+      set((state) => {
+        const session = state.sessions.get(sessionId);
+        if (!session) return;
+        const prev = session.usage;
+        session.usage = {
+          ...(prev ?? {
+            contextWindowSize: 0,
+            contextUsedTokens: 0,
+            remainingPct: 0,
+          }),
+          totalInputTokens: (prev?.totalInputTokens ?? 0) + delta.inputTokens,
+          totalOutputTokens: (prev?.totalOutputTokens ?? 0) + delta.outputTokens,
+          totalCostUsd: (prev?.totalCostUsd ?? 0) + delta.costUsd,
+          totalDurationMs: (prev?.totalDurationMs ?? 0) + delta.durationMs,
+        };
+        storeLog(
+          "addSessionTokenUsage: sid=%s totals in=%d out=%d cost=%.4f",
+          sessionId,
+          session.usage.totalInputTokens,
+          session.usage.totalOutputTokens,
+          session.usage.totalCostUsd,
+        );
+      });
+    },
+
     setSessionInitError: (error) => {
       set({ sessionInitError: error });
     },
@@ -457,3 +546,6 @@ export const useAgentStore = create<AgentState>()(
     },
   })),
 );
+
+// Re-export with explicit type to break immer WritableNonArrayDraft inference chain (TS4023).
+export const useAgentStore: typeof _useAgentStore = _useAgentStore;

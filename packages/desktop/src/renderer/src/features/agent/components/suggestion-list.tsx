@@ -24,6 +24,9 @@ type Props = {
   command: (item: SuggestionItem) => void;
   header?: string;
   icon?: ReactNode;
+  isLoading?: boolean;
+  errorMessage?: string;
+  emptyMessage?: string;
 };
 
 export type SuggestionListHandle = {
@@ -31,7 +34,10 @@ export type SuggestionListHandle = {
 };
 
 export const SuggestionList = forwardRef<SuggestionListHandle, Props>(
-  ({ items, command, header, icon }, ref) => {
+  ({ items, command, header, icon, isLoading, errorMessage, emptyMessage }, ref) => {
+    void isLoading;
+    void errorMessage;
+    void emptyMessage;
     const [selectedIndex, setSelectedIndex] = useState(0);
     const selectedRef = useRef<HTMLButtonElement | null>(null);
 

@@ -1,3 +1,5 @@
+import type { AgentNotificationConfig } from "../agent/notification";
+
 export type Theme = "system" | "light" | "dark";
 export type ThemeStyle = "default" | "claude" | "codex" | "nord";
 export type SendMessageWith = "enter" | "cmdEnter";
@@ -32,6 +34,8 @@ export type AppConfig = {
   agentLanguage: AgentLanguage;
   permissionMode: ConfigPermissionMode;
   notificationSound: NotificationSound;
+  /** Per-event agent notification delivery + sound config. */
+  agentNotification: AgentNotificationConfig;
   tokenOptimization: boolean;
   networkInspector: boolean;
   keepAwake: boolean;

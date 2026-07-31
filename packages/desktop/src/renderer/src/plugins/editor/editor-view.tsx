@@ -1,3 +1,4 @@
+import { toastManager } from "@neo/ui/components/toast";
 import { consumeEventIterator } from "@orpc/client";
 import { ContractRouterClient } from "@orpc/contract";
 import debug from "debug";
@@ -9,7 +10,6 @@ import {
   EditorOpenOption,
   IEditorTab,
 } from "../../../../shared/plugins/editor/contract";
-import { toastManager } from "../../components/ui/toast";
 import { usePluginContext } from "../../core/app";
 import { useProjectStore } from "../../features/project/store";
 import { useAliveConnection } from "./hooks/useAliveConnection";
@@ -266,8 +266,8 @@ function EditorViewCore(props: { cwd: string }) {
           <img
             src={
               resolvedTheme === "dark"
-                ? "https://mdn.alipayobjects.com/huamei_puljkc/afts/img/A*hgaTTZvoTicAAAAAQDAAAAgAenyRAQ/original"
-                : "https://mdn.alipayobjects.com/huamei_puljkc/afts/img/A*Wrd1TL3S_pYAAAAAQFAAAAgAenyRAQ/original"
+                ? new URL("../../assets/images/files/editorLogoDark.png", import.meta.url).href
+                : new URL("../../assets/images/files/editorLogoLight.png", import.meta.url).href
             }
             alt="Editor Logo"
             className="w-32 h-24 object-contain"
@@ -287,6 +287,8 @@ function EditorViewCore(props: { cwd: string }) {
             ref={webviewRef}
             src={serverUrl}
             title="Code Editor"
+            // 按 cwd 隔离 session（规范 §6.6）：每个项目工作区独立的 code-server 会话存储
+            partition={`persist:neovate-editor-${cwd.replace(/[^a-zA-Z0-9]/g, "_")}`}
             className="absolute inset-0 w-full h-full border-0 bg-background"
           />
           {renderOverlay()}

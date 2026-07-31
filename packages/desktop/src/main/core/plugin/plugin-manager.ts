@@ -16,6 +16,7 @@ type HookFn = (...args: unknown[]) => unknown;
 export class PluginManager {
   readonly #plugins: MainPlugin[];
   contributions: Contributions = { routers: [], agents: [], deeplinkHandlers: [] };
+  #changedListeners: Array<() => void> = [];
 
   constructor(rawPlugins: MainPlugin[] = []) {
     const names = new Set<string>();
@@ -34,6 +35,28 @@ export class PluginManager {
     return this.#plugins;
   }
 
+  /**
+   * 订阅 contributions 变更（`configContributions` 重跑后触发）。
+   * 用于插件热插拔后通知 SessionManager：新 session 将加载最新贡献。
+   * 返回取消订阅函数。
+   */
+  onContributionsChanged(cb: () => void): () => void {
+    this.#changedListeners.push(cb);
+    return () => {
+      this.#changedListeners = this.#changedListeners.filter((l) => l !== cb);
+    };
+  }
+
+  private emitContributionsChanged(): void {
+    for (const l of this.#changedListeners) {
+      try {
+        l();
+      } catch {
+        // ignore listener errors
+      }
+    }
+  }
+
   async configContributions(ctx: PluginContext): Promise<void> {
     log("configContributions", { pluginCount: this.#plugins.length });
     const entries = await this.applyParallel("configContributions", ctx);
@@ -46,6 +69,7 @@ export class PluginManager {
       if (raw.deeplinkHandler) deeplinkHandlers.push(contribution(plugin, raw.deeplinkHandler));
     }
     this.contributions = { routers, agents, deeplinkHandlers };
+    this.emitContributionsChanged();
   }
 
   async activate(ctx: PluginContext): Promise<void> {

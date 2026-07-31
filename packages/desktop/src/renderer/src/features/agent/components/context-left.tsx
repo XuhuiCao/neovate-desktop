@@ -1,12 +1,12 @@
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
-
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "../../../components/ui/tooltip";
+} from "@neo/ui/components/tooltip";
+import { useTranslation } from "react-i18next";
+
+import { TOOLTIP_HOVER_INTENT_DELAY } from "../../../lib/tooltip";
 import { cn } from "../../../lib/utils";
 import { useAgentStore } from "../store";
 
@@ -24,7 +24,6 @@ function getStatus(remainingPct: number): Status {
 
 export function ContextLeft({ sessionId }: { sessionId: string }) {
   const { t } = useTranslation();
-  const [clicked, setClicked] = useState(false);
   const usage = useAgentStore((s) => s.sessions.get(sessionId)?.usage);
   if (!usage || !usage.contextWindowSize) return null;
 
@@ -32,21 +31,10 @@ export function ContextLeft({ sessionId }: { sessionId: string }) {
   const usedPct = 100 - remainingPct;
   const status = getStatus(remainingPct);
 
-  const handleClick = () => {
-    setClicked(true);
-  };
-
-  const handleOpenChange = (open: boolean) => {
-    if (!open) {
-      setClicked(false);
-    }
-  };
-
   const trigger = (
     <button
       type="button"
       className="flex items-center gap-1.5 rounded px-1.5 py-0.5 text-xs transition-colors hover:bg-muted"
-      onClick={handleClick}
     >
       <ContextIndicator remainingPct={remainingPct} status={status} />
       <span
@@ -63,8 +51,8 @@ export function ContextLeft({ sessionId }: { sessionId: string }) {
   );
 
   return (
-    <TooltipProvider delay={clicked ? 0 : undefined}>
-      <Tooltip onOpenChange={handleOpenChange}>
+    <TooltipProvider delay={TOOLTIP_HOVER_INTENT_DELAY}>
+      <Tooltip>
         <TooltipTrigger render={trigger} />
         <TooltipContent side="top" align="end">
           <div className="flex flex-col gap-1 py-0.5">

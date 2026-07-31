@@ -1,5 +1,6 @@
 import type { AnalyticsInstance, AnalyticsPlugin } from "analytics";
 
+import { QueryClientProvider } from "@tanstack/react-query";
 import { Analytics } from "analytics";
 import debug from "debug";
 import i18n from "i18next";
@@ -23,12 +24,14 @@ import type { IRendererApp, IWorkbench } from "./types";
 
 import { APP_NAME } from "../../../shared/constants";
 import { initClickTracking, initMessageSentTracking } from "../features/analytics/data-track";
+import { queryClient } from "../lib/query-client";
 
 const startupLog = debug("neovate:startup");
 
+import { ToastProvider, toastManager } from "@neo/ui/components/toast";
+
 import { setPanelWidth, shrinkPanelsToFit } from "../components/app-layout/layout-coordinator";
 import { layoutStore } from "../components/app-layout/store";
-import { ToastProvider, toastManager } from "../components/ui/toast";
 import { createSessionDeeplinkHandler } from "../features/agent/deeplink";
 import { useConfigStore } from "../features/config/store";
 import { ContentPanel } from "../features/content-panel";
@@ -412,19 +415,21 @@ export class RendererApp implements IRendererApp {
                 disableTransitionOnChange
               >
                 <ToastProvider>
-                  <ThemeSync />
-                  <StyleSync />
-                  <FontSizeSync />
-                  <MenuCommandHandler />
-                  <Suspense
-                    fallback={
-                      <div className="flex h-screen items-center justify-center">
-                        <div className="animate-spin size-6 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full" />
-                      </div>
-                    }
-                  >
-                    <AppComponent />
-                  </Suspense>
+                  <QueryClientProvider client={queryClient}>
+                    <ThemeSync />
+                    <StyleSync />
+                    <FontSizeSync />
+                    <MenuCommandHandler />
+                    <Suspense
+                      fallback={
+                        <div className="flex h-screen items-center justify-center">
+                          <div className="animate-spin size-6 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full" />
+                        </div>
+                      }
+                    >
+                      <AppComponent />
+                    </Suspense>
+                  </QueryClientProvider>
                 </ToastProvider>
               </ThemeProvider>
             </PluginContextReact.Provider>
@@ -449,18 +454,20 @@ export class RendererApp implements IRendererApp {
               disableTransitionOnChange
             >
               <ToastProvider>
-                <ThemeSync />
-                <StyleSync />
-                <FontSizeSync />
-                <Suspense
-                  fallback={
-                    <div className="flex h-screen items-center justify-center">
-                      <div className="animate-spin size-6 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full" />
-                    </div>
-                  }
-                >
-                  <WindowComponent />
-                </Suspense>
+                <QueryClientProvider client={queryClient}>
+                  <ThemeSync />
+                  <StyleSync />
+                  <FontSizeSync />
+                  <Suspense
+                    fallback={
+                      <div className="flex h-screen items-center justify-center">
+                        <div className="animate-spin size-6 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full" />
+                      </div>
+                    }
+                  >
+                    <WindowComponent />
+                  </Suspense>
+                </QueryClientProvider>
               </ToastProvider>
             </ThemeProvider>
           </PluginContextReact.Provider>

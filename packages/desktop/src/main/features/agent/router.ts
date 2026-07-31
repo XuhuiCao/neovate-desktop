@@ -14,6 +14,11 @@ const agentLog = debug("neovate:agent-router");
 const os = implement({ agent: agentContract }).$context<AppContext>();
 
 export const agentRouter = os.agent.router({
+  getProjectCapabilities: os.agent.getProjectCapabilities.handler(async () => {
+    // OSS: returns empty capabilities (internal daemon provides richer data)
+    return {};
+  }),
+
   activeSessions: os.agent.activeSessions.handler(({ context }) => {
     return context.sessionManager.getActiveSessions();
   }),
@@ -63,6 +68,10 @@ export const agentRouter = os.agent.router({
   renameSession: os.agent.renameSession.handler(async ({ input, context }) => {
     agentLog("renameSession: sessionId=%s title=%s", input.sessionId, input.title);
     await context.sessionManager.renameSession(input.sessionId, input.title);
+  }),
+
+  refreshContributions: os.agent.refreshContributions.handler(async ({ context }) => {
+    return context.sessionManager.refreshAgentContributions();
   }),
 
   updateSessionStartTime: os.agent.updateSessionStartTime.handler(({ input, context }) => {

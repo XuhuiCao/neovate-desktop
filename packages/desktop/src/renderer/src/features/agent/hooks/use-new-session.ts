@@ -14,7 +14,11 @@ export function useNewSession() {
   const setSessionInitError = useAgentStore((s) => s.setSessionInitError);
 
   const createNewSession = useCallback(
-    async (cwd: string) => {
+    async (
+      cwd: string,
+      _projectId: string = "",
+      opts?: { model?: string; providerId?: string | null },
+    ) => {
       layoutStore.getState().closeFullRightPanel();
       // Dedup guard: if any in-memory session is already new (empty), activate it
       const projectPath = cwd || useProjectStore.getState().activeProject?.path;
@@ -32,7 +36,7 @@ export function useNewSession() {
       const startActiveId = useAgentStore.getState().activeSessionId;
       newSessionLog("createNewSession: creating session cwd=%s", cwd);
       const { sessionId, commands, models, currentModel, modelScope, providerId } =
-        await claudeCodeChatManager.createSession(cwd);
+        await claudeCodeChatManager.createSession(cwd, _projectId, opts);
       newSessionLog("createNewSession: created %s currentModel=%s", sessionId, currentModel);
 
       setSessionInitError(null);

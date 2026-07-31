@@ -11,6 +11,7 @@ export function useClaudeCodeChat(sessionId: string) {
   const error = useStore(chat.store, (state) => state.error);
   const eventError = useStore(chat.store, (state) => state.eventError);
   const pendingRequests = useStore(chat.store, (state) => state.pendingRequests);
+  const rateLimitNotice = useStore(chat.store, (state) => (state as any).rateLimitNotice ?? null);
 
   return {
     id: sessionId,
@@ -19,6 +20,7 @@ export function useClaudeCodeChat(sessionId: string) {
     error,
     eventError,
     pendingRequests,
+    rateLimitNotice,
     sendMessage: chat.sendMessage.bind(chat),
     respondToRequest: chat.respondToRequest,
     stop: chat.interrupt,
