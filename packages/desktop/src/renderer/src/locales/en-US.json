@@ -814,5 +814,18 @@
   "chat.providerSetup.cfuse.missingMessage": "cfuse not found — it may not be installed, or not on the app's PATH.",
   "chat.providerSetup.cfuse.installAction": "Install cfuse",
   "chat.providerSetup.cfuse.configureAction": "Configure cfuse",
-  "chat.providerSetup.cfuse.authMessage": "codefuse-cli is not logged in. Run `cfuse --cc` to log in."
+  "chat.providerSetup.cfuse.authMessage": "codefuse-cli is not logged in. Run `cfuse --cc` to log in.",
+  "session.shareLinkCopied": "Share link copied",
+  "chat.slashCommands.header": "Commands",
+  "session.shareFailed": "Failed to generate share link",
+  "session.shareDialogTitle": "Share conversation",
+  "session.shareError.timeout": "Request timed out (60s)",
+  "session.shareError.jsonlNotFound": "Local conversation file not found",
+  "chat.slashCommands.error": "Failed to load commands",
+  "session.shareDescription": "Anyone with the link can view a read-only copy of this conversation.",
+  "session.shareGenerating": "Generating share link...",
+  "session.share": "Share",
+  "session.shareRetry": "Retry",
+  "session.shareError.noMessages": "No shareable messages in this conversation yet",
+  "chat.slashCommands.empty": "No matching commands"
 }

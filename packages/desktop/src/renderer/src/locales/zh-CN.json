@@ -813,5 +813,18 @@
   "chat.providerSetup.cfuse.missingMessage": "未找到 cfuse 命令，可能未安装或不在应用 PATH 中",
   "chat.providerSetup.cfuse.installAction": "安装cfuse",
   "chat.providerSetup.cfuse.configureAction": "配置cfuse",
-  "chat.providerSetup.cfuse.authMessage": "codefuse-cli 未登录，请运行 `cfuse --cc` 登录"
+  "chat.providerSetup.cfuse.authMessage": "codefuse-cli 未登录，请运行 `cfuse --cc` 登录",
+  "session.shareLinkCopied": "分享链接已复制",
+  "chat.slashCommands.header": "命令",
+  "session.shareFailed": "对话分享生成失败",
+  "session.shareDialogTitle": "分享对话",
+  "session.shareError.timeout": "请求超时（60 秒）",
+  "session.shareError.jsonlNotFound": "本地会话文件未找到",
+  "chat.slashCommands.error": "命令加载失败",
+  "session.shareDescription": "任何拥有链接的人都可以查看此对话的只读版本。",
+  "session.shareGenerating": "分享对话生成中...",
+  "session.share": "分享",
+  "session.shareRetry": "重试",
+  "session.shareError.noMessages": "当前会话还没有可分享的对话内容",
+  "chat.slashCommands.empty": "无匹配命令"
 }
