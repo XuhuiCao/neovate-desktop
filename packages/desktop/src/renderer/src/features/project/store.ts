@@ -16,6 +16,9 @@ type ProjectState = {
   activeProject: Project | null;
   /** Active project's absolute path (= activeProject?.path). 对齐内部 neo-monorepo. */
   cwd: string | null;
+  projectsSectionCollapsed: boolean;
+  pinnedSectionCollapsed: boolean;
+  savedClosedAccordions: string[] | null;
   loading: boolean;
   /** projectPath → archived sessionIds */
   archivedSessions: Record<string, string[]>;
@@ -27,7 +30,11 @@ type ProjectState = {
   setActiveProject: (project: Project | null) => void;
   setCwd: (cwd: string | null) => void;
   setLoading: (loading: boolean) => void;
+  switchToProject: (projectId: string) => void;
   switchToProjectByPath: (projectPath: string) => void;
+  setSavedClosedAccordions: (ids: string[] | null) => void;
+  setProjectsSectionCollapsed: (collapsed: boolean) => void;
+  setPinnedSectionCollapsed: (collapsed: boolean) => void;
   archiveSession: (projectPath: string, sessionId: string, isActive?: boolean) => void;
   /**
    * Un-archive a session.
@@ -50,6 +57,9 @@ export const useProjectStore = create<ProjectState>()(
     projects: [],
     activeProject: null,
     cwd: null,
+    projectsSectionCollapsed: false,
+    pinnedSectionCollapsed: false,
+    savedClosedAccordions: null,
     loading: false,
     archivedSessions: {},
     pinnedSessions: {},
@@ -58,6 +68,13 @@ export const useProjectStore = create<ProjectState>()(
     setProjects: (projects) => set({ projects }),
     setActiveProject: (activeProject) => set({ activeProject, cwd: activeProject?.path ?? null }),
     setCwd: (cwd) => set({ cwd }),
+    switchToProject: (projectId) => {
+      const project = useProjectStore.getState().projects.find((p) => p.id === projectId);
+      if (project) useProjectStore.getState().switchToProjectByPath(project.path);
+    },
+    setSavedClosedAccordions: (ids) => set({ savedClosedAccordions: ids }),
+    setProjectsSectionCollapsed: (collapsed) => set({ projectsSectionCollapsed: collapsed }),
+    setPinnedSectionCollapsed: (collapsed) => set({ pinnedSectionCollapsed: collapsed }),
     setLoading: (loading) => set({ loading }),
     switchToProjectByPath: (projectPath) => {
       const { activeProject, projects } = useProjectStore.getState();

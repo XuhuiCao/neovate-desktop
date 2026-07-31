@@ -24,7 +24,10 @@ const log = debug("neovate:session-actions-menu");
 
 interface SessionActionsMenuProps {
   sessionId: string;
-  projectPath: string;
+  /** Active project path. Either projectPath or projectId is required. */
+  projectPath?: string;
+  /** Active project id (resolved to projectPath via the project store if projectPath absent). */
+  projectId?: string;
   variant?: "dropdown" | "context";
   trigger?: ReactElement;
   children?: ReactNode;
@@ -33,13 +36,19 @@ interface SessionActionsMenuProps {
 
 export function SessionActionsMenu({
   sessionId,
-  projectPath,
+  projectPath: propProjectPath,
+  projectId,
   variant = "dropdown",
   trigger,
   children,
   onRenameStart,
 }: SessionActionsMenuProps) {
   const { t } = useTranslation();
+  const projects = useProjectStore((s) => s.projects);
+  const projectPath =
+    propProjectPath ??
+    (projectId ? projects.find((p) => p.id === projectId)?.path : undefined) ??
+    "";
   const togglePinSession = useProjectStore((s) => s.togglePinSession);
   const archiveSession = useProjectStore((s) => s.archiveSession);
   const pinnedSessions = useProjectStore((s) => s.pinnedSessions);

@@ -1,22 +1,22 @@
 import { memo, useCallback } from "react";
 
-import type { UnifiedItem } from "../hooks/use-unified-sessions";
+import type { SessionItem as SessionItemType } from "../hooks/use-session-items";
 
 import { PLAYGROUND_PROJECT_ID } from "../../../../../shared/features/project/constants";
 import { layoutStore } from "../../../components/app-layout/store";
-import { useProjectStore } from "../../project/store";
 import { useSessionChatStatus } from "../hooks/use-session-chat-status";
 import { useUnseenTurnResult } from "../hooks/use-unseen-turn-result";
+import { useAgentStore } from "../store";
 import { SessionItem } from "./session-item";
 
 interface UnifiedSessionItemProps {
-  item: UnifiedItem;
+  item: SessionItemType;
   activeSessionId: string | null;
   isPinned: boolean;
   restoring: string | null;
   optionHeld?: boolean;
-  onActivate: (sessionId: string, projectPath: string) => void;
-  onLoad: (sessionId: string, projectPath: string) => void;
+  onActivate: (sessionId: string, projectId: string) => void;
+  onLoad: (sessionId: string, projectId: string) => void;
 }
 
 export const UnifiedSessionItem = memo(
@@ -29,46 +29,52 @@ export const UnifiedSessionItem = memo(
     onActivate,
     onLoad,
   }: UnifiedSessionItemProps) {
-    const sessionId = item.kind === "memory" ? item.session.sessionId : item.info.sessionId;
-    const title = item.kind === "memory" ? item.session.title : item.info.title;
-    const createdAt = item.kind === "memory" ? item.session.createdAt : item.info.createdAt;
-    const isNew = item.kind === "memory" ? item.session.isNew : false;
+    const sessionId = item.sessionId;
+
+    // Runtime state (messages/streaming/usage) only exists when the session has been
+    // activated in this window. Presence of a runtime entry means "loaded into memory".
+    const runtime = useAgentStore((s) => s.sessions.get(sessionId));
+    const hasRuntime = !!runtime;
+
+    const title = runtime?.title ?? item.title;
+    const createdAt = runtime?.createdAt ?? item.createdAt;
     const { isStreaming, hasPendingRequests } = useSessionChatStatus(sessionId);
     const turnResult = useUnseenTurnResult(sessionId);
 
-    const isPlayground = useProjectStore(
-      (s) => s.projects.find((p) => p.path === item.projectPath)?.id === PLAYGROUND_PROJECT_ID,
-    );
+    const isPlayground = item.projectId === PLAYGROUND_PROJECT_ID;
 
-    const isActive = item.kind === "memory" && sessionId === activeSessionId;
-    const isRestoring = item.kind === "persisted" && restoring === sessionId;
+    const isActive = hasRuntime && sessionId === activeSessionId;
+    const isRestoring = !hasRuntime && restoring === sessionId;
 
     const handleClick = useCallback(() => {
       layoutStore.getState().closeFullRightPanel();
-      if (item.kind === "memory") {
-        onActivate(sessionId, item.projectPath);
+      if (hasRuntime) {
+        onActivate(sessionId, item.projectId);
       } else {
-        onLoad(sessionId, item.projectPath);
+        onLoad(sessionId, item.projectId);
       }
-    }, [item.kind, item.projectPath, sessionId, onActivate, onLoad]);
+    }, [hasRuntime, item.projectId, sessionId, onActivate, onLoad]);
 
     return (
       <SessionItem
         sessionId={sessionId}
         title={title}
         createdAt={createdAt}
+        updatedAt={item.updatedAt}
+        cwd={item.cwd}
+        worktree={item.worktree}
         isActive={isActive}
         isPinned={isPinned}
         isRestoring={isRestoring}
         isStreaming={isStreaming}
         hasPendingPermission={hasPendingRequests}
         turnResult={turnResult}
-        isInitialized={item.kind === "memory"}
-        isNew={isNew}
+        isInitialized={hasRuntime}
         isPlayground={isPlayground}
+        isWorktree={item.isWorktree || !!item.worktree}
         optionHeld={optionHeld}
         onClick={handleClick}
-        projectPath={item.projectPath}
+        projectId={item.projectId}
       />
     );
   },
@@ -79,23 +85,12 @@ export const UnifiedSessionItem = memo(
     prev.optionHeld === next.optionHeld &&
     prev.onActivate === next.onActivate &&
     prev.onLoad === next.onLoad &&
-    prev.item.projectPath === next.item.projectPath &&
-    itemId(prev.item) === itemId(next.item) &&
-    itemTitle(prev.item) === itemTitle(next.item) &&
-    itemCreatedAt(prev.item) === itemCreatedAt(next.item) &&
-    itemIsNew(prev.item) === itemIsNew(next.item) &&
-    prev.item.kind === next.item.kind,
+    prev.item.projectId === next.item.projectId &&
+    prev.item.sessionId === next.item.sessionId &&
+    prev.item.title === next.item.title &&
+    prev.item.createdAt === next.item.createdAt &&
+    prev.item.updatedAt === next.item.updatedAt &&
+    prev.item.cwd === next.item.cwd &&
+    prev.item.isWorktree === next.item.isWorktree &&
+    prev.item.worktree?.id === next.item.worktree?.id,
 );
-
-function itemId(item: UnifiedItem) {
-  return item.kind === "memory" ? item.session.sessionId : item.info.sessionId;
-}
-function itemTitle(item: UnifiedItem) {
-  return item.kind === "memory" ? item.session.title : item.info.title;
-}
-function itemCreatedAt(item: UnifiedItem) {
-  return item.kind === "memory" ? item.session.createdAt : item.info.createdAt;
-}
-function itemIsNew(item: UnifiedItem) {
-  return item.kind === "memory" ? item.session.isNew : false;
-}

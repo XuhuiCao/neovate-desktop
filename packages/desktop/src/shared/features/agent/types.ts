@@ -103,6 +103,8 @@ export type SessionInfo = {
   cwd?: string;
   updatedAt: string;
   createdAt: string;
+  isWorktree?: boolean;
+  projectId?: string;
 };
 
 /** Event emitted when a session is created or deleted */

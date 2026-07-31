@@ -79,6 +79,10 @@ export type RewindUndoBuffer = {
 
 type AgentState = {
   sessions: Map<string, ChatSession>;
+  sidebarListMode: "all" | "local" | "cloud";
+  setSidebarListMode: (mode: "all" | "local" | "cloud") => void;
+  remoteMode: boolean;
+  setRemoteMode: (active: boolean) => void;
   activeSessionId: string | null;
   agentSessions: SessionInfo[];
   sessionsLoaded: boolean;
@@ -134,6 +138,8 @@ type AgentState = {
 export const useAgentStore = create<AgentState>()(
   immer((set, get) => ({
     sessions: new Map(),
+    sidebarListMode: "all",
+    remoteMode: false,
     activeSessionId: null,
     agentSessions: [],
     sessionsLoaded: false,
@@ -153,6 +159,8 @@ export const useAgentStore = create<AgentState>()(
       });
       if (sessionId) clearTurnResult(sessionId);
     },
+    setSidebarListMode: (mode) => set({ sidebarListMode: mode }),
+    setRemoteMode: (active) => set({ remoteMode: active }),
 
     setAgentSessions: (agentSessions) => {
       storeLog("setAgentSessions: count=%d", agentSessions.length);

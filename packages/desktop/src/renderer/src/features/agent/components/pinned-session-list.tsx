@@ -1,46 +1,69 @@
 import debug from "debug";
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+
+import type { SessionItem } from "../hooks/use-session-items";
 
 import { useProjectStore } from "../../project/store";
 import { useLoadSession } from "../hooks/use-load-session";
-import { useFilteredSessions } from "../hooks/use-unified-sessions";
+import { useFilteredSessionItems } from "../hooks/use-unified-sessions";
+import { navigateToSession } from "../navigation";
 import { useAgentStore } from "../store";
+import { SectionHeader } from "./section-header";
 import { UnifiedSessionItem } from "./unified-session-item";
 
 const log = debug("neovate:pinned-session-list");
 
 export const PinnedSessionList = memo(function PinnedSessionList({
+  sessionItems,
   optionHeld,
+  showSectionHeader = false,
 }: {
+  sessionItems?: SessionItem[];
   optionHeld?: boolean;
+  showSectionHeader?: boolean;
 }) {
+  const { t } = useTranslation();
   const activeSessionId = useAgentStore((s) => s.activeSessionId);
-  const setActiveSession = useAgentStore((s) => s.setActiveSession);
   const loadSession = useLoadSession();
   const [restoring, setRestoring] = useState<string | null>(null);
+  const collapsed = useProjectStore((s) => s.pinnedSectionCollapsed);
+  const setCollapsed = useProjectStore((s) => s.setPinnedSectionCollapsed);
 
-  const switchToProjectByPath = useProjectStore((s) => s.switchToProjectByPath);
-  const items = useFilteredSessions({ filter: "pinned" });
+  const switchToProject = useProjectStore((s) => s.switchToProject);
+  const items = useFilteredSessionItems({ sessionItems: sessionItems ?? [], filter: "pinned" });
+
+  const itemsRef = useRef(items);
+  itemsRef.current = items;
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { sessionId } = (e as CustomEvent<{ sessionId: string }>).detail;
+      if (itemsRef.current.some((s) => s.sessionId === sessionId)) setCollapsed(false);
+    };
+    window.addEventListener("reveal-session", handler);
+    return () => window.removeEventListener("reveal-session", handler);
+  }, [setCollapsed]);
 
   const handleActivate = useCallback(
-    (sessionId: string, projectPath?: string) => {
-      if (projectPath) switchToProjectByPath(projectPath);
-      setActiveSession(sessionId);
+    (sessionId: string, projectId: string) => {
+      switchToProject(projectId);
+      navigateToSession(sessionId);
     },
-    [switchToProjectByPath, setActiveSession],
+    [switchToProject],
   );
 
   const handleLoad = useCallback(
-    async (sessionId: string, projectPath?: string) => {
+    async (sessionId: string, projectId: string) => {
       setRestoring(sessionId);
       try {
-        if (projectPath) switchToProjectByPath(projectPath);
+        switchToProject(projectId);
         await loadSession(sessionId);
       } finally {
         setRestoring((prev) => (prev === sessionId ? null : prev));
       }
     },
-    [switchToProjectByPath, loadSession],
+    [switchToProject, loadSession],
   );
 
   log("render: pinnedCount=%d", items.length);
@@ -49,12 +72,21 @@ export const PinnedSessionList = memo(function PinnedSessionList({
 
   return (
     <div className="pb-1">
-      <ul className="flex flex-col gap-1">
-        {items.map((item) => {
-          const id = item.kind === "memory" ? item.session.sessionId : item.info.sessionId;
-          return (
+      {showSectionHeader && (
+        <SectionHeader
+          title={t("sidebar.section.pinned")}
+          collapsed={collapsed}
+          onToggle={() =>
+            useProjectStore.setState((s) => ({ pinnedSectionCollapsed: !s.pinnedSectionCollapsed }))
+          }
+          sticky
+        />
+      )}
+      {!collapsed && (
+        <ul data-testid="session-pinned-list" className="flex flex-col gap-1">
+          {items.map((item) => (
             <UnifiedSessionItem
-              key={id}
+              key={item.sessionId}
               item={item}
               activeSessionId={activeSessionId}
               isPinned
@@ -63,9 +95,9 @@ export const PinnedSessionList = memo(function PinnedSessionList({
               onActivate={handleActivate}
               onLoad={handleLoad}
             />
-          );
-        })}
-      </ul>
+          ))}
+        </ul>
+      )}
     </div>
   );
 });
