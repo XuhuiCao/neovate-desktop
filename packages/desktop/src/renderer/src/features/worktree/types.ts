@@ -1,5 +1,5 @@
 import type { Project } from "../../../../shared/features/project/types";
-import type { Worktree } from "../../../../shared/features/worktree/contract";
+import type { Worktree } from "../../../../shared/features/worktree/types";
 
 /** UI-facing local branch metadata. */
 export type LocalBranch =

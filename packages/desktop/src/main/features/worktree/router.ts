@@ -12,11 +12,7 @@ function errMsg(e: unknown): string {
 
 export const worktreeRouter = os.worktree.router({
   list: os.worktree.list.handler(async ({ input, context }) => {
-    try {
-      return { success: true, data: await context.worktreeService.list(input.projectPath) };
-    } catch (e) {
-      return { success: false, error: errMsg(e) };
-    }
+    return await context.worktreeService.list(input.projectPath ?? "");
   }),
 
   create: os.worktree.create.handler(async ({ input, context }) => {

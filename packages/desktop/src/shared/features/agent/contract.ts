@@ -20,11 +20,16 @@ import type {
 } from "./types";
 
 export const agentContract = {
+  getProjectCapabilities: oc
+    .input(z.object({ projectId: z.string().optional() }))
+    .output(type<any>()),
   activeSessions: oc.input(z.object({})).output(type<ActiveSessionInfo[]>()),
 
   subscribeSessionLifecycle: oc.output(eventIterator(type<SessionLifecycleEvent>())),
 
-  listSessions: oc.input(z.object({ cwd: z.string().optional() })).output(type<SessionInfo[]>()),
+  listSessions: oc
+    .input(z.object({ cwd: z.string().optional(), projectId: z.string().optional() }))
+    .output(type<SessionInfo[]>()),
 
   renameSession: oc
     .input(z.object({ sessionId: z.string(), title: z.string() }))

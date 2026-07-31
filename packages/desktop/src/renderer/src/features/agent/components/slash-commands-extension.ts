@@ -135,7 +135,10 @@ function createInlineSlashPlugin(
   });
 }
 
-export function createSlashCommandsExtension(getCommands: () => SlashCommandInfo[]) {
+export function createSlashCommandsExtension(
+  getCommands: () => SlashCommandInfo[],
+  _getCwd: () => string = () => "",
+) {
   return Node.create({
     name: "slashCommand",
     group: "inline",

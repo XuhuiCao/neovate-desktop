@@ -65,6 +65,8 @@ type Props = {
   activeSessionId: string | null;
   /** Show project selector in toolbar (popup window mode) */
   showProjectSelector?: boolean;
+  draftProjectPath?: string;
+  compactMode?: boolean;
 };
 
 export function InputToolbar({

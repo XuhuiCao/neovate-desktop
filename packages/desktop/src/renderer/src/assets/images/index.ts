@@ -30,6 +30,9 @@ export const IMAGE_URLS = {
   // Debug 图标
   debugLight,
   debugDark,
+
+  // Dev workflow welcome
+  workflowWelcome: "",
 } as const;
 
 /** 根据主题获取聊天面板背景图 */

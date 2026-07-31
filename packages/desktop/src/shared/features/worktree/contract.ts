@@ -37,7 +37,9 @@ export type WorktreePruneResult = {
 };
 
 export const worktreeContract = {
-  list: oc.input(z.object({ projectPath: z.string() })).output(type<WorktreeListResult>()),
+  list: oc
+    .input(z.object({ projectId: z.string().optional(), projectPath: z.string().optional() }))
+    .output(type<any[]>()),
 
   create: oc
     .input(
@@ -45,6 +47,8 @@ export const worktreeContract = {
         projectPath: z.string(),
         branch: z.string().min(1),
         baseBranch: z.string().optional(),
+        projectId: z.string().optional(),
+        commitish: z.string().optional(),
       }),
     )
     .output(type<WorktreeCreateResult>()),

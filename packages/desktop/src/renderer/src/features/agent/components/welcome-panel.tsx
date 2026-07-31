@@ -1,59 +1,65 @@
-import { FolderIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Button } from "@neo/ui/components/button";
-import { MessageCircle } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
+import type { DevMode } from "../draft-store";
+
 import { APP_NAME } from "../../../../../shared/constants";
-import { PLAYGROUND_PROJECT_ID } from "../../../../../shared/features/project/constants";
-import { getLogoUrl } from "../../../assets/images";
-import { ProjectSelector } from "../../project/components/project-selector";
-import { useProject } from "../../project/hooks/use-project";
+import { getLogoUrl, IMAGE_URLS } from "../../../assets/images";
 
 type WelcomePanelProps = {
-  hasProject?: boolean;
+  devMode?: DevMode;
+  projectName?: string;
+  isPlayground?: boolean;
 };
 
-export function WelcomePanel({ hasProject }: WelcomePanelProps) {
+export function WelcomePanel({ devMode = "free", projectName, isPlayground }: WelcomePanelProps) {
   const { resolvedTheme } = useTheme();
   const { t } = useTranslation();
-  const { openProject, loading, switchProject } = useProject();
 
-  const handleQuickChat = useCallback(() => {
-    switchProject(PLAYGROUND_PROJECT_ID);
-  }, [switchProject]);
+  // 研发流程模式使用专门的欢迎图，自由研发模式保持原有的 logo
+  const imageUrl =
+    devMode === "standard"
+      ? IMAGE_URLS.workflowWelcome
+      : getLogoUrl(resolvedTheme as "dark" | "light" | undefined);
+
+  // 根据项目和模式生成欢迎语
+  const renderWelcomeText = () => {
+    // Playground 专用文案
+    if (isPlayground) {
+      return (
+        <p className="text-lg text-center font-medium text-foreground/90">
+          {t("chat.guideMessage.playground", { APP_NAME })}
+        </p>
+      );
+    }
+
+    if (devMode === "standard") {
+      return (
+        <p className="text-lg text-center font-medium text-foreground/90">
+          {projectName
+            ? t("chat.guideMessage.standard.projectHint", { projectName })
+            : t("chat.guideMessage.standard.hint")}
+        </p>
+      );
+    }
+
+    return (
+      <p className="text-lg text-center font-medium text-foreground/90">
+        {projectName
+          ? t("chat.guideMessage.free.projectHint", { projectName })
+          : t("chat.guideMessage.free.hint")}
+      </p>
+    );
+  };
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-5 text-muted-foreground">
+    <div className="flex flex-col items-center gap-5 text-muted-foreground">
       <img
-        src={getLogoUrl(resolvedTheme as "dark" | "light" | undefined)}
+        src={imageUrl}
         className="h-24 w-auto object-contain 2xl:h-36 min-[1920px]:h-48"
         alt={`${APP_NAME} Logo`}
       />
-      <p className="text-lg text-center font-medium text-foreground/90 2xl:text-xl min-[1920px]:text-2xl">
-        {t("chat.guideMessage", { APP_NAME })}
-      </p>
-      {hasProject ? (
-        <div>
-          <ProjectSelector variant="select" />
-        </div>
-      ) : (
-        <div className="flex flex-col items-center gap-3">
-          <p className="text-sm text-muted-foreground">{t("project.getStarted")}</p>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={openProject} disabled={loading}>
-              <HugeiconsIcon icon={FolderIcon} size={16} strokeWidth={1.5} />
-              {t("project.openProject")}
-            </Button>
-            <Button variant="outline" onClick={handleQuickChat} disabled={loading}>
-              <MessageCircle size={16} strokeWidth={1.5} />
-              {t("project.quickChat")}
-            </Button>
-          </div>
-        </div>
-      )}
+      {renderWelcomeText()}
     </div>
   );
 }

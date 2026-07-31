@@ -14,6 +14,8 @@ const log = debug("neovate:draft-agent");
 export type DevMode = "free" | "standard";
 
 export type DraftAgent = {
+  id?: string;
+  createdAt?: string;
   content: JSONContent | null;
   attachments: ImageAttachment[];
   target: SessionTarget | null;

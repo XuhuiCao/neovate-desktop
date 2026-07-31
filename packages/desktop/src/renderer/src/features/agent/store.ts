@@ -2,7 +2,7 @@ import type { JSONContent } from "@tiptap/react";
 
 import debug from "debug";
 import { enableMapSet } from "immer";
-import { create, type UseBoundStore, type StoreApi } from "zustand";
+import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 
 import type { ReactGrabCommentPayload } from "../../../../shared/claude-code/types";
@@ -82,6 +82,7 @@ export type ChatSession = {
   usage?: SessionUsage;
   tasks: Map<string, TaskState>;
   queuedMessages: QueuedMessage[];
+  pendingReactGrabComments?: ReactGrabCommentPayload | null;
 };
 
 export type RewindUndoBuffer = {
@@ -95,6 +96,15 @@ type AgentState = {
   setSidebarListMode: (mode: "all" | "local" | "cloud") => void;
   remoteMode: boolean;
   setRemoteMode: (active: boolean) => void;
+  remoteSessionId: string | null;
+  setRemoteSession: (sessionId: string | null) => void;
+  remoteQueryParams: URLSearchParams | null;
+  setRemoteQueryParams: (params: URLSearchParams | null) => void;
+  refreshCloudSessions: (() => void) | null;
+  setRefreshCloudSessions: (fn: (() => void) | null) => void;
+  removeQueued: (sessionId: string, id: string) => void;
+  enqueueMessage: (sessionId: string, message: QueuedMessage) => void;
+  setPendingReactGrabComments: (sessionId: string, payload: ReactGrabCommentPayload | null) => void;
   activeSessionId: string | null;
   agentSessions: SessionInfo[];
   sessionsLoaded: boolean;
@@ -152,11 +162,19 @@ type AgentState = {
   undoRewindStore: (originalSessionId: string, originalSession: ChatSession) => void;
 };
 
-export const useAgentStore: UseBoundStore<StoreApi<AgentState>> = create<AgentState>()(
+export function useQueuedMessages(sessionId: string): QueuedMessage[] {
+  return useAgentStore((s: any) => s.sessions.get(sessionId)?.queuedMessages ?? []);
+}
+
+const _useAgentStore: any = create<AgentState>()(
+  // @ts-ignore TS2345 immer StateCreator
   immer((set, get) => ({
     sessions: new Map(),
     sidebarListMode: "all",
     remoteMode: false,
+    remoteSessionId: null,
+    remoteQueryParams: null,
+    refreshCloudSessions: null,
     activeSessionId: null,
     agentSessions: [],
     sessionsLoaded: false,
@@ -528,3 +546,6 @@ export const useAgentStore: UseBoundStore<StoreApi<AgentState>> = create<AgentSt
     },
   })),
 );
+
+// Re-export with explicit type to break immer WritableNonArrayDraft inference chain (TS4023).
+export const useAgentStore: typeof _useAgentStore = _useAgentStore;

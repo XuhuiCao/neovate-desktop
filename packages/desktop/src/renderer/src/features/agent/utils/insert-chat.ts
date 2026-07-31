@@ -3,6 +3,9 @@ import type { JSONContent } from "@tiptap/react";
 export type InsertChatDetail = {
   text?: string;
   mentions?: Array<{ id: string; label?: string }>;
+  /** When true, clear existing editor content before inserting. Used by deeplink
+   *  to ensure deeplink content takes priority over cached draft input. */
+  replace?: boolean;
 };
 
 export function buildInsertChatContent({ text, mentions = [] }: InsertChatDetail): JSONContent[] {

@@ -186,6 +186,7 @@ export const gitContract = {
     .input(type<{ cwd: string; userEmail?: string; days?: number }>())
     .output(type<ActivityData>()),
   getConfig: oc.input(type<{ cwd: string; key: string }>()).output(type<string | null>()),
+  switchBranch: oc.input(type<{ cwd: string; branch: string }>()).output(type<void>()),
   getRecentActivity: oc
     .input(type<{ cwd: string; limit?: number }>())
     .output(type<RecentActivity>()),
