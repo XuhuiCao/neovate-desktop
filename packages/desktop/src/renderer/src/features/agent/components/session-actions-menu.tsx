@@ -108,6 +108,7 @@ export function SessionActionsMenu({
       const { forkedSessionId } = await claudeCodeChatManager.forkSession(
         sessionId,
         cwd,
+        "",
         sessionTitle,
       );
       const forkTitle = sessionTitle ? `${sessionTitle} (Fork)` : "(Fork)";

@@ -15,7 +15,15 @@ export interface PendingContextClear {
   plan: string;
   mode: PermissionMode;
   cwd?: string;
+  projectId?: string;
 }
+
+export type RateLimitNotice = {
+  eventType: "rate_limit_event";
+  updatedAt: number;
+  message?: string | undefined;
+  retryAfterMs?: number | undefined;
+};
 
 export interface ClaudeCodeChatStoreState {
   messages: ClaudeCodeUIMessage[];
@@ -26,8 +34,9 @@ export interface ClaudeCodeChatStoreState {
     requestId: string;
     request: ClaudeCodeUIEventRequest;
   }>;
-  capabilities: ClaudeCodeChatCapabilities | null;
   pendingContextClear?: PendingContextClear;
+  rateLimitNotice: RateLimitNotice | null;
+  capabilities: ClaudeCodeChatCapabilities | null;
 
   // Prompt suggestion (follow-up)
   promptSuggestion: string | null;
@@ -49,6 +58,7 @@ export class ClaudeCodeChatState implements ChatState<ClaudeCodeUIMessage> {
       error: undefined,
       eventError: undefined,
       pendingRequests: [],
+      rateLimitNotice: null,
       capabilities: null,
       promptSuggestion: null,
       turnStartedAt: null,

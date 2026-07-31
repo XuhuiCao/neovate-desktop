@@ -42,6 +42,7 @@ export const agentContract = {
       .input(
         z.object({
           cwd: z.string(),
+          projectId: z.string(),
           model: z.string().optional(),
           providerId: z.string().nullable().optional(),
         }),
@@ -106,6 +107,7 @@ export const agentContract = {
       z.object({
         sessionId: z.string(),
         cwd: z.string(),
+        projectId: z.string(),
         title: z.string().optional(),
       }),
     )

@@ -9,8 +9,10 @@ import { ClaudeCodeChat } from "./chat";
 import { ClaudeCodeChatTransport } from "./chat-transport";
 import { markTurnCompleted, clearTurnResult } from "./hooks/use-unseen-turn-result";
 import { scrollPositions } from "./scroll-positions";
-import { findPreWarmedSession, registerSessionInStore } from "./session-utils";
+import { registerSessionInStore } from "./session-utils";
+import { findPreWarmedSession } from "./session-utils";
 import { useAgentStore } from "./store";
+import { drainQueuedHead } from "./utils/drain-queue";
 
 const log = debug("neovate:chat-manager");
 
@@ -28,11 +30,18 @@ export class ClaudeCodeChatManager {
     onTurnComplete: (id: string, result: "success" | "error") => {
       const chat = this.chats.get(id);
       const pending = chat?.store.getState().pendingContextClear;
+      let skipDrain = false;
 
       if (pending) {
         chat!.store.setState({ pendingContextClear: undefined });
         log("onTurnComplete: pendingContextClear detected for session=%s", id.slice(0, 8));
         void this.#handleContextClear(id, pending);
+        // Old session is about to be removed by #handleContextClear;
+        // queued items on it are dropped. Still fall through to the
+        // dispatch + bookkeeping block so listeners (changes-view
+        // diff refresh, Cmd+K turn indicator, scrollPositions cleanup)
+        // keep working — Decision Log #16.
+        skipDrain = true;
       }
 
       window.dispatchEvent(
@@ -45,26 +54,38 @@ export class ClaudeCodeChatManager {
         log("onTurnComplete: clearing scroll position for non-active session=%s", id.slice(0, 8));
         scrollPositions.delete(id);
       }
+
+      if (!skipDrain) {
+        drainQueuedHead(id, { getChat: (sid) => this.getChat(sid) });
+      }
     },
     onTurnStart: (id: string) => {
       clearTurnResult(id);
     },
   };
 
-  async createSession(cwd: string, opts?: { providerId?: string | null }) {
-    const { sessionId, currentModel, modelScope, providerId, ...capabilities } =
-      await this.rpc.claudeCode.createSession({ cwd, providerId: opts?.providerId });
+  async createSession(
+    cwd: string,
+    projectId: string = "",
+    opts?: { model?: string; providerId?: string | null },
+  ) {
+    const { sessionId, models, commands, currentModel, modelScope, providerId } =
+      await this.rpc.claudeCode.createSession({
+        cwd,
+        projectId,
+        model: opts?.model,
+        providerId: opts?.providerId,
+      });
     const chat = new ClaudeCodeChat({
       id: sessionId,
       transport: this.transport,
       ...this.#turnCallbacks,
     });
-    chat.store.setState({ capabilities });
     this.chats.set(sessionId, chat);
-    return { sessionId, currentModel, modelScope, providerId, ...capabilities };
+    return { sessionId, models, commands, currentModel, modelScope, providerId };
   }
 
-  async loadSession(sessionId: string, cwd: string, projectId = "") {
+  async loadSession(sessionId: string, cwd: string, projectId: string = "") {
     const { capabilities, messages, currentModel, modelScope, providerId } =
       await this.rpc.claudeCode.loadSession({
         sessionId,
@@ -80,6 +101,7 @@ export class ClaudeCodeChatManager {
     });
     chat.store.setState({ capabilities });
     this.chats.set(sessionId, chat);
+
     return { sessionId, currentModel, modelScope, providerId, ...capabilities };
   }
 
@@ -87,11 +109,11 @@ export class ClaudeCodeChatManager {
     return this.chats.get(sessionId);
   }
 
-  async forkSession(sessionId: string, cwd: string, title?: string) {
-    log("forkSession: sessionId=%s cwd=%s", sessionId.slice(0, 8), cwd);
+  async forkSession(sessionId: string, cwd: string, projectId: string, title?: string) {
+    log("forkSession: sessionId=%s cwd=%s projectId=%s", sessionId.slice(0, 8), cwd, projectId);
 
-    const result = await this.rpc.forkSession({ sessionId, cwd, title });
-    const loaded = await this.loadSession(result.forkedSessionId, cwd);
+    const result = await this.rpc.forkSession({ sessionId, cwd, projectId, title });
+    const loaded = await this.loadSession(result.forkedSessionId, cwd, projectId);
 
     log("forkSession: forked=%s model=%s", result.forkedSessionId.slice(0, 8), loaded.currentModel);
 
@@ -110,11 +132,12 @@ export class ClaudeCodeChatManager {
   ): Promise<{ forkedSessionId: string; originalSessionId: string }> {
     const cwd = useAgentStore.getState().sessions.get(sessionId)?.cwd ?? "";
     log(
-      "rewindToMessage: sessionId=%s messageId=%s restoreFiles=%s cwd=%s",
+      "rewindToMessage: sessionId=%s messageId=%s restoreFiles=%s cwd=%s projectId=%s",
       sessionId.slice(0, 8),
       messageId.slice(0, 8),
       restoreFiles,
       cwd,
+      projectId,
     );
 
     // 1. Call backend to rewind files (if requested), fork session, close original
@@ -150,9 +173,31 @@ export class ClaudeCodeChatManager {
   async disposeChat(sessionId: string): Promise<void> {
     const chat = this.chats.get(sessionId);
     if (!chat) return;
-    chat.store.setState({ pendingContextClear: undefined });
-    await chat.stop();
-    await chat.dispose();
+
+    // Each step is isolated so a failure can't strand the chat in this.chats or
+    // reject the caller. In particular chat.stop() dispatches an interrupt to a
+    // backend session a preceding rewind/fork may have already closed; that
+    // rejection must not surface as a "回退失败" toast. Callers such as the
+    // undo-toast onClose invoke this fire-and-forget (no .catch()), so this
+    // method must never reject. Mirrors removeSession.
+    try {
+      chat.store.setState({ pendingContextClear: undefined });
+    } catch (err) {
+      log("disposeChat: setState failed (ignored): %O", err);
+    }
+
+    try {
+      await chat.stop();
+    } catch (err) {
+      log("disposeChat: chat.stop failed (ignored): %O", err);
+    }
+
+    try {
+      await chat.dispose();
+    } catch (err) {
+      log("disposeChat: chat.dispose failed (ignored): %O", err);
+    }
+
     this.chats.delete(sessionId);
     scrollPositions.delete(sessionId);
   }
@@ -163,109 +208,44 @@ export class ClaudeCodeChatManager {
     const chat = this.chats.get(sessionId);
     if (!chat) return;
 
-    // Clear any pending context clear flag to prevent orphaned actions
-    chat.store.setState({ pendingContextClear: undefined });
-    await chat.stop();
-    await chat.dispose();
-    this.chats.delete(sessionId);
-    this.rpc.claudeCode.closeSession({ sessionId }).catch(() => {});
-  }
+    // Each cleanup step is isolated so a failure in one cannot strand the
+    // chat in this.chats or prevent main from being notified to close the
+    // session. Mirrors the prior archive-crash fix (commit a5d2a38).
 
-  private switchController: AbortController | null = null;
+    // Clear any pending context clear flag to prevent orphaned actions
+    try {
+      chat.store.setState({ pendingContextClear: undefined });
+    } catch (err) {
+      log("removeSession: setState failed (ignored): %O", err);
+    }
+
+    try {
+      await chat.stop();
+    } catch (err) {
+      log("removeSession: chat.stop failed (ignored): %O", err);
+    }
+
+    try {
+      await chat.dispose();
+    } catch (err) {
+      log("removeSession: chat.dispose failed (ignored): %O", err);
+    }
+
+    // Always run, even if the above threw. Without this, a failure in
+    // stop/dispose would leave an orphan chat in the map and a leaked
+    // subscribe iterator.
+    this.chats.delete(sessionId);
+    this.rpc.claudeCode.closeSession({ sessionId }).catch((err) => {
+      log("removeSession: closeSession failed (ignored): %O", err);
+    });
+  }
 
   /**
-   * Abort-safe model switch: persists the setting, then invalidates sessions.
-   * Each call aborts any previous in-flight switch so only the last one wins.
+   * Persist model/provider selection. No session invalidation needed —
+   * the next session created (on first message send) picks up the new config.
    */
-  switchGlobalModel(
-    providerId: string | null,
-    model: string | null,
-    cwd: string | undefined,
-  ): void {
-    this.switchController?.abort();
-    this.switchController = new AbortController();
-    const { signal } = this.switchController;
-
+  switchGlobalModel(providerId: string | null, model: string | null): void {
     client.config.setGlobalModelSelection({ providerId, model });
-
-    if (cwd) {
-      this.invalidateNewSessions(cwd, signal).catch((err) => {
-        log(
-          "switchGlobalModel: invalidation failed error=%s",
-          err instanceof Error ? err.message : String(err),
-        );
-      });
-    }
-  }
-
-  async invalidateNewSessions(cwd?: string, signal?: AbortSignal): Promise<void> {
-    const store = useAgentStore.getState();
-    let removedActive = false;
-
-    for (const [id, session] of store.sessions) {
-      if (signal?.aborted) return;
-      if (session.isNew) {
-        if (id === store.activeSessionId) removedActive = true;
-        await this.removeSession(id);
-        useAgentStore.getState().removeSession(id);
-      }
-    }
-
-    if (signal?.aborted) return;
-
-    if (removedActive && cwd) {
-      const result = await this.createSession(cwd);
-      if (signal?.aborted) {
-        await this.removeSession(result.sessionId);
-        return;
-      }
-      registerSessionInStore(result.sessionId, cwd, result, true);
-    }
-
-    if (signal?.aborted) return;
-
-    // Re-pre-warm after invalidation so the next "New Chat" is instant
-    if (cwd) {
-      this.preWarmForProject(cwd, signal);
-    }
-  }
-
-  /** Pre-warm a background session for the given project if config allows. */
-  preWarmForProject(cwd: string, signal?: AbortSignal): void {
-    if (!useConfigStore.getState().preWarmSessions) return;
-    if (signal?.aborted) return;
-
-    // Check for an existing background pre-warmed session (exclude the active one)
-    const existing = findPreWarmedSession(cwd);
-    if (existing && existing !== useAgentStore.getState().activeSessionId) {
-      log("preWarmForProject: already have a background pre-warmed session, skipping");
-      return;
-    }
-
-    log("preWarmForProject: creating background session cwd=%s", cwd);
-    this.createSession(cwd)
-      .then(
-        ({ sessionId, commands, models, currentModel, modelScope, providerId }): Promise<void> => {
-          if (signal?.aborted) {
-            log("preWarmForProject: aborted after create, cleaning up sessionId=%s", sessionId);
-            return this.removeSession(sessionId);
-          }
-          log("preWarmForProject: created %s currentModel=%s", sessionId, currentModel);
-          registerSessionInStore(
-            sessionId,
-            cwd,
-            { commands, models, currentModel, modelScope, providerId },
-            false,
-          );
-          return Promise.resolve();
-        },
-      )
-      .catch((error) => {
-        log(
-          "preWarmForProject: FAILED error=%s",
-          error instanceof Error ? error.message : String(error),
-        );
-      });
   }
 
   async #handleContextClear(
@@ -273,8 +253,9 @@ export class ClaudeCodeChatManager {
     pending: import("./chat-state").PendingContextClear,
   ): Promise<void> {
     const cwd = pending.cwd;
-    if (!cwd) {
-      log("handleContextClear: no cwd, skipping");
+    const projectId = pending.projectId;
+    if (!cwd || !projectId) {
+      log("handleContextClear: missing cwd or projectId, skipping");
       return;
     }
 
@@ -285,17 +266,14 @@ export class ClaudeCodeChatManager {
       useAgentStore.getState().removeSession(oldSessionId);
 
       // 2. Create new session
-      log("handleContextClear: creating new session cwd=%s", cwd);
-      const { sessionId, commands, models, currentModel, modelScope, providerId } =
-        await this.createSession(cwd);
+      log("handleContextClear: creating new session cwd=%s projectId=%s", cwd, projectId);
+      const { sessionId, currentModel, modelScope, providerId } = await this.createSession(
+        cwd,
+        projectId,
+      );
 
       // 3. Register in store and set permission mode
-      registerSessionInStore(
-        sessionId,
-        cwd,
-        { commands, models, currentModel, modelScope, providerId },
-        true,
-      );
+      registerSessionInStore(sessionId, cwd, { currentModel, modelScope, providerId }, true);
       useAgentStore.getState().setPermissionMode(sessionId, pending.mode);
       this.getChat(sessionId)?.dispatch({
         kind: "configure",
@@ -316,12 +294,58 @@ export class ClaudeCodeChatManager {
       );
       // Fallback: create a session without injecting the plan
       try {
-        const { sessionId } = await this.createSession(cwd);
+        const { sessionId } = await this.createSession(cwd, projectId);
         registerSessionInStore(sessionId, cwd, {}, true);
       } catch {
         // give up
       }
     }
+  }
+  async invalidateNewSessions(cwd?: string, signal?: AbortSignal): Promise<void> {
+    const store = useAgentStore.getState();
+    let removedActive = false;
+    for (const [id, session] of store.sessions) {
+      if (signal?.aborted) return;
+      if (session.isNew) {
+        if (id === store.activeSessionId) removedActive = true;
+        await this.removeSession(id);
+        useAgentStore.getState().removeSession(id);
+      }
+    }
+    if (signal?.aborted) return;
+    if (removedActive && cwd) {
+      const result = await this.createSession(cwd);
+      if (signal?.aborted) {
+        await this.removeSession(result.sessionId);
+        return;
+      }
+      registerSessionInStore(result.sessionId, cwd, result, true);
+    }
+    if (signal?.aborted) return;
+    if (cwd) {
+      this.preWarmForProject(cwd, signal);
+    }
+  }
+
+  preWarmForProject(cwd: string, signal?: AbortSignal): void {
+    if (!useConfigStore.getState().preWarmSessions) return;
+    if (signal?.aborted) return;
+    const existing = findPreWarmedSession(cwd);
+    if (existing && existing !== useAgentStore.getState().activeSessionId) return;
+    this.createSession(cwd)
+      .then(
+        ({ sessionId, commands, models, currentModel, modelScope, providerId }): Promise<void> => {
+          if (signal?.aborted) return this.removeSession(sessionId);
+          registerSessionInStore(
+            sessionId,
+            cwd,
+            { commands, models, currentModel, modelScope, providerId },
+            false,
+          );
+          return Promise.resolve();
+        },
+      )
+      .catch(() => {});
   }
 }
 

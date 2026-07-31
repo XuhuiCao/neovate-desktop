@@ -1,14 +1,18 @@
+import type { JSONContent } from "@tiptap/react";
+
 import debug from "debug";
 import { enableMapSet } from "immer";
-import { create } from "zustand";
+import { create, type UseBoundStore, type StoreApi } from "zustand";
 import { immer } from "zustand/middleware/immer";
 
+import type { ReactGrabCommentPayload } from "../../../../shared/claude-code/types";
 import type {
   SessionInfo,
   SlashCommandInfo,
   ModelInfo,
   ModelScope,
   PermissionMode,
+  ImageAttachment,
 } from "../../../../shared/features/agent/types";
 
 import { client } from "../../orpc";
@@ -54,6 +58,14 @@ export type SessionUsage = {
   remainingPct: number;
 };
 
+export type QueuedMessage = {
+  id: string;
+  content: JSONContent;
+  attachments: ImageAttachment[];
+  reactGrabComments?: ReactGrabCommentPayload;
+  createdAt: number;
+};
+
 export type ChatSession = {
   sessionId: string;
   cwd?: string;
@@ -69,7 +81,7 @@ export type ChatSession = {
   permissionMode?: PermissionMode;
   usage?: SessionUsage;
   tasks: Map<string, TaskState>;
-  queuedMessages: unknown[];
+  queuedMessages: QueuedMessage[];
 };
 
 export type RewindUndoBuffer = {
@@ -104,7 +116,12 @@ type AgentState = {
     meta?: { title?: string; createdAt?: string; cwd?: string; isNew?: boolean },
   ) => void;
   removeSession: (sessionId: string) => void;
-  addUserMessage: (sessionId: string, content: string) => void;
+  addUserMessage: (
+    sessionId: string,
+    content: string,
+    options?: { reactGrabComments?: ReactGrabCommentPayload },
+  ) => void;
+  popQueued: (sessionId: string, id: string) => QueuedMessage | undefined;
   setAvailableCommands: (sessionId: string, commands: SlashCommandInfo[]) => void;
   setAvailableModels: (sessionId: string, models: ModelInfo[]) => void;
   setCurrentModel: (sessionId: string, model: string) => void;
@@ -135,7 +152,7 @@ type AgentState = {
   undoRewindStore: (originalSessionId: string, originalSession: ChatSession) => void;
 };
 
-export const useAgentStore = create<AgentState>()(
+export const useAgentStore: UseBoundStore<StoreApi<AgentState>> = create<AgentState>()(
   immer((set, get) => ({
     sessions: new Map(),
     sidebarListMode: "all",
@@ -295,6 +312,18 @@ export const useAgentStore = create<AgentState>()(
       }
     },
 
+    popQueued: (sessionId, id) => {
+      let popped: QueuedMessage | undefined;
+      set((state) => {
+        const session = state.sessions.get(sessionId);
+        if (!session) return;
+        const idx = session.queuedMessages.findIndex((q) => q.id === id);
+        if (idx === -1) return;
+        popped = session.queuedMessages[idx];
+        session.queuedMessages = session.queuedMessages.filter((q) => q.id !== id);
+      });
+      return popped;
+    },
     setAvailableCommands: (sessionId, commands) => {
       storeLog(
         "setAvailableCommands: sid=%s commands=%o",

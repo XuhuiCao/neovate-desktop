@@ -454,7 +454,7 @@ function ConnectedModelSelect({
         currentModel: cm,
         modelScope: ms,
         providerId: pid,
-      } = await claudeCodeChatManager.createSession(cwd, { providerId: newProviderId });
+      } = await claudeCodeChatManager.createSession(cwd, "", { providerId: newProviderId });
 
       registerSessionInStore(
         sessionId,

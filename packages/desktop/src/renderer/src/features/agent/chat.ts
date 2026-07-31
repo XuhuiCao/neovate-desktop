@@ -1,11 +1,15 @@
 import type { PermissionResult } from "@anthropic-ai/claude-agent-sdk";
-import type { ChatInit, ChatRequestOptions, FileUIPart } from "ai";
+import type { StoreApi } from "zustand";
 
 import { consumeEventIterator } from "@orpc/client";
-import { convertFileListToFileUIParts } from "ai";
-import { AbstractChat } from "ai";
+import {
+  AbstractChat,
+  convertFileListToFileUIParts,
+  type ChatInit,
+  type ChatRequestOptions,
+  type FileUIPart,
+} from "ai";
 import debug from "debug";
-import { StoreApi } from "zustand";
 
 const log = debug("neovate:agent-chat:core");
 
@@ -15,11 +19,10 @@ import type {
   ClaudeCodeUIEventMessage,
   ClaudeCodeUIMessage,
   ContextUsageEvent,
-  TokenUsageEvent,
 } from "../../../../shared/claude-code/types";
 import type { ClaudeCodeChatTransport } from "./chat-transport";
 
-import { ClaudeCodeChatState, ClaudeCodeChatStoreState } from "./chat-state";
+import { ClaudeCodeChatState, ClaudeCodeChatStoreState, type RateLimitNotice } from "./chat-state";
 import {
   createStreamingUIMessageState,
   processUIMessageStream,
@@ -34,15 +37,87 @@ export interface ClaudeCodeChatInit extends Omit<ChatInit<ClaudeCodeUIMessage>, 
   onTurnStart?: (sessionId: string) => void;
 }
 
+function eventRecord(event: ClaudeCodeUIEventMessage): Record<string, unknown> {
+  return event as unknown as Record<string, unknown>;
+}
+
+function nestedValue(record: Record<string, unknown>, keys: string[]): unknown {
+  let cursor: unknown = record;
+  for (const key of keys) {
+    if (cursor == null || typeof cursor !== "object") return undefined;
+    cursor = (cursor as Record<string, unknown>)[key];
+  }
+  return cursor;
+}
+
+function firstString(record: Record<string, unknown>, paths: string[][]): string | undefined {
+  for (const path of paths) {
+    const value = nestedValue(record, path);
+    if (typeof value === "string" && value.trim()) return value;
+  }
+  return undefined;
+}
+
+function firstNumber(record: Record<string, unknown>, paths: string[][]): number | undefined {
+  for (const path of paths) {
+    const value = nestedValue(record, path);
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+  }
+  return undefined;
+}
+
+function retryAfterMs(record: Record<string, unknown>): number | undefined {
+  const explicitMs = firstNumber(record, [
+    ["retryAfterMs"],
+    ["retry_after_ms"],
+    ["retry_delay_ms"],
+  ]);
+  if (explicitMs != null) return explicitMs;
+
+  const seconds = firstNumber(record, [["retryAfter"], ["retry_after"], ["retry", "after"]]);
+  return seconds == null ? undefined : seconds * 1000;
+}
+
+function rateLimitMessage(record: Record<string, unknown>): string | undefined {
+  return firstString(record, [
+    ["message"],
+    ["reason"],
+    ["error", "message"],
+    ["error", "type"],
+    ["error", "code"],
+  ]);
+}
+
+function toRateLimitNotice(event: ClaudeCodeUIEventMessage): RateLimitNotice | null {
+  const record = eventRecord(event);
+  if (record.type === "rate_limit_event") {
+    // The SDK emits rate_limit_event for every API call to report rate limit status.
+    // 'allowed' and 'allowed_warning' mean the request went through — no retry in progress.
+    // Only 'rejected' means the request was blocked and the SDK is retrying automatically.
+    const rateLimitInfo = record.rate_limit_info as Record<string, unknown> | undefined;
+    if (rateLimitInfo?.status !== "rejected") return null;
+    return {
+      eventType: "rate_limit_event",
+      updatedAt: Date.now(),
+      message: rateLimitMessage(record),
+      retryAfterMs: retryAfterMs(record),
+    };
+  }
+
+  return null;
+}
+
 export class ClaudeCodeChat extends AbstractChat<ClaudeCodeUIMessage> {
   readonly store: StoreApi<ClaudeCodeChatStoreState>;
   readonly #transport: ClaudeCodeChatTransport;
   readonly #state: ClaudeCodeChatState;
+  readonly #onTurnStart?: (sessionId: string) => void;
+  readonly #onTurnComplete?: (sessionId: string, result: "success" | "error") => void;
   #streamingState: StreamingUIMessageState<ClaudeCodeUIMessage> | null = null;
   #messageIndex = -1;
 
   #unsubscribe?: () => Promise<void>;
-  #unsubscribeStore?: () => void;
+  #turnInFlight = false;
 
   constructor({
     id,
@@ -63,6 +138,8 @@ export class ClaudeCodeChat extends AbstractChat<ClaudeCodeUIMessage> {
     this.store = state.store;
     this.#transport = transport;
     this.#state = state;
+    this.#onTurnStart = onTurnStart;
+    this.#onTurnComplete = onTurnComplete;
 
     log("init: sessionId=%s messages=%d", id, messages?.length ?? 0);
 
@@ -83,29 +160,37 @@ export class ClaudeCodeChat extends AbstractChat<ClaudeCodeUIMessage> {
         this.store.setState({ eventError: error });
       },
     });
+  }
 
-    // ── Status change callbacks ───────────────────────────────────────
-    if (onTurnComplete || onTurnStart) {
-      let prev = this.store.getState().status;
-      this.#unsubscribeStore = this.store.subscribe((cur) => {
-        const status = cur.status;
-        if (status === prev) return;
-
-        if (status === "submitted" || status === "streaming") {
-          if (cur.promptSuggestion !== null) {
-            this.store.setState({ promptSuggestion: null });
-          }
-          onTurnStart?.(id);
-        } else if (
-          (prev === "streaming" && (status === "ready" || status === "error")) ||
-          (prev === "submitted" && status === "error")
-        ) {
-          onTurnComplete?.(id, status === "ready" ? "success" : "error");
-        }
-
-        prev = status;
-      });
+  #clearRateLimitNotice() {
+    if (this.store.getState().rateLimitNotice !== null) {
+      this.store.setState({ rateLimitNotice: null });
     }
+  }
+
+  #showRateLimitNotice(notice: RateLimitNotice) {
+    this.store.setState({ rateLimitNotice: notice });
+  }
+
+  /**
+   * Mark the turn as completed and invoke the consumer callback.
+   * Idempotent for a given turn: a second call before the next start is a no-op.
+   */
+  #emitTurnComplete(result: "success" | "error") {
+    if (!this.#turnInFlight) return;
+    this.#turnInFlight = false;
+    this.#clearRateLimitNotice();
+    this.#onTurnComplete?.(this.id, result);
+  }
+
+  #emitTurnStart() {
+    if (this.#turnInFlight) return;
+    this.#turnInFlight = true;
+    const state = this.store.getState();
+    if (state.promptSuggestion !== null || state.rateLimitNotice !== null) {
+      this.store.setState({ promptSuggestion: null, rateLimitNotice: null });
+    }
+    this.#onTurnStart?.(this.id);
   }
 
   // ── Event handling (subscribe channel) ──────────────────────────────
@@ -149,9 +234,10 @@ export class ClaudeCodeChat extends AbstractChat<ClaudeCodeUIMessage> {
     }
 
     if (message.kind === "chunk") {
-      // Turn boundaries driven by SDKMessageTransformer native chunks:
-      // "start" chunk (emitted on system/init) → streaming
-      // "finish" chunk (emitted on result) → ready
+      // Turn boundaries are driven by the Claude Agent SDK's native chunks
+      // (re-emitted by SDKMessageTransformer): start = system/init, finish = result.
+      // We fire onTurnStart/onTurnComplete from these directly rather than
+      // deriving them from store.status changes.
       if (message.chunk.type === "start") {
         // Create streaming state per turn — matches AI SDK's AbstractChat.makeRequest()
         this.#streamingState = createStreamingUIMessageState<ClaudeCodeUIMessage>({
@@ -160,6 +246,7 @@ export class ClaudeCodeChat extends AbstractChat<ClaudeCodeUIMessage> {
         });
         this.#messageIndex = -1;
         this.#state.status = "streaming";
+        this.#emitTurnStart();
       }
       if (this.#streamingState) {
         await processUIMessageStream<ClaudeCodeUIMessage>({
@@ -176,15 +263,26 @@ export class ClaudeCodeChat extends AbstractChat<ClaudeCodeUIMessage> {
           onError: (error) => {
             this.#state.error = error instanceof Error ? error : new Error(String(error));
             this.#state.status = "error";
+            log("chunk processing error %o", {
+              sessionId: this.id,
+              chunkType: message.chunk.type,
+              error: this.#state.error.message,
+            });
           },
         });
       }
       if (message.chunk.type === "finish") {
-        this.#streamingState = null;
+        // Don't clear #streamingState here — AI SDK's chat.ts only releases its
+        // activeResponse after consumeStream EOFs (see node_modules/ai/src/ui/chat.ts:716-733).
+        // finish is not a stream terminator; data chunks (e.g. data-turn-file-changes)
+        // can legitimately arrive after it. The next `start` overwrites #streamingState
+        // (see line ~157) for the new turn.
+        const result = this.#state.status === "error" ? "error" : "success";
         // Don't overwrite error status — if onError was called, keep error state
         if (this.#state.status !== "error") {
           this.#state.status = "ready";
         }
+        this.#emitTurnComplete(result);
       }
       return;
     }
@@ -193,6 +291,18 @@ export class ClaudeCodeChat extends AbstractChat<ClaudeCodeUIMessage> {
   }
 
   #handleEvent(event: ClaudeCodeUIEventMessage) {
+    const rateLimitNotice = toRateLimitNotice(event);
+    if (rateLimitNotice) {
+      log("rate limit notice: sessionId=%s eventType=%s", this.id, rateLimitNotice.eventType);
+      this.#showRateLimitNotice(rateLimitNotice);
+      return;
+    }
+
+    if (event.type === "result") {
+      this.#clearRateLimitNotice();
+      return;
+    }
+
     if (event.type === "context_usage") {
       const { contextWindowSize, usedTokens, remainingPct } = event as ContextUsageEvent & {
         id: string;
@@ -201,16 +311,6 @@ export class ClaudeCodeChat extends AbstractChat<ClaudeCodeUIMessage> {
         contextWindowSize,
         usedTokens,
         remainingPct,
-      });
-    } else if (event.type === "token_usage") {
-      const { inputTokens, outputTokens, costUsd, durationMs } = event as TokenUsageEvent & {
-        id: string;
-      };
-      useAgentStore.getState().addSessionTokenUsage(this.id, {
-        inputTokens,
-        outputTokens,
-        costUsd,
-        durationMs,
       });
     } else if (event.type === "prompt_suggestion") {
       const suggestion = (event as { suggestion: string }).suggestion;
@@ -234,6 +334,7 @@ export class ClaudeCodeChat extends AbstractChat<ClaudeCodeUIMessage> {
       // Re-submit last message (same as AI SDK's makeRequest with no new message)
       const lastMsg = this.#state.messages.at(-1);
       if (!lastMsg) return;
+      this.#clearRateLimitNotice();
       this.#state.status = "submitted";
       try {
         await this.#transport.send(this.id, lastMsg);
@@ -291,6 +392,7 @@ export class ClaudeCodeChat extends AbstractChat<ClaudeCodeUIMessage> {
       }),
     );
 
+    this.#clearRateLimitNotice();
     this.#state.status = "submitted";
 
     // Fire and forget — subscribe handles the response (replaces makeRequest)
@@ -313,7 +415,7 @@ export class ClaudeCodeChat extends AbstractChat<ClaudeCodeUIMessage> {
   private _stop = async () => {
     log("stop: sessionId=%s", this.id);
     await this.dispatch({ kind: "interrupt" });
-    this.store.setState({ pendingRequests: [] });
+    this.store.setState({ pendingRequests: [], rateLimitNotice: null });
   };
 
   clearError = () => {
@@ -371,13 +473,12 @@ export class ClaudeCodeChat extends AbstractChat<ClaudeCodeUIMessage> {
     );
     await this.dispatch({ kind: "interrupt" });
     // Clear pending permission requests so dialogs don't stay stuck after interrupt
-    this.store.setState({ pendingRequests: [] });
+    this.store.setState({ pendingRequests: [], rateLimitNotice: null });
     await this.stop();
   };
 
   dispose = async () => {
     log("dispose: sessionId=%s", this.id);
-    this.#unsubscribeStore?.();
     await this.#unsubscribe?.();
   };
 }

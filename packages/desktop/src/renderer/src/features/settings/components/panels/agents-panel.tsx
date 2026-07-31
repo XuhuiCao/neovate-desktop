@@ -33,7 +33,6 @@ import { client } from "../../../../orpc";
 import { claudeCodeChatManager } from "../../../agent/chat-manager";
 import { useAgentStore } from "../../../agent/store";
 import { useConfigStore } from "../../../config/store";
-import { useProjectStore } from "../../../project/store";
 import { useProviderStore } from "../../../provider/store";
 import { SettingsGroup } from "../settings-group";
 import { SettingsRow } from "../settings-row";
@@ -372,8 +371,7 @@ function GlobalModelSelect() {
       log("global model selection: providerId=%s model=%s", providerId, model);
       setSelectedProviderId(providerId ?? undefined);
       setSelectedModel(model ?? undefined);
-      const projectPath = useProjectStore.getState().activeProject?.path;
-      claudeCodeChatManager.switchGlobalModel(providerId, model, projectPath);
+      claudeCodeChatManager.switchGlobalModel(providerId, model);
     },
     [selectedProviderId, selectedModel],
   );
