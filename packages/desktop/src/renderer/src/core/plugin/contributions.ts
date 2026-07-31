@@ -130,3 +130,15 @@ export function deduplicateById<T extends { id: string }>(
     return true;
   });
 }
+
+export type ContentPanelRenderableView = {
+  viewType: string;
+  label: string;
+  name?: string;
+  icon?: string;
+  singleton?: boolean;
+  isAvailable?: (context: any) => boolean;
+  discoverable?: boolean;
+  supportedProjectTypes?: string[];
+  component?: React.ComponentType<any>;
+};

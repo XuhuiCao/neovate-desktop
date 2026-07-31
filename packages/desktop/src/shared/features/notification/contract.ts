@@ -1,4 +1,4 @@
-import { oc, type } from "@orpc/contract";
+import { eventIterator, oc, type } from "@orpc/contract";
 import { z } from "zod";
 
 /**
@@ -13,6 +13,7 @@ export type NotificationPermission = "granted" | "denied" | "default";
 export type NotificationKind = "info" | "success" | "warning" | "error";
 
 export const notificationContract = {
+  subscribe: oc.output(eventIterator(type<unknown>())),
   requestPermission: oc.output(type<NotificationPermission>()),
 
   permission: oc.output(type<NotificationPermission>()),

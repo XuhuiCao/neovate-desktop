@@ -40,6 +40,22 @@ export interface RegistryGroup {
   skills: RecommendedSkill[];
 }
 
+export interface BuiltinSkillWhen {
+  dep?: string;
+  fileExists?: string;
+}
+
+export interface BuiltinSkill {
+  name: string;
+  description: string;
+  source: string;
+  sourceRef: string;
+  skillName: string;
+  category?: "core" | "project";
+  when?: BuiltinSkillWhen;
+  docsUrl?: string;
+}
+
 export type SkillSource = "prebuilt" | "git" | "npm" | "clawhub";
 
 export interface PreviewSkill {

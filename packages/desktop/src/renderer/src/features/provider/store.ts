@@ -58,7 +58,13 @@ export const useProviderStore = create<ProviderState>()(
     },
 
     addProvider: async (input) => {
-      const provider = await client.provider.create(input);
+      const provider = await client.provider.create({
+        ...input,
+        baseURL: input.baseURL ?? "",
+        apiKey: input.apiKey ?? "",
+        models: input.models ?? {},
+        modelMap: input.modelMap ?? {},
+      } as any);
       log("provider added: id=%s name=%s", provider.id, provider.name);
       set((state) => {
         state.providers.push(provider);

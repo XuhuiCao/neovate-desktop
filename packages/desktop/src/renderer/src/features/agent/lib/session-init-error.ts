@@ -2,8 +2,8 @@ import type { TFunction } from "i18next";
 
 import { toastManager } from "@neo/ui/components/toast";
 
-const CFUSE_PROXY_ID = "cfuse";
-const CFUSE_SETUP_DOC_URL = "https://docs.anthropic.com";
+export const CFUSE_PROXY_ID = "cfuse";
+export const CFUSE_SETUP_DOC_URL = "https://docs.anthropic.com";
 import { isTransientSpawnErrorMessage } from "../../../../../shared/spawn-errors";
 
 // A session-create failure may carry structured provider-setup data (attached

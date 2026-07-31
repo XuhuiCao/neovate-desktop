@@ -1,4 +1,23 @@
-export type ProviderModelEntry = { displayName?: string };
+// Single source of truth for the per-model tag NAME list. Mirrors the server
+// enum (`yuyanmessagecenter` `ModelTagName`); the Zod contract (`z.enum(MODEL_TAG_NAMES)`)
+// and the `ModelTagName` union both derive from this tuple. Adding a name here keeps
+// them in sync. A model's tags are display-only metadata carried from the model
+// interface: `name` is the enum, `cname` the server-provided localized label, and
+// `value` an optional payload (e.g. CONTEXT length "1m"). DEFAULT drives the default
+// model selection (modelMap.model), the rest render as badges.
+export const MODEL_TAG_NAMES = [
+  "DEFAULT",
+  "MULTI_MODEL",
+  "EXTERNAL",
+  "BETA",
+  "CHAT",
+  "CONTEXT",
+] as const;
+export type ModelTagName = (typeof MODEL_TAG_NAMES)[number];
+
+export type ModelTag = { name: ModelTagName; cname?: string; value?: string };
+
+export type ProviderModelEntry = { displayName?: string; tags?: ModelTag[] };
 
 export type ProviderModelMap = {
   model?: string;
@@ -7,14 +26,7 @@ export type ProviderModelMap = {
   sonnet?: string;
 };
 
-/**
- * Provider 授权模式。
- * - `api-key`: 显式 baseURL + apiKey（或 envOverrides），session 注入 ANTHROPIC_AUTH_TOKEN/BASE_URL。
- * - `inherit`: 不注入任何 Anthropic env，SDK 自解析本机 Claude Code 登录态（OAuth / ~/.claude/settings.json）。
- *   baseURL/apiKey 允许为空串。等价于历史上"未选 provider"的 SDK Default 路径，但作为一条显式 Provider 记录存在，
- *   以支持首启向导与多 provider 切换。
- */
-export type ProviderAuth = "inherit" | "api-key";
+export type ProviderAuth = "inherit" | "api-key" | "oauth";
 
 export type Provider = {
   id: string;
@@ -25,9 +37,10 @@ export type Provider = {
   models: Record<string, ProviderModelEntry>;
   modelMap: ProviderModelMap;
   envOverrides: Record<string, string>;
-  auth?: ProviderAuth;
   builtInId?: string;
   dismissedSyncModels?: string[];
+  /** 对齐内部 neo-monorepo：provider 认证方式。OSS 默认 "inherit"。 */
+  auth?: "inherit" | "api-key" | "oauth";
 };
 
 export type QuickCheckModelTestResult = {

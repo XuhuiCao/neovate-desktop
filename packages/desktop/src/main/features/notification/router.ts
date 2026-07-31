@@ -18,4 +18,9 @@ export const notificationRouter = os.notification.router({
   requestPermission: os.notification.requestPermission.handler(({ context }) => {
     return context.notificationService.requestPermission();
   }),
+
+  subscribe: os.notification.subscribe.handler(async function* () {
+    // OSS stub: notification subscribe not implemented (internal daemon provides this)
+    yield {};
+  }),
 });
