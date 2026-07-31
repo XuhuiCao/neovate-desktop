@@ -736,5 +736,11 @@
   "projectInfo.activeBranches": "Active Branches",
   "projectInfo.branchesCount": "{{count}} branches",
   "sidebar.projectInfo": "Project Info",
-  "git.worktree.enterTitle": "Enter Worktree"
+  "git.worktree.enterTitle": "Enter Worktree",
+  "chat.fileChanges.title": "Change summary",
+  "chat.fileChanges.review": "View changes",
+  "chat.fileChanges.multipleFiles": "{{count}} files changed",
+  "ai.branch.previous": "Previous branch",
+  "ai.branch.next": "Next branch",
+  "ai.branch.page": "{{current}} of {{total}}"
 }

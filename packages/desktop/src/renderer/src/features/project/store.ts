@@ -14,6 +14,8 @@ import { useAgentStore } from "../agent/store";
 type ProjectState = {
   projects: ProjectInfo[];
   activeProject: Project | null;
+  /** Active project's absolute path (= activeProject?.path). 对齐内部 neo-monorepo. */
+  cwd: string | null;
   loading: boolean;
   /** projectPath → archived sessionIds */
   archivedSessions: Record<string, string[]>;
@@ -23,6 +25,7 @@ type ProjectState = {
 
   setProjects: (projects: ProjectInfo[]) => void;
   setActiveProject: (project: Project | null) => void;
+  setCwd: (cwd: string | null) => void;
   setLoading: (loading: boolean) => void;
   switchToProjectByPath: (projectPath: string) => void;
   archiveSession: (projectPath: string, sessionId: string, isActive?: boolean) => void;
@@ -46,13 +49,15 @@ export const useProjectStore = create<ProjectState>()(
   immer((set) => ({
     projects: [],
     activeProject: null,
+    cwd: null,
     loading: false,
     archivedSessions: {},
     pinnedSessions: {},
     closedProjectAccordions: [],
 
     setProjects: (projects) => set({ projects }),
-    setActiveProject: (activeProject) => set({ activeProject }),
+    setActiveProject: (activeProject) => set({ activeProject, cwd: activeProject?.path ?? null }),
+    setCwd: (cwd) => set({ cwd }),
     setLoading: (loading) => set({ loading }),
     switchToProjectByPath: (projectPath) => {
       const { activeProject, projects } = useProjectStore.getState();
@@ -61,10 +66,10 @@ export const useProjectStore = create<ProjectState>()(
       if (!project || project.pathMissing) return;
       log("switch to project by path", { projectPath, id: project.id });
       const prev = activeProject;
-      set({ activeProject: project });
+      set({ activeProject: project, cwd: project.path });
       client.project.setActive({ id: project.id }).catch(() => {
         log("switch to project by path failed, reverting", { projectPath });
-        set({ activeProject: prev });
+        set({ activeProject: prev, cwd: prev?.path ?? null });
       });
     },
     archiveSession: (projectPath, sessionId, isActive) => {

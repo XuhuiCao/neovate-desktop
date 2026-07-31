@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 import { CollapsibleTrigger } from "@neo/ui/components/collapsible";
 import { type ToolUIPart } from "ai";
-import { Bot, MessageSquare } from "lucide-react";
+import { BotIcon, MessageSquareIcon } from "lucide-react";
 
 import type {
   AgentUIToolInvocation,
@@ -17,8 +17,9 @@ import {
   ToolContent,
   ToolHeader,
   ToolHeaderIcon,
+  ToolHeaderTitle,
 } from "../../../../components/ai-elements/tool";
-import { MessagePartRenderer } from "../message-parts";
+import { AssistantMessageContent } from "../assistant-message-content";
 
 export function AgentTool({
   invocation,
@@ -34,8 +35,8 @@ export function AgentTool({
   return (
     <Tool invocation={invocation}>
       <ToolHeader>
-        <ToolHeaderIcon icon={Bot} />
-        <span className="min-w-0 truncate">{input?.description ?? "Agent"}</span>
+        <ToolHeaderIcon icon={BotIcon} />
+        <ToolHeaderTitle>{input?.description ?? "Agent"}</ToolHeaderTitle>
       </ToolHeader>
       <ToolContent className="flex gap-0 bg-transparent rounded-none p-0">
         <CollapsibleTrigger className="relative w-3 shrink-0 cursor-pointer pl-1.5 before:absolute before:inset-y-0 before:left-1.5 before:w-px before:bg-border before:transition-colors hover:before:bg-muted-foreground" />
@@ -43,8 +44,8 @@ export function AgentTool({
           {input?.prompt ? (
             <Tool invocation={invocation} defaultOpen>
               <ToolHeader>
-                <ToolHeaderIcon icon={MessageSquare} />
-                <span className="min-w-0 truncate">Prompt</span>
+                <ToolHeaderIcon icon={MessageSquareIcon} />
+                <ToolHeaderTitle>Prompt</ToolHeaderTitle>
               </ToolHeader>
               <ToolContent>
                 <MessageResponse>{input.prompt}</MessageResponse>
@@ -52,9 +53,15 @@ export function AgentTool({
             </Tool>
           ) : null}
           {agentMessage != null ? (
-            <MessagePartRenderer
+            <AssistantMessageContent
               message={agentMessage}
-              renderToolPart={(agentPartMessage, part) => renderToolPart?.(agentPartMessage, part)}
+              renderToolPart={(agentPartMessage, part) =>
+                renderToolPart?.(agentPartMessage, part) ?? null
+              }
+              // Subagent transcripts inherit AssistantMessageContent but should
+              // not surface the copy-markdown affordance — that belongs to the
+              // parent assistant turn.
+              showActions={false}
             />
           ) : null}
           {agentMessage == null && Array.isArray(output)

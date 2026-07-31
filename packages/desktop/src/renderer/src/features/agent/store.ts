@@ -69,6 +69,7 @@ export type ChatSession = {
   permissionMode?: PermissionMode;
   usage?: SessionUsage;
   tasks: Map<string, TaskState>;
+  queuedMessages: unknown[];
 };
 
 export type RewindUndoBuffer = {
@@ -192,6 +193,7 @@ export const useAgentStore = create<AgentState>()(
           availableCommands: [],
           availableModels: [],
           tasks: new Map(),
+          queuedMessages: [],
         });
         state.activeSessionId = sessionId;
         state._sessionsMetaVersion += 1;
@@ -212,6 +214,7 @@ export const useAgentStore = create<AgentState>()(
           availableCommands: [],
           availableModels: [],
           tasks: new Map(),
+          queuedMessages: [],
         });
         state._sessionsMetaVersion += 1;
         storeLog("createBackgroundSession: totalSessions=%d (not activated)", state.sessions.size);

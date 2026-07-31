@@ -9,7 +9,10 @@ vi.mock("../../../../core/app", () => ({
 vi.mock("../../hooks/use-markdown-components", async () => {
   const { markdownBaseComponents } =
     await import("../../../../components/ai-elements/markdown-base-components");
-  return { useMarkdownComponents: () => markdownBaseComponents };
+  return {
+    useMarkdownComponents: () => markdownBaseComponents,
+    useMessageMarkdownPipeline: () => ({ processorKey: "test", rehypePlugins: [] }),
+  };
 });
 
 import { MessageParts } from "../message-parts";

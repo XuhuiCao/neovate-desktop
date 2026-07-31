@@ -18,4 +18,8 @@ export const fsRouter = os.fs.router({
   stat: os.fs.stat.handler(async ({ input, context }) => {
     return context.fsService.stat(input.path);
   }),
+
+  statMany: os.fs.statMany.handler(async ({ input, context }) => {
+    return context.fsService.statMany(input);
+  }),
 });

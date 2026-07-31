@@ -196,4 +196,14 @@ export class ContentPanel {
     log("update view state", { viewId });
     this.#store.getState().updateTabState(this.projectPath, viewId, patch);
   }
+
+  /**
+   * Open (or activate) a view and apply state. 对齐内部 neo-monorepo ContentPanel.revealView.
+   * 与 openView 的区别：保证写入 state（用于 changes 等需预设 category 的跳转）。
+   */
+  revealView(viewType: string, state: Record<string, unknown>): string {
+    const id = this.openView(viewType, { state });
+    this.updateViewState(id, state);
+    return id;
+  }
 }

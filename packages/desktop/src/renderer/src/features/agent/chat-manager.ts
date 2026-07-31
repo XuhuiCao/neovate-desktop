@@ -64,11 +64,12 @@ export class ClaudeCodeChatManager {
     return { sessionId, currentModel, modelScope, providerId, ...capabilities };
   }
 
-  async loadSession(sessionId: string, cwd: string) {
+  async loadSession(sessionId: string, cwd: string, projectId = "") {
     const { capabilities, messages, currentModel, modelScope, providerId } =
       await this.rpc.claudeCode.loadSession({
         sessionId,
         cwd,
+        projectId,
       });
 
     const chat = new ClaudeCodeChat({
@@ -102,6 +103,7 @@ export class ClaudeCodeChatManager {
 
   async rewindToMessage(
     sessionId: string,
+    projectId: string,
     messageId: string,
     restoreFiles: boolean,
     title?: string,
@@ -124,7 +126,7 @@ export class ClaudeCodeChatManager {
     });
 
     // 2. Load the forked session via the normal loadSession flow
-    const loaded = await this.loadSession(result.forkedSessionId, cwd);
+    const loaded = await this.loadSession(result.forkedSessionId, cwd, projectId);
 
     // 3. For file restores, dispose original chat immediately.
     //    For conversation-only, keep original alive during undo window.

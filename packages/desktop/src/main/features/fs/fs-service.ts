@@ -54,4 +54,25 @@ export class FsService {
       return null;
     }
   }
+
+  /**
+   * 批量 stat：renderer 文件路径状态子系统按需校验一批路径。
+   * 每个路径返回 { isFile, isDirectory } 或 null（路径不存在/非绝对）。
+   * 对齐内部 neo-monorepo fs.statMany（本地 fs，无 daemon）。
+   */
+  async statMany(
+    paths: string[],
+  ): Promise<Array<{ isFile: boolean; isDirectory: boolean } | null>> {
+    return Promise.all(
+      paths.map(async (p) => {
+        if (!isAbsolute(p)) return null;
+        try {
+          const s = await stat(p);
+          return { isFile: s.isFile(), isDirectory: s.isDirectory() };
+        } catch {
+          return null;
+        }
+      }),
+    );
+  }
 }

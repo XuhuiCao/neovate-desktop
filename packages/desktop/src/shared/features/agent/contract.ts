@@ -71,16 +71,18 @@ export const agentContract = {
 
     closeSession: oc.input(z.object({ sessionId: z.string() })).output(type<void>()),
 
-    loadSession: oc.input(z.object({ sessionId: z.string(), cwd: z.string() })).output(
-      type<{
-        sessionId: string;
-        capabilities: Awaited<ReturnType<Query["initializationResult"]>>;
-        messages: ClaudeCodeUIMessage[];
-        currentModel?: string;
-        modelScope?: ModelScope;
-        providerId?: string;
-      }>(),
-    ),
+    loadSession: oc
+      .input(z.object({ sessionId: z.string(), cwd: z.string(), projectId: z.string() }))
+      .output(
+        type<{
+          sessionId: string;
+          capabilities: Awaited<ReturnType<Query["initializationResult"]>>;
+          messages: ClaudeCodeUIMessage[];
+          currentModel?: string;
+          modelScope?: ModelScope;
+          providerId?: string;
+        }>(),
+      ),
   },
 
   network: {

@@ -735,5 +735,11 @@
   "projectInfo.activeBranches": "活跃分支",
   "projectInfo.branchesCount": "{{count}} 个分支",
   "sidebar.projectInfo": "项目信息",
-  "git.worktree.enterTitle": "进入工作树"
+  "git.worktree.enterTitle": "进入工作树",
+  "chat.fileChanges.title": "变更汇总",
+  "chat.fileChanges.review": "查看变更",
+  "chat.fileChanges.multipleFiles": "{{count}} 个文件已更改",
+  "ai.branch.previous": "上一个分支",
+  "ai.branch.next": "下一个分支",
+  "ai.branch.page": "第 {{current}} 个，共 {{total}} 个"
 }

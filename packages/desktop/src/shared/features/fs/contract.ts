@@ -20,4 +20,13 @@ export const fsContract = {
   stat: oc
     .input(z.object({ path: z.string().min(1) }))
     .output(type<{ size: number; isDirectory: boolean; mtimeMs: number } | null>()),
+
+  // 批量 stat：renderer 文件路径状态子系统按需校验一批路径是否存在/是文件/目录。
+  // 对齐内部 neo-monorepo fs.statMany（本地 fs，无 daemon）。
+  statMany: oc.input(z.array(z.string())).output(type<Array<FileStat | null>>()),
+};
+
+export type FileStat = {
+  isFile: boolean;
+  isDirectory: boolean;
 };

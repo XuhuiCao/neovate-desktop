@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next";
 import type { RewindFilesResult } from "../../../../../shared/features/agent/types";
 
 import { cn } from "../../../lib/utils";
+import { useProjectStore } from "../../project/store";
 import { claudeCodeChatManager } from "../chat-manager";
 import { useAgentStore } from "../store";
 
@@ -40,9 +41,15 @@ function archiveOriginalSession(
     cwd?: string;
   },
 ) {
-  import("../../../orpc").then(({ client }) => {
-    client.agent.archiveSessionFile({ sessionId, ...meta }).catch(() => {});
-  });
+  void import("../../../orpc")
+    .then(({ client }) =>
+      client.agent.archiveSessionFile({ sessionId, ...meta }).catch((error) => {
+        log("archive original session failed: %O", error);
+      }),
+    )
+    .catch((error) => {
+      log("load orpc client failed while archiving original session: %O", error);
+    });
 }
 
 type Props = {
@@ -140,8 +147,10 @@ export function MessageRewindButton({ sessionId, messageId, disabled }: Props) {
 
         // Execute the rewind, passing the original title to avoid "(fork)" suffix
         const original = store.sessions.get(sessionId);
+        const projectId = useProjectStore.getState().activeProject?.id ?? "";
         const result = await claudeCodeChatManager.rewindToMessage(
           sessionId,
+          projectId,
           messageId,
           restoreFiles,
           original?.title,
@@ -154,7 +163,6 @@ export function MessageRewindButton({ sessionId, messageId, disabled }: Props) {
           cwd: original?.cwd,
           title: original?.title,
           createdAt: original?.createdAt ?? new Date().toISOString(),
-          isNew: false,
           messages: forkedMessages
             .filter((m) => m.role === "user" || m.role === "assistant")
             .map((m) => ({
@@ -167,13 +175,15 @@ export function MessageRewindButton({ sessionId, messageId, disabled }: Props) {
                   .join("") || "",
               toolCalls: [],
             })),
-          availableCommands: original?.availableCommands ?? [],
-          availableModels: original?.availableModels ?? [],
           currentModel: original?.currentModel,
           modelScope: original?.modelScope,
           providerId: original?.providerId,
           permissionMode: original?.permissionMode,
+          isNew: false,
+          availableCommands: [],
+          availableModels: [],
           tasks: new Map(),
+          queuedMessages: [],
         });
 
         // Pre-fill input with the rewound message's text
@@ -247,7 +257,8 @@ export function MessageRewindButton({ sessionId, messageId, disabled }: Props) {
 
       try {
         // Load original session back
-        await claudeCodeChatManager.loadSession(originalSessionId, cwd);
+        const projectId = useProjectStore.getState().activeProject?.id ?? "";
+        await claudeCodeChatManager.loadSession(originalSessionId, cwd, projectId);
         const chat = claudeCodeChatManager.getChat(originalSessionId);
         const messages = chat?.store.getState().messages ?? [];
 
@@ -256,7 +267,6 @@ export function MessageRewindButton({ sessionId, messageId, disabled }: Props) {
           cwd,
           title: store.sessions.get(forkedSessionId)?.title,
           createdAt: store.sessions.get(forkedSessionId)?.createdAt ?? new Date().toISOString(),
-          isNew: false,
           messages: messages
             .filter((m) => m.role === "user" || m.role === "assistant")
             .map((m) => ({
@@ -269,9 +279,11 @@ export function MessageRewindButton({ sessionId, messageId, disabled }: Props) {
                   .join("") || "",
               toolCalls: [],
             })),
+          isNew: false,
           availableCommands: [],
           availableModels: [],
           tasks: new Map(),
+          queuedMessages: [],
         });
 
         // Dispose the fork
@@ -293,7 +305,7 @@ export function MessageRewindButton({ sessionId, messageId, disabled }: Props) {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <TooltipProvider>
+      <TooltipProvider delay={0}>
         <Tooltip>
           <TooltipTrigger
             render={
